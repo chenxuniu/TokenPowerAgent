@@ -1,0 +1,16 @@
+\section{Conclusion}
+
+\system\ advances \bench\ from post-hoc measurement to agentic multi-fidelity
+Pareto search for energy-efficient LLM inference on GPU clusters.  Its central
+premise is deliberately modest and testable: a sandbox cannot replace
+multi-node measurement, but phase-aware priors, sparse topology calibration,
+and uncertainty-guided evidence selection can reduce how many expensive
+measurements are needed.  A communication-aware Energy Twin predicts candidate
+operating points; a language-model planner chooses typed experiment subgoals;
+\ipig\ spends GPU-hours on the configuration--fidelity observations most likely
+to change SLO feasibility or the Pareto frontier; and target-scale \bench\ runs
+verify every released recommendation.  The resulting workflow connects energy
+benchmarking, serving simulation, active autotuning, and bounded agentic HPC
+while preserving provenance and reproducibility.  The evaluation tests
+cross-scale calibration, Pareto recall per GPU-hour, agent reliability, and
+verified energy savings under real latency constraints.

@@ -1,0 +1,39 @@
+\section{Results and Analysis}
+
+This internal manuscript reserves the quantitative section without inventing
+measurements.  All numeric fields are centralized in
+\texttt{results/metrics.tex}; the experiment pipeline will populate those
+macros and the plots listed below.  Table~\ref{tab:results-template} is the
+single summary table used by the abstract and conclusion after measurement.
+
+\input{tables/results-template}
+
+\subsection{Prediction and Cross-Scale Fidelity}
+
+The final paper will report measured-versus-predicted parity plots for energy,
+TTFT, and TPOT, separated into interpolation, unseen token/batch region, and
+unseen node-count splits.  A calibration curve will test whether nominal
+intervals achieve \Coverage{} coverage.  The central quantities are energy
+MAPE (\EnergyMAPE) and TPOT MAPE (\TPOTMAPE), with error reported before and
+after one, two, and four sparse L3 observations.
+
+\subsection{Pareto-Search Efficiency and Energy Savings}
+
+Best-so-far feasible hypervolume and J/token will be plotted against both
+measurement count and cumulative GPU-hours.  Curves will compare \system,
+random search, single-fidelity multi-objective Bayesian optimization,
+multi-fidelity multi-objective Bayesian optimization, and simulator-only search
+under identical seeds and budgets.  The primary outcomes are Pareto recall
+(\ParetoRecall), normalized hypervolume-regret reduction (\HypervolumeGain),
+GPU-hour reduction (\MeasurementReduction), and verified energy savings over
+runtime defaults (\EnergySaving) at an SLO pass rate of \SLOPassRate.
+
+\subsection{Case Studies and Ablations}
+
+Three trace-level case studies are reserved: (i) an 8B prefill-heavy case, (ii)
+a one-node 70B decode-heavy case where the agent can reject ineffective power
+capping, and (iii) a two-node 70B case where communication and placement change
+the recommendation.  Ablations separate the Energy Twin, \ipig, semantic
+planner, and L4 gate.  The invalid-action rate (\InvalidActionRate) and agent
+runtime/token cost (\AgentOverhead) are reported separately from measurement
+cost.

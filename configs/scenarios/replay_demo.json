@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0",
+  "name": "llama-70b-two-node-demo",
+  "model": "meta-llama/Llama-3.1-70B-Instruct",
+  "hardware": {
+    "gpu": "H100-80GB",
+    "gpus_per_node": 8,
+    "interconnect": "NVLink+InfiniBand"
+  },
+  "workload": {
+    "trace": "long-context-mixed",
+    "arrival_process": "poisson",
+    "request_rate": 4.0
+  },
+  "objectives": {
+    "energy_j_per_1k_tokens": "min",
+    "ttft_ms": "min",
+    "tpot_ms": "min",
+    "goodput_req_s": "max"
+  },
+  "slo": {
+    "ttft_ms": 2000,
+    "tpot_ms": 100,
+    "min_goodput_req_s": 3.0
+  },
+  "budget": {
+    "gpu_hours": 4.0,
+    "verify_top_k": 2
+  },
+  "available_levels": ["L0", "L2", "L4"],
+  "level_cost_gpu_hours": {
+    "L0": 0.02,
+    "L2": 0.40,
+    "L4": 1.00
+  },
+  "candidates": [
+    {
+      "id": "cfg-efficient",
+      "required_gpus": 8,
+      "target_nodes": 1,
+      "config": {
+        "engine": "vllm",
+        "tensor_parallel": 8,
+        "power_cap_w": 450,
+        "command": "tokenpowerbench run --config configs/generated/cfg-efficient.yaml"
+      },
+      "prior_metrics": {
+        "energy_j_per_1k_tokens": 620,
+        "ttft_ms": 1800,
+        "tpot_ms": 82,
+        "goodput_req_s": 3.6
+      }
+    },
+    {
+      "id": "cfg-balanced",
+      "required_gpus": 8,
+      "target_nodes": 1,
+      "config": {
+        "engine": "vllm",
+        "tensor_parallel": 8,
+        "power_cap_w": 600,
+        "command": "tokenpowerbench run --config configs/generated/cfg-balanced.yaml"
+      },
+      "prior_metrics": {
+        "energy_j_per_1k_tokens": 700,
+        "ttft_ms": 1320,
+        "tpot_ms": 66,
+        "goodput_req_s": 4.2
+      }
+    },
+    {
+      "id": "cfg-fast",
+      "required_gpus": 16,
+      "target_nodes": 2,
+      "config": {
+        "engine": "vllm",
+        "tensor_parallel": 16,
+        "power_cap_w": 700,
+        "command": "tokenpowerbench run --config configs/generated/cfg-fast.yaml"
+      },
+      "prior_metrics": {
+        "energy_j_per_1k_tokens": 930,
+        "ttft_ms": 930,
+        "tpot_ms": 51,
+        "goodput_req_s": 5.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  x=1cm,y=1cm,
+  every node/.style={font=\sffamily},
+  tracebox/.style={draw=tpGray,rounded corners=2pt,minimum height=2.02cm,
+    text width=2.35cm,align=center,inner sep=3pt,font=\scriptsize},
+  flow/.style={-{Stealth[length=2.2mm]},line width=0.85pt,draw=tpGray}
+]
+  \node[tracebox,fill=tpRoseLight] (s0) at (1.35,0)
+    {\textbf{Scenario}\\[2pt]Llama-70B, long context\\1--2 nodes, TP 4/8/16\\TTFT + TPOT SLO\\80 GPU-hour budget};
+  \node[tracebox,fill=tpGrayLight] (s1) at (4.18,0)
+    {\textbf{L0: Replay}\\[2pt]retrieve nearest \bench\ runs\\simulate all feasible points\\label topology distance};
+  \node[tracebox,fill=tpGoldLight] (s2) at (7.01,0)
+    {\textbf{Detect Ambiguity}\\[2pt]TP=8 / TP=16 intervals overlap\\candidate is near TPOT limit\\multi-node term uncertain};
+  \node[tracebox,fill=tpBlueLight] (s3) at (9.84,0)
+    {\textbf{L2/L3: Calibrate}\\[2pt]node collective probe\\sparse two-node trace\\measure overlap + fabric cost};
+  \node[tracebox,fill=tpTealLight] (s4) at (12.67,0)
+    {\textbf{Update Twin}\\[2pt]refit intra/inter-node terms\\recalibrate intervals\\test frontier stability};
+  \node[tracebox,fill=tpRoseLight] (s5) at (15.50,0)
+    {\textbf{L4: Verify}\\[2pt]replay target trace for top-$k$\\check SLO + telemetry\\emit measured recommendation};
+
+  \draw[flow] (s0) -- node[above,font=\tiny,text=tpGray] {compile} (s1);
+  \draw[flow] (s1) -- node[above,font=\tiny,text=tpGray] {predict} (s2);
+  \draw[flow] (s2) -- node[above,font=\tiny,text=tpGray] {escalate} (s3);
+  \draw[flow] (s3) -- node[above,font=\tiny,text=tpGray] {ingest} (s4);
+  \draw[flow] (s4) -- node[above,font=\tiny,text=tpGray] {gate} (s5);
+  \draw[-{Stealth[length=2.1mm]},line width=0.8pt,tpTealDark,dashed]
+    (s4.south) to[out=-120,in=-60]
+    node[below,font=\scriptsize\bfseries,text=tpTealDark]
+    {repeat only if frontier or SLO ambiguity remains} (s2.south);
+\end{tikzpicture}
+\caption{Illustrative decision trace for a multi-node scenario.  The agent does
+not infer energy in natural language: it uses L0 to localize uncertainty,
+requests L2/L3 evidence only where ranking can change, refits the Energy Twin,
+and releases a recommendation only after L4 verification.  The trace specifies
+actions and gates, not fabricated experimental outcomes.}
+\label{fig:decision-trace}
+\end{figure*}

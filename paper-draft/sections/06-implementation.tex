@@ -1,0 +1,119 @@
+\section{Reference Implementation}
+
+\subsection{Scenario and Evidence Interfaces}
+
+The prototype accepts a versioned YAML scenario.  A compact example is shown
+below; lists define a search space, whereas SLOs and \texttt{gpu\_hours} bound
+the agent's actions.
+
+\begin{lstlisting}[style=scenario]
+model: meta-llama/Llama-3.1-70B
+workload: {trace: longbench, rate: 4.0}
+hardware: {gpu: H100-80GB, nodes: [1, 2]}
+engine: [vllm, tensorrt_llm]
+precision: [fp16, fp8]
+parallelism: {tp: [4, 8, 16], pp: [1, 2]}
+power_cap_w: [450, 600, 700]
+slo: {ttft_ms: 2000, tpot_ms: 100}
+budget: {gpu_hours: 80, verify_top_k: 3}
+\end{lstlisting}
+
+Each evidence record stores separate hashes for the scenario and candidate,
+requested and realized token histograms, engine and container versions,
+topology, phase timestamps, power streams, latency/goodput metrics, evidence
+level, and status.  The design extends rather than replaces \bench\ JSON and
+telemetry outputs.  Existing \bench\ runs are imported into a read-only
+Evidence Store; new jobs are generated from the same configuration vocabulary.
+
+\subsection{Component Architecture}
+
+The implementation consists of five deterministic services exposed as agent
+tools:
+\begin{itemize}
+    \item a \textbf{scenario compiler} and memory/topology feasibility checker;
+    \item a \textbf{history service} for nearest-neighbor retrieval over
+    \bench\ records and model/runtime metadata;
+    \item a \textbf{simulation adapter} for Vidur-like or lightweight
+    discrete-event schedules;
+    \item an \textbf{Energy Twin service} for fitting, prediction, posterior
+    sampling, and Pareto analysis; and
+    \item an \textbf{executor service} that supports replay and live cluster
+    backends, renders Slurm/container jobs, validates completion, and ingests
+    evidence.
+\end{itemize}
+The LLM supervisor receives only schemas and summarized state.  It can request a
+tool call, explain a decision, or ask a human to approve an expensive
+escalation.  It cannot directly change a model or optimization result.
+
+Both backends implement
+\texttt{execute(candidate, level, seed)}.  The \emph{ReplayExecutor} serves
+observations from a hidden dense sweep and injects recorded costs and failures,
+enabling repeatable agent episodes and an exhaustive oracle.  The
+\emph{ClusterExecutor} submits immutable container and Slurm templates with the
+resources allowed by the selected level, monitors \bench\ telemetry, and
+returns the same evidence object.  The planner, guard, acquisition policy, and
+belief update are unchanged when the executor is swapped.
+
+\subsection{Closed-Loop Search}
+
+Algorithm~\ref{alg:search} gives the execution path.  The agent first reserves
+the estimated cost of top-$k$ L4 verification, preventing exploratory probes
+from exhausting the budget needed to substantiate a recommendation.  The
+initial Twin is fit from compatible historical records.  At every iteration,
+posterior samples identify candidates whose uncertainty can change feasibility
+or dominance.  The acquisition policy jointly chooses a candidate and an
+L0--L3 fidelity.  Failed jobs consume recorded budget, update a failure model,
+and may trigger a configuration repair; they are never silently discarded.
+
+\begin{algorithm}[t]
+\caption{Agentic multi-fidelity Pareto search}
+\label{alg:search}
+\footnotesize
+\begin{algorithmic}[1]
+\Require scenario $S$, history $\mathcal D_0$, budget $B_m$, verify count $k$
+\State $\mathcal X\gets\textsc{CompileAndValidate}(S)$
+\State $\mathcal D\gets\mathcal D_0$
+\State $\mathcal T\gets\textsc{FitTwin}(\mathcal D_0,S)$
+\State $(B_s,B_v)\gets\textsc{ReserveVerification}(B_m,S,k)$
+\While{$B_s>0$}
+  \State $g_t\gets\textsc{SemanticPlan}(S,\mathcal T,\mathcal D,B_s)$
+  \State $\mathcal A_s\gets\textsc{Guard}(g_t,\mathcal X,B_s)$
+  \State $(x^*,\ell^*)\gets\arg\max_{(x,\ell)\in\mathcal A_s}
+  \alpha_t((x,\ell)\mid S)$
+  \If{$\Pr(\text{frontier change})<\tau_A$} \State \textbf{break} \EndIf
+  \State $y\gets\textsc{AcquireEvidence}(x^*,\ell^*)$
+  \State $\mathcal D\gets\mathcal D\cup\{y\}$; $B_s\gets B_s-c(x^*,\ell^*)$
+  \State $\mathcal T\gets\textsc{UpdateTwin}(\mathcal T,y)$
+\EndWhile
+\State $(\hat{\mathbf f},\mathbf U)\gets\textsc{Predict}(\mathcal T,\mathcal X)$
+\State $\hat{\mathcal P}\gets\textsc{ProbabilisticPareto}(\hat{\mathbf f},\mathbf U)$
+\State $\mathcal P_v\gets\textsc{VerifyTopK}(\hat{\mathcal P},S,k,B_v)$
+\State \Return $\mathcal P_v$, provenance, and runnable scripts
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Worked Decision Trace}
+
+Figure~\ref{fig:decision-trace} makes the multi-fidelity agent's role concrete
+for an illustrative 70B, two-node, long-context scenario.  L0 does not choose a
+configuration; it cheaply removes dominated regions and identifies where
+topology distance makes the Twin uncertain.  If TP=8 and TP=16 remain
+Pareto-ambiguous near a TPOT limit, the controller requests the smallest L2/L3
+probes that can isolate collective and fabric terms.  The updated Twin is then
+allowed to rank candidates, but only the top set receives an L4 trace run.
+The emitted explanation cites numeric tool outputs, evidence levels, and the
+specific ambiguity resolved by each job rather than relying on free-form LLM
+judgment.
+
+\input{figures/decision-trace}
+
+\subsection{Multi-Node Execution and Failure Handling}
+
+L2 jobs reserve a full node so topology is stable.  L3/L4 jobs record rank-to-
+GPU placement, link/fabric counters where available, NCCL collective timing,
+node power, and synchronization gaps.  The executor distinguishes application
+failure, scheduler preemption, out-of-memory, telemetry loss, and SLO failure.
+Recoverable failures can be retried from a deterministic template; configuration
+changes create a new hash and a new evidence record.  Before L3/L4 submission,
+the agent presents expected GPU-hours, information target, and stopping rule for
+human approval.

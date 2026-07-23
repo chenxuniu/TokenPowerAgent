@@ -1,0 +1,17 @@
+\section{Artifact and Reproducibility}
+
+The companion \system\ artifact contains scenario schemas, replay and cluster
+executors, job templates, simulator adapters, Energy Twin interfaces, and the
+multi-fidelity agent controller, while importing measurements through the
+existing \bench\ schema.  Each paper figure and table is regenerated from
+immutable raw records through a checked-in script.  A small artifact path
+reproduces an L0 replay episode without GPUs; the full path reproduces L1--L4
+jobs on an HPC allocation.
+
+For every result, the artifact records evidence level, telemetry scope
+(GPU/component/node/facility), hardware topology, driver/CUDA/runtime versions,
+model revision, container digest, random seed, sampling interval, clock and
+power state, scheduler job ID, and raw-data checksum.  Simulated,
+interpolated, extrapolated, and measured values remain machine-readable labels.
+The released package will include an Artifact Description and Artifact
+Evaluation appendix following the SC26 reproducibility initiative.

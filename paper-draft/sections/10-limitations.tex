@@ -1,0 +1,28 @@
+\section{Limitations and Threats to Validity}
+
+\textbf{A sandbox is not a cluster substitute.}  Single-GPU probes cannot
+identify unseen communication, topology, or scheduler effects.  \system\ only
+claims measurement reduction, not elimination; multi-node recommendations
+require L3 calibration and L4 verification.
+
+\textbf{Telemetry scope and fidelity.}  NVML/DCGM sampling can miss transients,
+and summed device power differs from node or facility energy.  Results must
+state the telemetry boundary, sampling rate, idle baseline, and meter
+calibration.  External meters are used on a representative subset where
+available.
+
+\textbf{Generalization.}  New architectures, kernels, engines, fabrics, or MoE
+routing can invalidate learned residuals.  Topology distance and interval
+coverage expose but do not remove this risk; the correct response is new
+calibration, not silent extrapolation.
+
+\textbf{Workload representativeness.}  Public datasets and synthetic traces may
+miss production burstiness, prefix sharing, or request cancellation.  Results
+will therefore be stratified by token geometry and include at least one
+trace-like workload rather than reported as a universal ranking.
+
+\textbf{Agent reliability.}  An LLM may misinterpret intent or choose an
+unhelpful tool.  Typed schemas, deterministic validators, budget gates,
+provenance checks, and independent verification bound the consequence.  The
+evaluation separately reports planning failures instead of hiding them inside
+prediction error.

@@ -1,0 +1,71 @@
+\section{Evaluation Methodology}
+
+The evaluation separates belief accuracy, evidence allocation, agent value,
+and final deployment validity rather than reporting only an energy predictor.
+
+\subsection{Research Questions}
+
+\textbf{RQ1 -- Cross-fidelity calibration:} Do L0--L3 observations yield
+calibrated predictions of unseen L4 energy, latency, and SLO feasibility, and
+how many sparse scale probes repair an unseen-node-count shift?
+
+\textbf{RQ2 -- Decision efficiency:} At equal real GPU-hours, how quickly does
+\ipig\ recover the measured SLO-feasible Pareto set relative to random,
+single-fidelity, multi-fidelity, fixed-ladder, and simulator-only search?
+
+\textbf{RQ3 -- Agent contribution:} Does semantic subgoal selection and failure
+repair improve success, cost, or reliability beyond an optimizer-only fixed
+state machine, and does deterministic acquisition improve on an LLM-only agent?
+
+\textbf{RQ4 -- Verified benefit:} Do L4 runs confirm lower energy than runtime
+defaults and the strongest optimizer baseline at matched TTFT/TPOT SLOs?
+
+\subsection{Campaign and Ground Truth}
+
+Table~\ref{tab:evaluation-matrix} defines a campaign sized for dense evidence at
+cheap levels and sparse evidence at expensive levels.  Llama-3.1-8B supplies
+single-GPU phase coverage; Llama-3.1-70B supplies one-node and two-node
+parallelism.  The primary runtime is vLLM, with one cross-runtime or precision
+slice when allocation permits.  Prefill-heavy and decode-heavy token buckets
+are complemented by Poisson/bursty arrival traces for L4.
+
+\input{tables/evaluation-matrix}
+
+Ground truth is collected by \bench\ with synchronized phase timestamps and
+GPU, CPU/DRAM, and node telemetry.  Broad L1--L3 points use at least three
+post-warmup repetitions; final L4 comparisons use at least five matched-trace
+repetitions and bootstrap confidence intervals.  Run order is randomized to
+reduce thermal and temporal bias.  PDU or external-meter measurements are used
+on a representative subset when available.
+
+We construct replay environments from dense sweeps.  Hidden rows act as L4
+truth, while measured subsets, simulator outputs, and explicit cross-scale
+masks expose L0--L3 evidence with actual or normalized GPU-hour cost.  Splits
+are fixed before fitting, so history retrieval cannot reveal hidden L4 rows.
+The protocols hold out (i) random configurations, (ii) a token/batch region,
+(iii) one GPU or node count, and (iv) a model/runtime slice.  Replay supports
+many controlled policy episodes and an exhaustive oracle; top recommendations
+are then submitted through the unchanged ClusterExecutor.
+
+\subsection{Baselines, Ablations, and Metrics}
+
+Search curves compare random search, single-fidelity qNEHVI
+\cite{daulton2021qnehvi}, MF-OSEMO \cite{belakaria2020mfosemo}, constrained
+MF-JESMOC \cite{fernandezsanchez2025mfjesmoc}, a fixed L0--L4 ladder, and a
+simulator-only policy.  Every method receives identical initial evidence,
+candidate pools, fidelity costs, random seeds, and L4 reserve.  Deployment
+comparisons use the runtime default, the strongest optimizer recommendation,
+and \system.  Agent ablations compare the full hybrid agent with an
+optimizer-only fixed state machine and an LLM-only tool user.  Failure episodes
+cover unsupported configurations, out-of-memory, preemption, telemetry loss,
+and budget exhaustion.
+
+Prediction metrics are MAPE/MAE, rank correlation, interval coverage, and SLO
+calibration.  Decision metrics are feasible Pareto precision/recall, normalized
+hypervolume regret, GPU-hours to a target regret, and L4 query count.
+Deployment metrics include J/token, J/request, TTFT/TPOT percentiles,
+throughput, and goodput.  Reliability metrics count invalid actions, recovery,
+unnecessary escalation, provenance violations, unverified recommendations,
+planner latency, and LLM tokens.  Primary curves use cumulative GPU-hours,
+with paired nonparametric tests across matched scenarios and all failed
+episodes retained.

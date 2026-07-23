@@ -1,0 +1,93 @@
+\documentclass[conference]{IEEEtran}
+
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,backgrounds,calc,fit,positioning,shapes.geometric}
+\usepackage{pifont}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{listings}
+\usepackage{microtype}
+\usepackage{balance}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\system}{TokenPowerAgent}
+\newcommand{\bench}{TokenPowerBench}
+\newcommand{\ipig}{IPIG}
+\newcommand{\cmark}{\textcolor{tpTealDark}{\ding{51}}}
+\newcommand{\pmark}{\textcolor{tpGoldDark}{\raisebox{0.1ex}{\scriptsize$\triangle$}}}
+\newcommand{\xmark}{\textcolor{tpGray}{\ding{55}}}
+\newcommand{\draftvalue}[1]{\textcolor{tpDraft}{\textbf{#1}}}
+
+\definecolor{tpTeal}{HTML}{4EA995}
+\definecolor{tpTealDark}{HTML}{256F63}
+\definecolor{tpTealLight}{HTML}{DDF1EB}
+\definecolor{tpRose}{HTML}{D85F7C}
+\definecolor{tpRoseDark}{HTML}{8E3650}
+\definecolor{tpRoseLight}{HTML}{F7DCE4}
+\definecolor{tpGold}{HTML}{D8A945}
+\definecolor{tpGoldDark}{HTML}{8A641D}
+\definecolor{tpGoldLight}{HTML}{F8EDCD}
+\definecolor{tpBlue}{HTML}{4E91AE}
+\definecolor{tpBlueDark}{HTML}{285E75}
+\definecolor{tpBlueLight}{HTML}{DDEEF5}
+\definecolor{tpGray}{HTML}{6D7478}
+\definecolor{tpGrayLight}{HTML}{EDF0F1}
+\definecolor{tpDraft}{HTML}{7B6B52}
+
+\lstdefinestyle{scenario}{
+  basicstyle=\ttfamily\scriptsize,
+  frame=single,
+  rulecolor=\color{tpGray},
+  backgroundcolor=\color{tpGrayLight},
+  breaklines=true,
+  columns=fullflexible,
+  xleftmargin=0.2em,
+  xrightmargin=0.2em
+}
+
+\input{results/metrics}
+
+\begin{document}
+
+\bstctlcite{IEEEexample:BSTcontrol}
+
+\title{\system: Agentic Multi-Fidelity Pareto Search for\\
+Energy-Efficient LLM Inference on GPU Clusters}
+
+\author{%
+\IEEEauthorblockN{Chenxu Niu, Batuhan Sencer, Jie Li, and Yong Chen}
+\IEEEauthorblockA{Department of Computer Science, Texas Tech University\\
+Lubbock, Texas, USA\\
+\{chenxu.niu, batuhan.sencer, jie.li, yong.chen\}@ttu.edu}}
+
+\maketitle
+
+\input{sections/00-abstract-keywords}
+\input{sections/01-introduction}
+\input{sections/02-motivation}
+\input{sections/03-related-work}
+\input{sections/04-problem-formulation}
+\input{sections/05-design}
+\input{sections/06-implementation}
+\input{sections/07-evaluation}
+\input{sections/08-results}
+\input{sections/09-artifact}
+\input{sections/10-limitations}
+\input{sections/11-conclusion}
+\input{sections/99-acknowledgment}
+
+\balance
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

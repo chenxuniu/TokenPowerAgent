@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Primary result schema.  Neutral placeholders are populated only from
+validated experiment outputs.}
+\label{tab:results-template}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{0.42\columnwidth}p{0.18\columnwidth}p{0.29\columnwidth}}
+\toprule
+Primary metric & Value & Evaluation split \\
+\midrule
+Energy MAPE / interval coverage & \EnergyMAPE{} / \Coverage & held-out scale \\
+Pareto recall / regret reduction & \ParetoRecall{} / \HypervolumeGain & equal GPU-hours \\
+GPU-hour reduction & \MeasurementReduction & search campaign \\
+Energy saving / SLO pass & \EnergySaving{} / \SLOPassRate & L4 traces \\
+Invalid actions / agent overhead & \InvalidActionRate{} / \AgentOverhead & agent episodes \\
+\bottomrule
+\end{tabular}
+\end{table}

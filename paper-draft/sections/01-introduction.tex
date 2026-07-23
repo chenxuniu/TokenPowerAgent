@@ -1,0 +1,75 @@
+\section{Introduction}
+
+LLM inference has become a persistent workload in cloud and high-performance
+computing (HPC) environments.  Unlike training, inference is paid repeatedly:
+every prompt triggers model execution, KV-cache traffic, communication, and a
+period of node occupancy.  Its energy cost is highly scenario dependent.  A
+long-context scientific assistant emphasizes compute-intensive prefill; a
+coding assistant with long completions emphasizes memory-intensive decode; a
+70B or 405B model introduces tensor or pipeline parallelism; and a multi-node
+deployment adds network transfer, synchronization, and idle gaps.  Even
+configurations with similar throughput can therefore have different joules per
+token and different time-to-first-token (TTFT) or time-per-output-token (TPOT).
+
+Recent measurement efforts make this cost observable.  From Words to Watts
+quantified multi-GPU LLM inference energy \cite{samsi2023words}; studies of
+inference engines and workload geometry expose large software- and
+phase-dependent differences \cite{niu2025engines,fernandez2025energy}; and
+\bench\ provides declarative, phase-aligned measurement from a single GPU to
+multi-node models as large as Llama-3.1-405B \cite{niu2026tokenpowerbench}.
+These systems answer an essential question: \emph{what did this inference run
+consume?}
+
+Operators must answer a different question before committing scarce GPU time:
+\emph{which configurations are worth running?}  The cross product of prompt
+and output lengths, batch limits, engines, precisions, tensor and pipeline
+parallelism, placement, and power settings easily creates thousands of
+candidates.  Exhaustive measurement is particularly costly for large models,
+where one candidate may already require an entire node or several nodes.
+Conversely, a simulator calibrated on one GPU cannot faithfully invent
+NVLink/NVSwitch collectives, inter-node fabric behavior, pipeline bubbles, or
+scheduler contention.  The challenge is therefore \textbf{not only better
+energy prediction, but better evidence allocation}: deciding when historical
+data are sufficient, when a small sandbox probe can remove uncertainty, and
+when a full-scale run is unavoidable.
+
+We propose \system, an agentic multi-fidelity Pareto search framework for
+energy-efficient LLM inference on GPU clusters, built on top of \bench.  A user
+supplies a model, workload trace or token distribution, target hardware,
+serving-engine choices, SLOs, and a measurement budget.  A constrained
+language-model planner converts that intent into a typed search task and
+chooses an experiment subgoal; a probabilistic policy then selects an action
+$a=(x,\ell)$ comprising a serving configuration and evidence fidelity.  The
+agent may cheaply simulate an in-domain candidate, calibrate phase behavior on
+one GPU, characterize collectives within a node, sample a multi-node scaling
+point, or verify a top-ranked configuration at target scale.  Predictions
+carry uncertainty and provenance; only accepted telemetry is labeled measured.
+
+The design makes the agent operational rather than decorative.  The LLM does
+not estimate joules by free-form reasoning.  Deterministic tools perform
+feasibility checks, simulation, regression, telemetry integration, and Pareto
+analysis.  The agent interprets the scenario, selects tools and calibration
+levels, handles failures, and explains why additional evidence is or is not
+worth its GPU-hour cost.  This tool-grounded, validation-driven structure is
+well aligned with agentic HPC systems, where autonomous decisions must remain
+bounded, inspectable, and reproducible.
+
+This paper makes four contributions:
+\begin{itemize}
+    \item We formulate \emph{agentic multi-fidelity Pareto search for
+    energy-efficient LLM inference}: finding SLO-feasible nondominated
+    configurations while minimizing the real GPU-hours required to identify
+    and verify them.
+    \item We design a phase- and communication-aware \emph{Energy Twin} that
+    separates idle, prefill, decode, intra-node communication, inter-node
+    communication, and serving overhead, with uncertainty attached to every
+    estimate.
+    \item We introduce \emph{Intent-Conditioned Pareto Information Gain}, a
+    decision-directed acquisition criterion that jointly selects configuration
+    and fidelity according to expected information about the SLO-feasible
+    high-fidelity Pareto set per GPU-hour.
+    \item We realize the method as a bounded hybrid agent with typed subgoals,
+    interchangeable replay and cluster executors, failure recovery, provenance,
+    and mandatory target-scale verification, and define an evaluation that
+    separates model, policy, and agent contributions.
+\end{itemize}

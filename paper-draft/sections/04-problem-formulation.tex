@@ -1,0 +1,53 @@
+\section{Problem Formulation}
+
+An inference scenario is a tuple
+\begin{equation}
+S=\langle M,W,H,R,C,\mathbf o,B_m\rangle,
+\end{equation}
+where $M$ identifies the model and allowable precisions; $W$ is a request
+trace or distribution over arrivals and token lengths; $H$ describes
+accelerators, nodes, topology, and power controls; $R$ is the serving-runtime
+set; $C$ contains memory, administrative, and service-level constraints;
+$\mathbf o$ orders the objectives; and $B_m$ is the real-measurement budget in
+GPU-hours.
+
+The candidate space is
+\begin{equation}
+\mathcal X=\mathcal B\!\times\!\mathcal Q\!\times\!\mathcal P\!\times\!
+\mathcal R\!\times\!\mathcal L\!\times\!\mathcal F,
+\end{equation}
+covering batching and token budgets ($\mathcal B$), quantization
+($\mathcal Q$), tensor/pipeline parallelism ($\mathcal P$), runtime policy
+($\mathcal R$), placement ($\mathcal L$), and power/frequency policy
+($\mathcal F$).  A deterministic compiler produces the feasible pool
+$\mathcal X_S$ by removing candidates that violate capacity, parallelism,
+runtime support, or site policy.
+
+For $m$ objectives and five evidence levels, let
+$\mathbf f^{(\ell)}(x)\in\mathbb R^m$, $\ell\in\{0,\ldots,4\}$, denote the
+response at fidelity $\ell$; level 4 is target-scale truth.  The primary
+minimization vector is
+\begin{equation}
+\mathbf f^{(4)}(x)=\langle E_{\rm tok},T_{\rm TTFT},T_{\rm TPOT},-\Theta\rangle,
+\end{equation}
+where $\Theta$ is throughput.  Let $q_S(x)$ be one exactly when all SLOs in
+$C$ hold at L4, and let $\mathbf u\prec\mathbf v$ denote Pareto dominance for
+minimization.  The target decision is the feasible nondominated set
+\begin{align}
+\mathcal X_S^*=\{x\in\mathcal X_S:\;&q_S(x)=1,\ \nexists x'\in\mathcal X_S
+\text{ such that}\nonumber\\[-2pt]
+&q_S(x')=1\land\mathbf f^{(4)}(x')\prec\mathbf f^{(4)}(x)\}.
+\end{align}
+
+At step $t$, the agent has evidence
+$\mathcal D_t=\{(x_i,\ell_i,y_i,c_i,z_i)\}_{i=1}^t$, including measured or
+simulated outcomes $y_i$, costs $c_i$, and execution status $z_i$.  An action
+$a_t=(x_t,\ell_t)$ yields a noisy observation and updates a belief over every
+$\mathbf f^{(4)}(x)$.  The agent must return a verified subset
+$\widehat{\mathcal X}_S\subseteq\mathcal X_S^*$ while
+\begin{equation}
+\sum_t c(a_t)\le B_m.
+\end{equation}
+We evaluate feasible Pareto recall and terminal hypervolume regret as functions
+of cumulative real GPU-hours.  This cost axis is essential: a no-GPU replay and
+a multi-node target trace are not equivalent queries.

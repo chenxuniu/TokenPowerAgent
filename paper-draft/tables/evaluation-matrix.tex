@@ -1,0 +1,22 @@
+\begin{table*}[t]
+\centering
+\caption{Minimum evaluation campaign.  Dense sampling is restricted to cheap
+levels; multi-node measurements are selected sparsely and verified at L4.}
+\label{tab:evaluation-matrix}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{p{0.12\textwidth}p{0.33\textwidth}p{0.26\textwidth}p{0.20\textwidth}}
+\toprule
+Dimension & Core campaign & Cross-scale / stress slice & Purpose \\
+\midrule
+Models & Llama-3.1-8B and 70B & Optional Qwen2.5-32B transfer slice & Device- and node-scale behavior \\
+Scale & 1 GPU and 2/4/8 GPUs on one node & Two nodes and target arrival trace & L1--L4 fidelity \\
+Hardware & One primary NVIDIA H100/H200-class cluster & Second GPU/interconnect regime if available & Topology transfer \\
+Engines & vLLM primary & One TensorRT-LLM or precision slice & Runtime sensitivity \\
+Workloads & Prefill-heavy and decode-heavy token buckets & Poisson/bursty traces and long context & Phase and queue stress \\
+Knobs & batch/token limits, chunked prefill, TP, power cap & placement, node count, BF16/FP8 where stable & Energy/SLO Pareto space \\
+Held out & random configurations and one token/batch region & one GPU/node count and time-split trace & Interpolation and extrapolation \\
+\bottomrule
+\end{tabular}
+\end{table*}

@@ -1,0 +1,51 @@
+\section{Motivation and Design Challenges}
+
+\subsection{From Measurement to Decision}
+
+\bench\ already supplies the most important foundation for \system: controlled
+inference execution and phase-aligned GPU, node, and system telemetry.  Its
+open-source implementation includes single-node engine comparisons and
+Ray-based multi-node execution \cite{niu2026tokenpowerbench}.  \system\ does
+not replace this measurement path.  It changes how the path is used: prior
+runs become calibration data, selected sandbox probes become active evidence,
+and final recommendations return to \bench\ for verification.
+
+Figure~\ref{fig:motivation} illustrates the gap.  Configuration choices couple
+multiplicatively, while the fidelity required to evaluate them grows
+discontinuously when a model crosses GPU, node, or network boundaries.  A
+single surrogate over the entire space either wastes measurements in familiar
+regions or becomes overconfident in unfamiliar ones.
+
+\input{figures/motivation-gap}
+
+\subsection{Challenge 1: Phase and Configuration Coupling}
+
+Autoregressive inference alternates between parallel prompt processing and
+sequential token generation.  Prefill is commonly compute intensive; decode
+often stresses model-weight and KV-cache bandwidth.  Continuous batching,
+chunked prefill, prefix reuse, disaggregation, quantization, and power policy
+change these phases differently \cite{kwon2023vllm,agrawal2024sarathi,
+zhong2024distserve}.  A useful predictor must therefore preserve workload
+geometry and the realized serving schedule rather than reduce a request to
+model FLOPs or mean GPU utilization.
+
+\subsection{Challenge 2: Cross-Scale Fidelity}
+
+Small probes reveal device-local compute and memory behavior, but not every
+large-scale effect.  Within a node, tensor parallelism introduces collective
+communication over PCIe, NVLink, or NVSwitch.  Across nodes, fabric bandwidth,
+topology, synchronization, pipeline bubbles, and runtime placement become new
+energy terms.  Queueing and scheduler interference appear only under traces.
+Consequently, the multi-fidelity sandbox must be a \emph{calibration ladder},
+not a claim that one GPU can emulate an arbitrary cluster.  Cross-scale
+estimates must widen their uncertainty until sparse observations cover the
+missing topology.
+
+\subsection{Challenge 3: Spending Measurements Where They Matter}
+
+Uniform sweeps ignore the decision being made.  A candidate far behind the
+current Pareto frontier needs no precise estimate, whereas two candidates with
+overlapping energy confidence intervals near an SLO boundary may justify a
+new run.  The controller must jointly consider predictive uncertainty, Pareto
+ambiguity, SLO risk, topology novelty, and measurement cost.  This evidence
+allocation decision is the central agentic component of the Pareto search.

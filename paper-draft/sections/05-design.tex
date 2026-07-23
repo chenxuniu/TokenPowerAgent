@@ -1,0 +1,159 @@
+\section{\system\ Design}
+
+\subsection{System Overview}
+
+Figure~\ref{fig:architecture} shows the closed-loop, multi-fidelity Pareto
+search.  The Scenario Compiler turns natural language or YAML into a typed
+specification and rejects infeasible candidates.  A language-model planner
+observes the intent, a compact belief summary, remaining budget, failures, and
+provenance, then emits one structured subgoal from \{\textsc{Explore},
+\textsc{ResolveSLO}, \textsc{CalibrateScale}, \textsc{Repair},
+\textsc{Verify}\}.  Within that guarded subgoal, \ipig\ selects the numerical
+configuration--fidelity action.  The Tool Layer invokes serving simulation,
+\bench\ templates, telemetry readers, and the scheduler.  Observations update
+the Energy Twin and a versioned Evidence Store; the Verifier reruns final
+Pareto candidates before scripts and recommendations are released.
+
+\input{figures/system-architecture}
+
+\bench\ and \system\ consequently have separate responsibilities.  \bench\
+defines and executes a measurement; \system\ decides which measurements are
+decision-relevant, what can be inferred between them, and whether the evidence
+supports a recommendation.  This separation also prevents circular claims:
+the same simulator is never treated as ground truth for its own accuracy.
+
+\subsection{Communication-Aware Energy Twin}
+
+The Energy Twin combines a serving schedule with calibrated phase models.
+For workload $W$ and configuration $x$, total energy is decomposed as
+\begin{align}
+\hat E(W,x)=&\ \hat E_{\rm idle}+\hat E_{\rm prefill}+\hat E_{\rm decode}
+\nonumber\\
+&+\hat E_{\rm intra}+\hat E_{\rm inter}+\hat E_{\rm runtime}.
+\label{eq:energy-decomp}
+\end{align}
+The first three terms capture model-loaded idle time and phase-local compute,
+memory, and KV-cache behavior.  $E_{\rm intra}$ represents PCIe/NVLink/NVSwitch
+collectives and contention within a node; $E_{\rm inter}$ represents fabric
+transfer, synchronization, and pipeline gaps across nodes; and
+$E_{\rm runtime}$ captures queueing, batching, CPU/DRAM activity, and scheduler
+overhead.  Component energy is obtained by integrating aligned power samples:
+\begin{equation}
+E_k=\int_0^T\left(P_k(t)-P_{k,\rm baseline}\right)dt,
+\end{equation}
+while total node energy retains the baseline term so that consolidation and
+idle occupancy remain visible.
+
+The serving simulator supplies a timeline of prefill chunks, decode steps,
+collectives, KV-cache events, and idle intervals.  The initial implementation
+uses phase lookup surfaces plus residual quantile regression.  Features include
+model architecture, precision, token lengths, batch occupancy, engine,
+parallelism, power policy, GPU type, collective volume, link type, node count,
+and measured overlap between communication and compute.  A structured model is
+preferred over a monolithic regressor because each sandbox level observes a
+different subset of these terms.
+
+Uncertainty combines ensemble or quantile spread with explicit distance
+penalties:
+\begin{equation}
+U(x)=U_{\rm model}(x)+\lambda_h d_h(x,\mathcal D)
++\lambda_s d_s(x,\mathcal D),
+\label{eq:uncertainty}
+\end{equation}
+where $d_h$ measures hardware/topology novelty and $d_s$ measures scale
+distance from the nearest observation.  Thus, a confident single-GPU fit does
+not remain artificially confident when extrapolated to four nodes.
+After every evidence batch, quantile residuals are recalibrated with a held-out
+or cross-validated conformal layer, stratified by evidence level when sample
+size permits.  Model selection considers rank correlation, interval coverage,
+and feasible-Pareto recall in addition to mean prediction error.  This matters
+because a small unbiased error far from the frontier is less consequential
+than a miscalibrated interval at an SLO boundary.
+
+\subsection{Multi-Fidelity Sandbox Calibration}
+
+The multi-fidelity sandbox is a bounded evidence environment implemented with
+immutable job templates, container/runtime hashes, explicit resource
+allocations, and fixed telemetry settings.  It does not pretend to reproduce a
+large cluster on a laptop.  Instead, Figure~\ref{fig:calibration} organizes a
+hierarchical set of evidence levels by the new effects they expose.
+
+\input{figures/calibration-ladder}
+
+\begin{itemize}
+    \item \textbf{L0 -- replay/simulate (0 GPUs):} retrieve nearby \bench\
+    records and run analytic or discrete-event simulation.
+    \item \textbf{L1 -- phase probes (1 GPU):} measure idle/warmup, length- and
+    batch-bucketed prefill, controlled decode, and power-policy response.
+    \item \textbf{L2 -- intra-node probes (2--8 GPUs):} calibrate TP/PP,
+    collective volume, NVLink/NVSwitch or PCIe behavior, and KV-cache pressure.
+    \item \textbf{L3 -- sparse multi-node probes (2+ nodes):} sample selected
+    scale points to expose fabric, synchronization, placement, and pipeline
+    effects.  This level is deliberately sparse and chosen actively.
+    \item \textbf{L4 -- target-trace verification:} replay the intended request
+    trace for the top-$k$ configurations at target scale and report the result
+    as measured evidence.
+\end{itemize}
+
+A result carries its highest supporting level.  L0 outputs are
+\emph{simulated}; predictions between observed settings are \emph{interpolated};
+cross-topology predictions are \emph{extrapolated}; and only L1--L4 telemetry
+is \emph{measured}.  This vocabulary is encoded in the artifact schema and
+used in every table and plot.
+
+\subsection{Hybrid Belief-State Policy and \ipig}
+
+The controller observes predictive uncertainty, Pareto ambiguity, distance to
+an SLO boundary, topology novelty, remaining budget, and run failures within
+the loop in Figure~\ref{fig:architecture}.  It rejects invalid candidates
+deterministically.  For each $x$, define high-fidelity feasibility and Pareto
+membership variables $Q_x=\mathbf 1[q_S(x)=1]$ and
+$P_x=\mathbf 1[x\in\mathcal X_S^*]$.  The intent-specific terminal decision is
+\begin{equation}
+\Omega_S=\{(Q_x,P_x):x\in\mathcal X_S\}.
+\end{equation}
+For an admissible action $a=(x,\ell)$ with possible observation $Y_a$, \ipig\
+scores
+\begin{equation}
+\alpha_t(a\mid S)=
+\frac{I(Y_a;\Omega_S\mid\mathcal D_t,S)}
+{(\mathbb E[c(a)\mid\mathcal D_t]+\epsilon)^\gamma}.
+\label{eq:ipig}
+\end{equation}
+The numerator is the expected reduction in uncertainty about the L4
+SLO-feasible Pareto decision, not generic prediction variance.  We estimate it
+with nested posterior sampling: samples of the L4 response surface induce
+discrete $\Omega_S$ states; possible outcomes at $(x,\ell)$ reweight those
+particles; and their empirical entropy reduction is averaged over outcomes.
+Consequently, \ipig\ assigns little value to precisely measuring a candidate
+that cannot change feasibility or dominance and may prefer a cheap L2 probe to
+an L3 run when both resolve the same ambiguity.
+
+The semantic subgoal restricts the admissible actions before maximizing
+Eq.~\ref{eq:ipig}.  \textsc{ResolveSLO} admits candidates whose intervals
+cross an SLO; \textsc{CalibrateScale} requires topology-sensitive features;
+and \textsc{Verify} admits only L4 actions.  Operationally, the resulting
+states are:
+\begin{itemize}
+    \item \textbf{Simulate} when the candidate is in-domain and its confidence
+    interval cannot alter the feasible frontier.
+    \item \textbf{Calibrate} when a local measurement can change ranking,
+    reduce topology uncertainty, or resolve an SLO boundary.
+    \item \textbf{Verify} when a candidate will be recommended, when scale
+    extrapolation remains material, or when independent evidence is required.
+\end{itemize}
+Exploratory search terminates when its budget is exhausted or the probability
+of a frontier change falls below a threshold.  A reserved verification budget
+then supports L4 runs for the top-$k$ candidates; no recommendation is released
+without target-scale evidence.
+
+\subsection{Bounded Autonomy and Provenance}
+
+The LLM can choose from typed tools but cannot issue an unrestricted shell
+command, modify model weights, change telemetry intervals, or enlarge a Slurm
+allocation without approval.  Numeric calculations, feasibility, Pareto
+sorting, and budget accounting are deterministic.  Every action records the
+scenario and configuration hashes, prompt and tool versions, evidence level,
+job ID, raw-data URI, simulator checkpoint, uncertainty, and decision rationale.
+The Verifier checks units, missing samples, clock/power state, run completion,
+and agreement between GPU and node telemetry before accepting evidence.

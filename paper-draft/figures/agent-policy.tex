@@ -1,0 +1,36 @@
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  x=1cm,y=1cm,
+  every node/.style={font=\sffamily},
+  input/.style={draw=tpGray,rounded corners=1.5pt,fill=tpGrayLight,
+    minimum height=0.78cm,text width=2.05cm,align=center,font=\scriptsize},
+  state/.style={draw=tpGray,rounded corners=1.5pt,minimum height=0.72cm,
+    text width=1.48cm,align=center,font=\scriptsize\bfseries},
+  flow/.style={-{Stealth[length=2mm]},line width=0.75pt,draw=tpGray}
+]
+  \node[input] (left) at (1.2,1.28) {model uncertainty\\Pareto ambiguity};
+  \node[draw=tpGoldDark,rounded corners=2pt,fill=tpGoldLight,
+    minimum height=1.15cm,text width=2.15cm,align=center,font=\scriptsize\bfseries]
+    (controller) at (4.10,1.28) {Semantic Subgoal\\+ \ipig\ Selection};
+  \node[input] (right) at (7.0,1.28) {SLO risk + topology gap\\remaining budget};
+  \draw[flow] (left) -- (controller);
+  \draw[flow] (right) -- (controller);
+
+  \node[state,fill=tpGrayLight] (reject) at (0.80,-0.48) {REJECT\\invalid};
+  \node[state,fill=tpTealLight] (sim) at (2.95,-0.48) {SIMULATE\\L0};
+  \node[state,fill=tpGoldLight] (cal) at (5.10,-0.48) {CALIBRATE\\L1--L3};
+  \node[state,fill=tpRoseLight] (ver) at (7.25,-0.48) {VERIFY\\L4};
+  \draw[flow] (controller.south) -- ++(0,-0.42) -| (reject.north);
+  \draw[flow] (controller.south) -- ++(0,-0.42) -| (sim.north);
+  \draw[flow] (controller.south) -- ++(0,-0.42) -| (cal.north);
+  \draw[flow] (controller.south) -- ++(0,-0.42) -| (ver.north);
+  \draw[-{Stealth[length=2mm]},tpTealDark,dashed,line width=0.75pt]
+    (cal.south) to[out=-90,in=-90] node[below,font=\tiny,text=tpTealDark]
+    {telemetry update} (sim.south);
+\end{tikzpicture}
+\caption{Hybrid belief-state policy.  The language model chooses a typed
+subgoal; \ipig\ selects the candidate--fidelity action; deterministic checks
+reject infeasible points and target-scale telemetry gates every release.}
+\label{fig:agent-policy}
+\end{figure}
