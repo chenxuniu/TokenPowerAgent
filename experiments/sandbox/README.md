@@ -86,3 +86,47 @@ monotonic, every power-cap readback matches its request, power returns to 700 W,
 and at least one lower cap reduces energy or average power without producing an
 invalid CUDA result. The expected performance ordering is measured rather than
 assumed.
+
+## Persistent vLLM Serving Probe
+
+The next L1 probe keeps a pinned vLLM server alive so model loading, tokenizer
+initialization, and CUDA graph capture are outside the measured request window.
+Its benchmark client has no GPU and joins an internal Docker network that can
+reach only the serving container. Build the marker-enabled client from the
+immutable vLLM 0.23.0 image, then create and attach that network once:
+
+```bash
+sudo docker build \
+  -t tokenpower-vllm-client:v0.23.0 \
+  experiments/sandbox/vllm-client
+
+sudo docker network create --internal tpa-serving-bench
+sudo docker network connect tpa-serving-bench tpa-vllm-qwen7b
+```
+
+Run a long-enough 700 W pilot after the server health check passes:
+
+```bash
+tokenpoweragent serving-smoke \
+  --power-limits 700 \
+  --repeats 1 \
+  --input-len 512 \
+  --output-len 128 \
+  --num-prompts 64 \
+  --num-warmups 2 \
+  --request-rate inf \
+  --max-concurrency 8 \
+  --sample-ms 100 \
+  --output experiments/results/qwen7b-serving-pl700.jsonl
+```
+
+The pinned client inserts two blocking FIFO handshakes around vLLM's own
+`benchmark_start_time` and `benchmark_duration` boundaries. At `READY`, the
+host reads DCGM field 156 before replying `GO`; after all requests finish, the
+client sends `DONE` and waits for the host's ending energy read and `ACK`.
+Container startup, tokenizer loading, readiness checks, warmups, and result
+formatting are therefore outside the energy interval. The record contains
+P50/P95/P99 TTFT, TPOT, ITL, and end-to-end latency, output and request
+throughput, joules, average power, and joules per token. Temperature is fixed at
+zero and EOS is ignored so every request performs the declared output-token
+work.

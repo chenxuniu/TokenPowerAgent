@@ -13,6 +13,7 @@ from tokenpoweragent.evidence import EvidenceStore
 from tokenpoweragent.executors.cluster import ClusterExecutor
 from tokenpoweragent.executors.replay import ReplayExecutor
 from tokenpoweragent.executors.sandbox import SandboxExecutionError, SandboxExecutor
+from tokenpoweragent.executors.serving import ServingSandboxExecutor
 from tokenpoweragent.schema import Candidate, EvidenceLevel, Scenario
 
 
@@ -37,6 +38,19 @@ def _campaign_schedule(
         ordered_limits = power_limits[offset:] + power_limits[:offset]
         schedule.extend((power_limit, seed) for power_limit in ordered_limits)
     return tuple(schedule)
+
+
+def _request_rate(value: str) -> str:
+    normalized = value.strip().lower()
+    if normalized == "inf":
+        return normalized
+    try:
+        rate = float(normalized)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("request rate must be positive or 'inf'") from exc
+    if rate <= 0:
+        raise argparse.ArgumentTypeError("request rate must be positive or 'inf'")
+    return "%g" % rate
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -80,6 +94,46 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("experiments/results/telemetry"),
     )
     sandbox.add_argument(
+        "--no-sudo",
+        action="store_true",
+        help="run Docker and power-limit commands without sudo",
+    )
+
+    serving = subparsers.add_parser(
+        "serving-smoke",
+        help="measure a persistent single-GPU vLLM server at an active-window boundary",
+    )
+    serving.add_argument("--image", default="tokenpower-vllm-client:v0.23.0")
+    serving.add_argument("--server-container", default="tpa-vllm-qwen7b")
+    serving.add_argument("--network", default="tpa-serving-bench")
+    serving.add_argument("--cache-volume", default="tpa-hf-cache")
+    serving.add_argument(
+        "--base-url", default="http://tpa-vllm-qwen7b:8000"
+    )
+    serving.add_argument("--model", default="Qwen/Qwen2.5-7B-Instruct")
+    serving.add_argument("--served-model-name", default="qwen2.5-7b")
+    serving.add_argument("--gpu-id", type=int, default=0)
+    serving.add_argument("--power-limits", type=_power_limits, default=(700,))
+    serving.add_argument("--repeats", type=int, default=1)
+    serving.add_argument("--input-len", type=int, default=512)
+    serving.add_argument("--output-len", type=int, default=128)
+    serving.add_argument("--num-prompts", type=int, default=64)
+    serving.add_argument("--num-warmups", type=int, default=2)
+    serving.add_argument("--request-rate", type=_request_rate, default="inf")
+    serving.add_argument("--max-concurrency", type=int, default=8)
+    serving.add_argument("--sample-ms", type=int, default=100)
+    serving.add_argument("--timeout-seconds", type=float, default=600.0)
+    serving.add_argument(
+        "--output",
+        type=Path,
+        default=Path("experiments/results/qwen7b-serving-smoke.jsonl"),
+    )
+    serving.add_argument(
+        "--telemetry-dir",
+        type=Path,
+        default=Path("experiments/results/serving-telemetry"),
+    )
+    serving.add_argument(
         "--no-sudo",
         action="store_true",
         help="run Docker and power-limit commands without sudo",
@@ -128,6 +182,65 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             except SandboxExecutionError as exc:
                 print(
                     "sandbox failed for %s seed %d: %s"
+                    % (candidate.candidate_id, seed, exc),
+                    file=sys.stderr,
+                )
+                return 2
+            records.append(record)
+            print(json.dumps(record.to_dict(), sort_keys=True))
+
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        records.write_jsonl(args.output)
+        print("wrote %d evidence records to %s" % (len(records.records), args.output))
+        return 0
+
+    if args.command == "serving-smoke":
+        if args.repeats < 1:
+            raise SystemExit("--repeats must be positive")
+        if (
+            args.input_len < 1
+            or args.output_len < 1
+            or args.num_prompts < 1
+            or args.num_warmups < 0
+            or args.max_concurrency < 1
+        ):
+            raise SystemExit("serving workload dimensions must be positive")
+        executor = ServingSandboxExecutor(
+            telemetry_dir=args.telemetry_dir,
+            gpu_id=args.gpu_id,
+            sample_ms=args.sample_ms,
+            use_sudo=not args.no_sudo,
+            timeout_seconds=args.timeout_seconds,
+        )
+        records = EvidenceStore()
+        for campaign_index, (power_limit_w, seed) in enumerate(
+            _campaign_schedule(args.power_limits, args.repeats)
+        ):
+            candidate = Candidate(
+                candidate_id="qwen7b-serving-pl%d" % power_limit_w,
+                config={
+                    "image": args.image,
+                    "server_container": args.server_container,
+                    "network": args.network,
+                    "cache_volume": args.cache_volume,
+                    "base_url": args.base_url,
+                    "model": args.model,
+                    "served_model_name": args.served_model_name,
+                    "power_limit_w": power_limit_w,
+                    "campaign_index": campaign_index,
+                    "input_len": args.input_len,
+                    "output_len": args.output_len,
+                    "num_prompts": args.num_prompts,
+                    "num_warmups": args.num_warmups,
+                    "request_rate": args.request_rate,
+                    "max_concurrency": args.max_concurrency,
+                },
+            )
+            try:
+                record = executor.execute(candidate, EvidenceLevel.L1, seed)
+            except SandboxExecutionError as exc:
+                print(
+                    "serving sandbox failed for %s seed %d: %s"
                     % (candidate.candidate_id, seed, exc),
                     file=sys.stderr,
                 )
