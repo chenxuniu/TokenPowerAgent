@@ -131,6 +131,78 @@ class ServerEnvironment:
     image: str
     image_id: str
     command: Tuple[str, ...]
+    configuration: Mapping[str, object]
+
+
+def parse_vllm_server_configuration(
+    command: Sequence[str],
+) -> Mapping[str, object]:
+    """Extract the serving knobs needed by a calibration profile.
+
+    Publication runs must state batching and chunked-prefill behavior
+    explicitly. Defaults can change across vLLM releases, so this parser does
+    not silently invent those values.
+    """
+
+    materialized = tuple(str(item) for item in command)
+
+    def option(
+        flag: str, default: Optional[str] = None, required: bool = False
+    ) -> str:
+        for index, item in enumerate(materialized):
+            if item == flag:
+                if index + 1 >= len(materialized):
+                    raise SandboxExecutionError(
+                        "server command has no value after %s" % flag
+                    )
+                return materialized[index + 1]
+            prefix = flag + "="
+            if item.startswith(prefix):
+                return item[len(prefix) :]
+        if required:
+            raise SandboxExecutionError(
+                "server command must explicitly set %s" % flag
+            )
+        assert default is not None
+        return default
+
+    def positive_integer(flag: str, default: Optional[int] = None) -> int:
+        raw_default = None if default is None else str(default)
+        try:
+            value = int(option(flag, raw_default, required=default is None))
+        except ValueError as exc:
+            raise SandboxExecutionError(
+                "server command has invalid %s" % flag
+            ) from exc
+        if value < 1:
+            raise SandboxExecutionError("server command has invalid %s" % flag)
+        return value
+
+    if "--enable-chunked-prefill" in materialized:
+        chunked_prefill = True
+    elif "--no-enable-chunked-prefill" in materialized:
+        chunked_prefill = False
+    else:
+        raise SandboxExecutionError(
+            "server command must explicitly select chunked prefill"
+        )
+
+    dtype = option("--dtype", "auto").lower()
+    kv_cache_dtype = option("--kv-cache-dtype", dtype).lower()
+    return {
+        "engine": "vllm",
+        "tensor_parallel": positive_integer("--tensor-parallel-size", 1),
+        "pipeline_parallel": positive_integer("--pipeline-parallel-size", 1),
+        "data_parallel": positive_integer("--data-parallel-size", 1),
+        "max_num_seqs": positive_integer("--max-num-seqs"),
+        "max_num_batched_tokens": positive_integer("--max-num-batched-tokens"),
+        "chunked_prefill": chunked_prefill,
+        "precision": dtype,
+        "kv_cache_dtype": kv_cache_dtype,
+        "prefix_caching": False,
+        "model_revision": option("--revision", "unrecorded"),
+        "tokenizer_revision": option("--tokenizer-revision", "unrecorded"),
+    }
 
 
 class ServingSandboxExecutor(SandboxExecutor):
@@ -302,6 +374,7 @@ class ServingSandboxExecutor(SandboxExecutor):
             "server_image": server_environment.image,
             "server_image_id": server_environment.image_id,
             "server_command": list(server_environment.command),
+            "server_configuration": dict(server_environment.configuration),
             "docker_network": contract.network,
             "hf_cache_volume": contract.cache_volume,
             "base_url": contract.base_url,
@@ -631,6 +704,7 @@ class ServingSandboxExecutor(SandboxExecutor):
             image=server_image,
             image_id=server_image_id,
             command=server_command,
+            configuration=parse_vllm_server_configuration(server_command),
         )
 
     @staticmethod

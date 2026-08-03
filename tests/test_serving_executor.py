@@ -8,6 +8,7 @@ import pytest
 from tokenpoweragent.executors.sandbox import SandboxExecutionError
 from tokenpoweragent.executors.serving import (
     ServingSandboxExecutor,
+    parse_vllm_server_configuration,
     parse_vllm_benchmark_output,
 )
 from tokenpoweragent.schema import Candidate
@@ -197,6 +198,13 @@ def server_inspection(*extra_args: str) -> str:
                 "Args": [
                     "serve",
                     "Qwen/Qwen2.5-7B-Instruct",
+                    "--dtype",
+                    "bfloat16",
+                    "--max-num-seqs",
+                    "256",
+                    "--max-num-batched-tokens",
+                    "8192",
+                    "--enable-chunked-prefill",
                     *extra_args,
                 ],
             }
@@ -231,6 +239,16 @@ def test_serving_environment_records_pinned_server(tmp_path) -> None:
     assert environment.image == "vllm/vllm-openai:v0.23.0"
     assert environment.image_id == "sha256:server-image"
     assert "--no-enable-prefix-caching" in environment.command
+    assert environment.configuration["max_num_seqs"] == 256
+    assert environment.configuration["max_num_batched_tokens"] == 8192
+    assert environment.configuration["chunked_prefill"] is True
+
+
+def test_parse_server_configuration_requires_explicit_batching_contract() -> None:
+    with pytest.raises(SandboxExecutionError, match="max-num-seqs"):
+        parse_vllm_server_configuration(
+            ["vllm", "serve", "model", "--enable-chunked-prefill"]
+        )
 
 
 def test_serving_environment_rejects_implicit_prefix_cache(tmp_path) -> None:

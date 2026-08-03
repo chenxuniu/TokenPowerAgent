@@ -160,3 +160,51 @@ P50/P95/P99 TTFT, TPOT, ITL, and end-to-end latency, output and request
 throughput, joules, average power, and joules per token. Temperature is fixed at
 zero and EOS is ignored so every request performs the declared output-token
 work.
+
+## Convert L1 Evidence into a Sandbox Profile
+
+Collect at least three repetitions of each calibration point at one fixed
+power limit. The builder rejects failed/non-L1 records, filters records from
+other power limits, parses the persistent server's TP/PP/batching envelope,
+aggregates each group by its median, and embeds the source JSONL SHA-256:
+
+```bash
+tokenpoweragent build-calibration \
+  --records experiments/results/qwen7b-serving-pl700.jsonl \
+  --template configs/calibration/qwen2.5-7b-h100-profile-template.json \
+  --profile-id qwen2.5-7b-h100-l1-v1 \
+  --power-limit-w 700 \
+  --min-repeats 3 \
+  --output experiments/results/qwen2.5-7b-h100-l1-v1.json
+```
+
+Do not add `--publication-eligible` yet. The bundled template intentionally
+contains placeholder NCCL bandwidth/latency and uncalibrated uncertainty
+widths, and the command refuses to call that combination publication ready.
+
+Compile the core TP/PP/batching grid and remove geometry/memory-infeasible
+candidates:
+
+```bash
+tokenpoweragent expand-space \
+  --space configs/search_spaces/qwen2.5-7b-core-grid.json \
+  --scenario configs/scenarios/topology_sandbox_demo.json \
+  --calibration experiments/results/qwen2.5-7b-h100-l1-v1.json \
+  --output experiments/results/qwen2.5-7b-candidates.json
+```
+
+Then obtain compute-only L0 or topology-informed L2 predictions:
+
+```bash
+tokenpoweragent sandbox-predict \
+  --scenario configs/scenarios/topology_sandbox_demo.json \
+  --calibration experiments/results/qwen2.5-7b-h100-l1-v1.json \
+  --level L2 \
+  --output experiments/results/qwen2.5-7b-topology-predictions.jsonl
+```
+
+These predictions are candidate rankings for selecting real runs. Their
+records have kind `simulated` or `extrapolated`, carry `validation_required`,
+and report GPU energy only. A sibling `.summary.json` records nominal and
+uncertainty-pessimistic SLO-feasible/Pareto IDs plus scenario and profile
+hashes. They are not target-scale measurements.

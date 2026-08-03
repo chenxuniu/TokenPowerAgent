@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "rq4-verified-deployment-benefit-v1",
+  "research_question": "Does the independently verified recommendation reduce energy at the target SLO after search cost is counted?",
+  "claim_status": "preregistered-no-results",
+  "baselines": [
+    "vllm-default",
+    "expert-fixed-configuration",
+    "equal-budget-random-search",
+    "equal-budget-qnehvi",
+    "dense-sweep-oracle-or-labeled-upper-bound"
+  ],
+  "verification": {
+    "level": "L4",
+    "required_repetitions": 3,
+    "failed_requests_allowed": 0,
+    "same_trace_and_slo_for_all_methods": true,
+    "independent_from_search_measurements": true
+  },
+  "headline_metrics": [
+    "energy_saved_at_matched_slo_percent",
+    "performance_loss_vs_fastest_feasible_percent",
+    "search_gpu_hours",
+    "search_energy_j",
+    "break_even_served_tokens",
+    "end_to_end_energy_including_search"
+  ],
+  "claim_gate": "No configuration is called energy efficient unless all three L4 repetitions satisfy the SLO"
+}
