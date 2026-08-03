@@ -93,7 +93,37 @@ The next L1 probe keeps a pinned vLLM server alive so model loading, tokenizer
 initialization, and CUDA graph capture are outside the measured request window.
 Its benchmark client has no GPU and joins an internal Docker network that can
 reach only the serving container. Build the marker-enabled client from the
-immutable vLLM 0.23.0 image, then create and attach that network once:
+immutable vLLM 0.23.0 image. Repeated candidates intentionally reuse the same
+seed for paired comparison, so the server must explicitly disable automatic
+prefix caching; otherwise whichever candidate runs later can reuse the first
+candidate's prompt KV cache. Launch the fixed server envelope as follows:
+
+```bash
+sudo docker volume create tpa-hf-cache
+
+sudo docker run -d \
+  --name tpa-vllm-qwen7b \
+  --gpus all \
+  --shm-size=16g \
+  -p 127.0.0.1:8000:8000 \
+  -v tpa-hf-cache:/root/.cache/huggingface \
+  vllm/vllm-openai@sha256:6d8429e38e3747723ca07ee1b17972e09bb9c51c4032b266f24fb1cc3b22ed8f \
+  Qwen/Qwen2.5-7B-Instruct \
+  --revision a09a35458c702b33eeacc393d103063234e8bc28 \
+  --tokenizer-revision a09a35458c702b33eeacc393d103063234e8bc28 \
+  --served-model-name qwen2.5-7b \
+  --dtype bfloat16 \
+  --max-model-len 4096 \
+  --gpu-memory-utilization 0.90 \
+  --max-num-seqs 256 \
+  --max-num-batched-tokens 8192 \
+  --enable-chunked-prefill \
+  --no-enable-prefix-caching \
+  --generation-config vllm \
+  --seed 0
+```
+
+Then build the client and create and attach its internal network once:
 
 ```bash
 sudo docker build \

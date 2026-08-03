@@ -126,6 +126,13 @@ class MarkedRun:
     window_seconds: float
 
 
+@dataclass(frozen=True)
+class ServerEnvironment:
+    image: str
+    image_id: str
+    command: Tuple[str, ...]
+
+
 class ServingSandboxExecutor(SandboxExecutor):
     """Benchmark a persistent vLLM server through an isolated client."""
 
@@ -228,7 +235,7 @@ class ServingSandboxExecutor(SandboxExecutor):
             )
 
         contract = self._serving_contract(candidate)
-        self._verify_serving_environment(contract)
+        server_environment = self._verify_serving_environment(contract)
         image_id = self._image_id(contract.image)
         power_state = self._query_power_state()
         if not power_state.minimum_w <= contract.power_limit_w <= power_state.maximum_w:
@@ -292,6 +299,9 @@ class ServingSandboxExecutor(SandboxExecutor):
             "client_image_id": image_id,
             "client_command": list(self.client_command(candidate, seed, control_dir)),
             "server_container": contract.server_container,
+            "server_image": server_environment.image,
+            "server_image_id": server_environment.image_id,
+            "server_command": list(server_environment.command),
             "docker_network": contract.network,
             "hf_cache_volume": contract.cache_volume,
             "base_url": contract.base_url,
@@ -548,20 +558,43 @@ class ServingSandboxExecutor(SandboxExecutor):
         except (FileNotFoundError, OSError):
             pass
 
-    def _verify_serving_environment(self, contract: ServingContract) -> None:
-        running = self._run_checked(
+    def _verify_serving_environment(
+        self, contract: ServingContract
+    ) -> ServerEnvironment:
+        inspection_raw = self._run_checked(
             [
                 *self.privileged_prefix,
                 "docker",
                 "inspect",
-                "--format",
-                "{{.State.Running}}",
                 contract.server_container,
             ]
-        ).strip()
-        if running != "true":
+        )
+        try:
+            inspection = json.loads(inspection_raw)
+            container = inspection[0]
+            running = container["State"]["Running"]
+            networks = container["NetworkSettings"]["Networks"]
+            server_image = str(container["Config"]["Image"])
+            server_image_id = str(container["Image"])
+            server_command = (
+                str(container["Path"]),
+                *(str(argument) for argument in container["Args"]),
+            )
+        except (IndexError, KeyError, TypeError, json.JSONDecodeError) as exc:
+            raise SandboxExecutionError(
+                "invalid Docker inspection for server container %s"
+                % contract.server_container
+            ) from exc
+
+        if running is not True:
             raise SandboxExecutionError(
                 "server container %s is not running" % contract.server_container
+            )
+        if "--no-enable-prefix-caching" not in server_command:
+            raise SandboxExecutionError(
+                "server container %s must explicitly disable prefix caching; "
+                "matched repeated prompts otherwise bias cross-candidate comparisons"
+                % contract.server_container
             )
 
         internal = self._run_checked(
@@ -580,17 +613,6 @@ class ServingSandboxExecutor(SandboxExecutor):
                 "benchmark network %s must be internal" % contract.network
             )
 
-        networks_raw = self._run_checked(
-            [
-                *self.privileged_prefix,
-                "docker",
-                "inspect",
-                "--format",
-                "{{json .NetworkSettings.Networks}}",
-                contract.server_container,
-            ]
-        )
-        networks = json.loads(networks_raw)
         if contract.network not in networks:
             raise SandboxExecutionError(
                 "server container %s is not attached to %s"
@@ -604,6 +626,11 @@ class ServingSandboxExecutor(SandboxExecutor):
                 "inspect",
                 contract.cache_volume,
             ]
+        )
+        return ServerEnvironment(
+            image=server_image,
+            image_id=server_image_id,
+            command=server_command,
         )
 
     @staticmethod

@@ -1,3 +1,4 @@
+import json
 import os
 import stat
 import sys
@@ -180,3 +181,62 @@ def test_serving_control_fifos_allow_directional_container_access(tmp_path) -> N
 
     ServingSandboxExecutor._remove_control_dir(control_dir)
     assert not control_dir.exists()
+
+
+def server_inspection(*extra_args: str) -> str:
+    return json.dumps(
+        [
+            {
+                "State": {"Running": True},
+                "NetworkSettings": {
+                    "Networks": {"tpa-serving-bench": {"IPAddress": "172.18.0.2"}}
+                },
+                "Config": {"Image": "vllm/vllm-openai:v0.23.0"},
+                "Image": "sha256:server-image",
+                "Path": "vllm",
+                "Args": [
+                    "serve",
+                    "Qwen/Qwen2.5-7B-Instruct",
+                    *extra_args,
+                ],
+            }
+        ]
+    )
+
+
+class FakeServingEnvironmentExecutor(ServingSandboxExecutor):
+    def __init__(self, inspection: str, tmp_path) -> None:
+        super().__init__(telemetry_dir=tmp_path, use_sudo=False)
+        self.inspection = inspection
+
+    def _run_checked(self, command):
+        if command[:2] == ["docker", "inspect"]:
+            return self.inspection
+        if command[:3] == ["docker", "network", "inspect"]:
+            return "true\n"
+        if command[:3] == ["docker", "volume", "inspect"]:
+            return "[]\n"
+        raise AssertionError("unexpected command: %r" % (command,))
+
+
+def test_serving_environment_records_pinned_server(tmp_path) -> None:
+    executor = FakeServingEnvironmentExecutor(
+        server_inspection("--no-enable-prefix-caching"), tmp_path
+    )
+
+    environment = executor._verify_serving_environment(
+        executor._serving_contract(serving_candidate())
+    )
+
+    assert environment.image == "vllm/vllm-openai:v0.23.0"
+    assert environment.image_id == "sha256:server-image"
+    assert "--no-enable-prefix-caching" in environment.command
+
+
+def test_serving_environment_rejects_implicit_prefix_cache(tmp_path) -> None:
+    executor = FakeServingEnvironmentExecutor(server_inspection(), tmp_path)
+
+    with pytest.raises(SandboxExecutionError, match="disable prefix caching"):
+        executor._verify_serving_environment(
+            executor._serving_contract(serving_candidate())
+        )
