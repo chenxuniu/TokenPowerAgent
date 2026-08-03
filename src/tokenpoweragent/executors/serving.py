@@ -246,11 +246,7 @@ class ServingSandboxExecutor(SandboxExecutor):
         telemetry_path = self.telemetry_dir / (artifact_stem + ".dcgm.txt")
         client_path = self.telemetry_dir / (artifact_stem + ".client.txt")
         control_dir = self.telemetry_dir / (artifact_stem + ".control")
-        control_dir.mkdir()
-        events_fifo = control_dir / "events.fifo"
-        commands_fifo = control_dir / "commands.fifo"
-        os.mkfifo(events_fifo)
-        os.mkfifo(commands_fifo)
+        events_fifo, commands_fifo = self._create_control_fifos(control_dir)
 
         telemetry_process = None
         telemetry_stream = None
@@ -521,6 +517,24 @@ class ServingSandboxExecutor(SandboxExecutor):
             energy_end_mj=energy_end_mj,
             window_seconds=ended_at - started_at,
         )
+
+    @staticmethod
+    def _create_control_fifos(control_dir: Path) -> Tuple[Path, Path]:
+        """Create directional FIFOs that a different container UID can open."""
+
+        control_dir.mkdir(mode=0o711)
+        control_dir.chmod(0o711)
+        events_fifo = control_dir / "events.fifo"
+        commands_fifo = control_dir / "commands.fifo"
+        os.mkfifo(events_fifo)
+        os.mkfifo(commands_fifo)
+
+        # Docker preserves host ownership on bind mounts. The benchmark image
+        # runs as a different UID, so grant only the cross-boundary operations
+        # needed by the protocol: container writes events and reads commands.
+        events_fifo.chmod(0o622)
+        commands_fifo.chmod(0o644)
+        return events_fifo, commands_fifo
 
     @staticmethod
     def _remove_control_dir(control_dir: Path) -> None:

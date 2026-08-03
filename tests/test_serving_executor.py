@@ -1,4 +1,5 @@
 import os
+import stat
 import sys
 
 import pytest
@@ -166,3 +167,16 @@ print("work-end", flush=True)
     assert run.window_seconds >= 0.02
     assert "work-start" in run.output
     assert "work-end" in run.output
+
+
+def test_serving_control_fifos_allow_directional_container_access(tmp_path) -> None:
+    control_dir = tmp_path / "control"
+
+    events, commands = ServingSandboxExecutor._create_control_fifos(control_dir)
+
+    assert stat.S_IMODE(control_dir.stat().st_mode) == 0o711
+    assert stat.S_IMODE(events.stat().st_mode) == 0o622
+    assert stat.S_IMODE(commands.stat().st_mode) == 0o644
+
+    ServingSandboxExecutor._remove_control_dir(control_dir)
+    assert not control_dir.exists()
