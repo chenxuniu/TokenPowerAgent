@@ -1,5 +1,6 @@
 import pytest
 
+from tokenpoweragent.cli import _campaign_schedule
 from tokenpoweragent.executors.sandbox import (
     SandboxExecutionError,
     SandboxExecutor,
@@ -66,3 +67,17 @@ def test_sandbox_rejects_shell_command_strings(tmp_path) -> None:
     executor = SandboxExecutor(telemetry_dir=tmp_path)
     with pytest.raises(SandboxExecutionError, match="sequence of arguments"):
         executor.docker_command(candidate)
+
+
+def test_sandbox_campaign_uses_cyclically_balanced_order() -> None:
+    assert _campaign_schedule((350, 500, 700), 3) == (
+        (350, 0),
+        (500, 0),
+        (700, 0),
+        (500, 1),
+        (700, 1),
+        (350, 1),
+        (700, 2),
+        (350, 2),
+        (500, 2),
+    )

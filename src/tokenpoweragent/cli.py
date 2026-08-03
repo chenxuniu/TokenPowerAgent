@@ -26,6 +26,19 @@ def _power_limits(value: str) -> tuple[int, ...]:
     return limits
 
 
+def _campaign_schedule(
+    power_limits: tuple[int, ...], repeats: int
+) -> tuple[tuple[int, int], ...]:
+    """Return (power limit, seed) pairs in a cyclically balanced order."""
+
+    schedule = []
+    for seed in range(repeats):
+        offset = seed % len(power_limits)
+        ordered_limits = power_limits[offset:] + power_limits[:offset]
+        schedule.extend((power_limit, seed) for power_limit in ordered_limits)
+    return tuple(schedule)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="tokenpoweragent")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -89,12 +102,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             timeout_seconds=args.timeout_seconds,
         )
         records = EvidenceStore()
-        for power_limit_w in args.power_limits:
+        for campaign_index, (power_limit_w, seed) in enumerate(
+            _campaign_schedule(args.power_limits, args.repeats)
+        ):
             candidate = Candidate(
                 candidate_id="gemm-pl%d" % power_limit_w,
                 config={
                     "image": args.image,
                     "power_limit_w": power_limit_w,
+                    "campaign_index": campaign_index,
                     "command": [
                         "--matrix-size",
                         str(args.matrix_size),
@@ -102,28 +118,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                         str(args.warmup),
                         "--iterations",
                         str(args.iterations),
+                        "--seed",
+                        str(seed),
                     ],
                 },
             )
-            for seed in range(args.repeats):
-                seeded_candidate = Candidate(
-                    candidate_id=candidate.candidate_id,
-                    config={
-                        **candidate.config,
-                        "command": [*candidate.config["command"], "--seed", str(seed)],
-                    },
+            try:
+                record = executor.execute(candidate, EvidenceLevel.L1, seed)
+            except SandboxExecutionError as exc:
+                print(
+                    "sandbox failed for %s seed %d: %s"
+                    % (candidate.candidate_id, seed, exc),
+                    file=sys.stderr,
                 )
-                try:
-                    record = executor.execute(seeded_candidate, EvidenceLevel.L1, seed)
-                except SandboxExecutionError as exc:
-                    print(
-                        "sandbox failed for %s seed %d: %s"
-                        % (candidate.candidate_id, seed, exc),
-                        file=sys.stderr,
-                    )
-                    return 2
-                records.append(record)
-                print(json.dumps(record.to_dict(), sort_keys=True))
+                return 2
+            records.append(record)
+            print(json.dumps(record.to_dict(), sort_keys=True))
 
         args.output.parent.mkdir(parents=True, exist_ok=True)
         records.write_jsonl(args.output)

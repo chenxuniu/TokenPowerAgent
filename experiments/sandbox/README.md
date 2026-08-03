@@ -50,6 +50,10 @@ tokenpoweragent sandbox-smoke \
   --output experiments/results/h100-gemm-smoke.jsonl
 ```
 
+Repeats use a cyclically balanced power-cap order. For three limits and three
+repeats, the rounds are `350,500,700`, `500,700,350`, and `700,350,500`, so
+temperature and run-order drift are not assigned to one configuration alone.
+
 The executor restores the original power limit after every run, including most
 failure paths. After an interrupted campaign, verify it explicitly:
 
@@ -72,7 +76,8 @@ Each successful evidence record contains:
 Raw 100 ms DCGM traces and container stdout/stderr are stored beneath
 `experiments/results/telemetry/`. Container startup and warmup are included in
 `energy_j`; the later serving experiment will keep vLLM alive and use explicit
-request-window markers instead.
+request-window markers instead. Provenance includes the immutable local Docker
+image ID, campaign position, requested/read-back power cap, and artifact paths.
 
 ## Pass Criteria
 

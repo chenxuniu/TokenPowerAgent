@@ -87,7 +87,7 @@ def parse_workload_result(text: str) -> Mapping[str, Any]:
 class SandboxExecutor(Executor):
     """Run a typed, non-networked container and measure it outside the sandbox."""
 
-    TELEMETRY_FIELDS = "100,101,150,155,156,157,160,203,204"
+    TELEMETRY_FIELDS = "100,101,150,155,156,157,160,203,204,112,240,241"
 
     def __init__(
         self,
@@ -148,6 +148,7 @@ class SandboxExecutor(Executor):
             raise SandboxExecutionError("SandboxExecutor supports one GPU on one node")
 
         image, _, requested_power_w = self._candidate_contract(candidate)
+        image_id = self._image_id(image)
         power_state = self._query_power_state()
         if not power_state.minimum_w <= requested_power_w <= power_state.maximum_w:
             raise SandboxExecutionError(
@@ -206,6 +207,7 @@ class SandboxExecutor(Executor):
         provenance = {
             "executor": "docker-sandbox",
             "image": image,
+            "image_id": image_id,
             "docker_command": list(self.docker_command(candidate)),
             "gpu_id": self.gpu_id,
             "seed": seed,
@@ -220,6 +222,8 @@ class SandboxExecutor(Executor):
             "stdout_path": str(stdout_path),
             "stderr_path": str(stderr_path),
         }
+        if "campaign_index" in candidate.config:
+            provenance["campaign_index"] = int(candidate.config["campaign_index"])
 
         kind = EvidenceKind.VERIFIED if level == EvidenceLevel.L4 else EvidenceKind.MEASURED
         gpu_hours = wall_seconds / 3600.0
@@ -305,6 +309,19 @@ class SandboxExecutor(Executor):
             ]
         )
         return parse_power_state(output)
+
+    def _image_id(self, image: str) -> str:
+        return self._run_checked(
+            [
+                *self.privileged_prefix,
+                "docker",
+                "image",
+                "inspect",
+                "--format",
+                "{{.Id}}",
+                image,
+            ]
+        ).strip()
 
     def _set_power_limit(self, watts: float) -> None:
         self._run_checked(
