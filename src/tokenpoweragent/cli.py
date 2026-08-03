@@ -30,6 +30,10 @@ from tokenpoweragent.twin.topology import (
     CalibrationProfile,
     InferenceWorkload,
 )
+from tokenpoweragent.validation import (
+    HoldoutValidationError,
+    build_holdout_validation_report,
+)
 
 
 def _power_limits(value: str) -> tuple[int, ...]:
@@ -206,6 +210,16 @@ def build_parser() -> argparse.ArgumentParser:
     calibration.add_argument("--min-repeats", type=int, default=3)
     calibration.add_argument("--publication-eligible", action="store_true")
     calibration.add_argument("--output", type=Path, required=True)
+
+    validation = subparsers.add_parser(
+        "validate-holdout",
+        help="compare a frozen sandbox prediction with blind serving evidence",
+    )
+    validation.add_argument("--predictions", type=Path, required=True)
+    validation.add_argument("--measurements", type=Path, required=True)
+    validation.add_argument("--freeze-manifest", type=Path, required=True)
+    validation.add_argument("--min-repeats", type=int, default=3)
+    validation.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -516,6 +530,34 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             % (
                 len(profile["calibration_points"]),
                 profile["metadata"]["matching_records"],
+                args.output,
+            )
+        )
+        return 0
+
+    if args.command == "validate-holdout":
+        try:
+            report = build_holdout_validation_report(
+                predictions_path=args.predictions,
+                measurements_path=args.measurements,
+                freeze_manifest_path=args.freeze_manifest,
+                min_repeats=args.min_repeats,
+            )
+        except (HoldoutValidationError, OSError, KeyError) as exc:
+            raise SystemExit("cannot validate holdout: %s" % exc) from exc
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(report, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        summary = report["summary"]
+        print(
+            "validated %d blind repeats: MAPE %.2f%%, interval coverage %d/%d; wrote %s"
+            % (
+                report["protocol"]["repeat_count"],
+                summary["mean_absolute_percentage_error_pct"],
+                summary["interval_covered_metric_count"],
+                summary["metric_count"],
                 args.output,
             )
         )

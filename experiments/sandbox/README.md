@@ -213,3 +213,25 @@ records have kind `simulated` or `extrapolated`, carry `validation_required`,
 and report GPU energy only. A sibling `.summary.json` records nominal and
 uncertainty-pessimistic SLO-feasible/Pareto IDs plus scenario and profile
 hashes. They are not target-scale measurements.
+
+## Validate a Frozen Holdout
+
+Hash the prediction before collecting measurements, label every blind run with
+`--dataset-split holdout`, and then generate a machine-checkable comparison:
+
+```bash
+tokenpoweragent validate-holdout \
+  --predictions experiments/results/holdout-c1024-o128-c16-l0.jsonl \
+  --measurements experiments/results/qwen7b-holdout-c1024-o128-c16.jsonl \
+  --freeze-manifest experiments/results/holdout-c1024-o128-c16-freeze.sha256 \
+  --min-repeats 3 \
+  --output experiments/results/holdout-c1024-o128-c16-validation.json
+```
+
+The validator checks chronology, hashes, split labels, model, workload, server
+configuration, image, and power-limit consistency. It reports median, MAD,
+sample standard deviation, coefficient of variation, signed prediction error,
+absolute percentage error, and interval coverage for energy, throughput, P95
+TTFT, and P95 TPOT. Average-power and benchmark-duration errors are reported as
+diagnostics for interpreting energy error. Coverage from one workload is
+diagnostic only; it does not make an uncalibrated profile publication eligible.
