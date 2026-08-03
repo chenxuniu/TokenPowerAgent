@@ -103,6 +103,9 @@ def test_serving_client_has_isolated_fixed_envelope(tmp_path) -> None:
     assert "tpa-hf-cache:/root/.cache/huggingface:ro" in command
     assert "%s:/tpa-control:rw" % (tmp_path / "control").resolve() in command
     assert "TPA_CONTROL_DIR=/tpa-control" in command
+    assert "HOME=/tmp" in command
+    assert "VLLM_CACHE_ROOT=/tmp/vllm-cache" in command
+    assert "VLLM_NO_USAGE_STATS=1" in command
     assert command[command.index("--temperature") + 1] == "0"
     assert command[command.index("--seed") + 1] == "3"
     assert "--ignore-eos" in command
