@@ -45,6 +45,23 @@ tokenpoweragent render-slurm \
   --level L4
 ```
 
+After configuring Docker, NVIDIA Container Toolkit, and DCGM on a single-GPU
+host, run the L1 TokenPowerSandbox smoke campaign:
+
+```bash
+sudo docker build --pull \
+  -t tokenpower-sandbox:cuda12.8 \
+  experiments/sandbox/cuda-gemm
+
+tokenpoweragent sandbox-smoke \
+  --power-limits 350,500,700 \
+  --repeats 3 \
+  --output experiments/results/h100-gemm-smoke.jsonl
+```
+
+See [`experiments/sandbox/README.md`](experiments/sandbox/README.md) for the
+measurement boundary, safety controls, metrics, and pass criteria.
+
 ## Architecture
 
 ```text
