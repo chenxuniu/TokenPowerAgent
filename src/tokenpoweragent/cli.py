@@ -136,6 +136,12 @@ def build_parser() -> argparse.ArgumentParser:
     serving.add_argument("--num-warmups", type=int, default=2)
     serving.add_argument("--request-rate", type=_request_rate, default="inf")
     serving.add_argument("--max-concurrency", type=int, default=8)
+    serving.add_argument(
+        "--dataset-split",
+        choices=("calibration", "validation", "holdout", "diagnostic"),
+        default="diagnostic",
+        help="freeze the evidence role before running the workload",
+    )
     serving.add_argument("--sample-ms", type=int, default=100)
     serving.add_argument("--timeout-seconds", type=float, default=600.0)
     serving.add_argument(
@@ -296,6 +302,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     "num_warmups": args.num_warmups,
                     "request_rate": args.request_rate,
                     "max_concurrency": args.max_concurrency,
+                    "dataset_split": args.dataset_split,
                 },
             )
             try:

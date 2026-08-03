@@ -115,6 +115,7 @@ class ServingContract:
     num_warmups: int
     request_rate: str
     max_concurrency: int
+    dataset_split: str
 
 
 @dataclass(frozen=True)
@@ -380,6 +381,7 @@ class ServingSandboxExecutor(SandboxExecutor):
             "base_url": contract.base_url,
             "model": contract.model,
             "served_model_name": contract.served_model_name,
+            "dataset_split": contract.dataset_split,
             "gpu_id": self.gpu_id,
             "seed": seed,
             "power_limit_requested_w": contract.power_limit_w,
@@ -780,6 +782,17 @@ class ServingSandboxExecutor(SandboxExecutor):
             except ValueError as exc:
                 raise SandboxExecutionError("candidate has invalid request_rate") from exc
 
+        dataset_split = str(
+            candidate.config.get("dataset_split", "diagnostic")
+        ).strip().lower()
+        if dataset_split not in {
+            "calibration",
+            "validation",
+            "holdout",
+            "diagnostic",
+        }:
+            raise SandboxExecutionError("candidate has invalid dataset_split")
+
         return ServingContract(
             image=image,
             server_container=server_container,
@@ -795,4 +808,5 @@ class ServingSandboxExecutor(SandboxExecutor):
             num_warmups=positive_int("num_warmups", allow_zero=True),
             request_rate=raw_rate,
             max_concurrency=positive_int("max_concurrency"),
+            dataset_split=dataset_split,
         )

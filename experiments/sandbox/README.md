@@ -146,6 +146,7 @@ tokenpoweragent serving-smoke \
   --num-warmups 2 \
   --request-rate inf \
   --max-concurrency 8 \
+  --dataset-split calibration \
   --sample-ms 100 \
   --output experiments/results/qwen7b-serving-pl700.jsonl
 ```
@@ -167,6 +168,10 @@ Collect at least three repetitions of each calibration point at one fixed
 power limit. The builder rejects failed/non-L1 records, filters records from
 other power limits, parses the persistent server's TP/PP/batching envelope,
 aggregates each group by its median, and embeds the source JSONL SHA-256:
+
+Declare `--dataset-split calibration` for fitting points and
+`--dataset-split holdout` before any blind validation run. Publication profile
+construction rejects records not explicitly assigned to the calibration split.
 
 ```bash
 tokenpoweragent build-calibration \

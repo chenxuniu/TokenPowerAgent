@@ -64,6 +64,7 @@ def serving_candidate(**overrides: object) -> Candidate:
         "num_warmups": 2,
         "request_rate": "inf",
         "max_concurrency": 8,
+        "dataset_split": "calibration",
     }
     config.update(overrides)
     return Candidate(candidate_id="qwen7b-serving-pl700", config=config)
@@ -112,6 +113,20 @@ def test_serving_client_has_isolated_fixed_envelope(tmp_path) -> None:
     assert command[command.index("--temperature") + 1] == "0"
     assert command[command.index("--seed") + 1] == "3"
     assert "--ignore-eos" in command
+    assert (
+        ServingSandboxExecutor._serving_contract(serving_candidate()).dataset_split
+        == "calibration"
+    )
+
+
+def test_serving_contract_rejects_unknown_dataset_split(tmp_path) -> None:
+    executor = ServingSandboxExecutor(telemetry_dir=tmp_path)
+    with pytest.raises(SandboxExecutionError, match="dataset_split"):
+        executor.client_command(
+            serving_candidate(dataset_split="train-and-test"),
+            seed=0,
+            control_dir=tmp_path / "control",
+        )
 
 
 def test_serving_client_rejects_non_server_url(tmp_path) -> None:
