@@ -3,6 +3,7 @@
 #include <cuda_runtime.h>
 
 #include <cstdio>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 
@@ -35,6 +36,23 @@ int parse_positive(const char* flag, const char* value) {
         std::exit(64);
     }
     return static_cast<int>(parsed);
+}
+
+__global__ void initialize_matrix(__half* matrix, size_t elements,
+                                  std::uint32_t seed) {
+    size_t index = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    const size_t stride = static_cast<size_t>(blockDim.x) * gridDim.x;
+    for (; index < elements; index += stride) {
+        std::uint32_t value = static_cast<std::uint32_t>(index) ^ seed;
+        value ^= value >> 16;
+        value *= 0x7feb352dU;
+        value ^= value >> 15;
+        value *= 0x846ca68bU;
+        value ^= value >> 16;
+        const float normalized =
+            static_cast<float>(value & 0xffffU) / 65535.0F - 0.5F;
+        matrix[index] = __float2half_rn(normalized);
+    }
 }
 
 }  // namespace
@@ -76,8 +94,13 @@ int main(int argc, char** argv) {
     CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&matrix_a), bytes));
     CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&matrix_b), bytes));
     CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&matrix_c), bytes));
-    CUDA_CHECK(cudaMemset(matrix_a, 0, bytes));
-    CUDA_CHECK(cudaMemset(matrix_b, 0, bytes));
+    constexpr int initialization_blocks = 4096;
+    constexpr int initialization_threads = 256;
+    initialize_matrix<<<initialization_blocks, initialization_threads>>>(
+        matrix_a, elements, 0x9e3779b9U ^ static_cast<std::uint32_t>(seed));
+    initialize_matrix<<<initialization_blocks, initialization_threads>>>(
+        matrix_b, elements, 0x85ebca6bU ^ static_cast<std::uint32_t>(seed));
+    CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaMemset(matrix_c, 0, bytes));
 
     cublasHandle_t handle{};
@@ -116,14 +139,18 @@ int main(int argc, char** argv) {
         2.0L * matrix_size * matrix_size * matrix_size * iterations;
     const long double elapsed_seconds = elapsed_ms / 1000.0L;
     const long double tflops = operations / elapsed_seconds / 1.0e12L;
+    __half output_sample_half{};
+    CUDA_CHECK(cudaMemcpy(&output_sample_half, matrix_c, sizeof(__half),
+                          cudaMemcpyDeviceToHost));
+    const float output_sample = __half2float(output_sample_half);
 
     std::printf(
         "{\"workload\":\"cublas-fp16-gemm\",\"device\":\"%s\","
         "\"matrix_size\":%d,\"warmup\":%d,\"iterations\":%d,"
         "\"seed\":%d,\"elapsed_ms\":%.6f,\"operations\":%.0Lf,"
-        "\"tflops\":%.6Lf}\n",
+        "\"tflops\":%.6Lf,\"output_sample\":%.9g}\n",
         properties.name, matrix_size, warmup, iterations, seed, elapsed_ms,
-        operations, tflops);
+        operations, tflops, output_sample);
 
     CUDA_CHECK(cudaEventDestroy(start));
     CUDA_CHECK(cudaEventDestroy(stop));

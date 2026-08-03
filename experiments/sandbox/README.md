@@ -26,7 +26,9 @@ sudo docker build --pull \
 ```
 
 The multi-stage image compiles a fixed FP16 cuBLAS GEMM workload with CUDA
-12.8.1 and copies only the executable into the runtime image.
+12.8.1 and copies only the executable into the runtime image. A deterministic
+hash kernel initializes nonzero FP16 inputs for every seed, and the workload
+copies one output value to the host so the computation has a checked result.
 
 ## Run
 
