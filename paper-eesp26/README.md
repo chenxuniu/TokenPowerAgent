@@ -5,7 +5,7 @@ plus references. It is intentionally narrower than the MLSys-oriented
 TokenPowerAgent paper.
 
 Current title: **TokenPowerSandbox: Evidence-Gated Multi-Fidelity Screening for
-Energy-Efficient LLM Inference on HPC Clusters (Work in Progress)**.
+Energy-Efficient LLM Inference on HPC Clusters**.
 
 ## Core Claim
 
