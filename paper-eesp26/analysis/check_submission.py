@@ -58,6 +58,7 @@ def main() -> None:
         "25.0\\%": "obsolete one-point MAPE",
         "38.4\\%": "obsolete one-point energy error",
         "Qwen2.5-32B": "obsolete eight-GPU experiment",
+        "L0/L2": "ambiguous combined prediction-level label",
     }
     for marker, description in blockers.items():
         if marker in source:
@@ -66,6 +67,8 @@ def main() -> None:
     main_tex = (ROOT / "main.tex").read_text(encoding="utf-8")
     if "Anonymous Authors" not in main_tex:
         errors.append("anonymous author block is missing")
+    if "Evidence-Gated Multi-Fidelity Screening" not in main_tex:
+        errors.append("HPC multi-fidelity title is missing")
     if "TokenPowerAgent:" in source:
         errors.append("TokenPowerAgent appears as the paper title/system")
 

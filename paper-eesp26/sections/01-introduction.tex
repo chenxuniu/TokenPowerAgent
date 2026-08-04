@@ -1,13 +1,13 @@
 \section{Introduction}
 
-LLM serving behavior changes with input/output length, concurrency, arrival
-rate, batching, KV-cache controls, power, and tensor/pipeline parallelism
-(TP/PP).  These factors jointly determine energy, throughput, time to first
-token (TTFT), and time per output token (TPOT).  Exhaustively measuring them on
-the intended cluster is expensive, while a developer may initially have only
-one GPU available.  A lightweight sandbox is therefore attractive, but it
-creates a scientific risk: a plausible prediction can be mistaken for evidence
-from the machine it approximates.
+HPC experiments have asymmetric resource cost: CPU allocations can execute
+deterministic projections without reserving accelerators, while GPU nodes may
+be scarce and queue-delayed.  LLM serving behavior changes with token lengths,
+concurrency, arrival rate, batching, KV-cache controls, power, and
+tensor/pipeline parallelism (TP/PP).  These factors jointly determine energy,
+throughput, time to first token (TTFT), and time per output token (TPOT).
+CPU-first screening avoids exhaustive target-GPU measurement, but risks
+mistaking a plausible projection for hardware evidence.
 
 Measurement systems establish what a completed run consumed
 \cite{samsi2023words,fernandez2025energy,chung2025mlenergy}; \bench{} adds
@@ -18,19 +18,19 @@ yang2026charon}.  Pre-deployment energy modeling nevertheless has a separate
 trust question: does a cheap model preserve the energy--SLO ordering that drives
 the next experiment, and can its failure be detected before deployment?
 
-We ask: \emph{how can sparse real measurements support auditable screening of
-an unseen LLM inference workload?}  \system{} is not a Docker image or a set of
-virtual GPUs.  It is a multi-fidelity workflow comprising a restricted real-GPU
-executor, an analytical model with a small measured residual correction, and an
-evidence gate.  Docker isolates and pins the L1 experiment; the sandbox is the
-larger prediction--measurement contract shown in
+We ask: \emph{how can CPU-accessible projections and sparse real measurements
+support auditable screening of an unseen LLM inference workload?}  \system{}
+is not a Docker image or a set of virtual GPUs.  It is a multi-fidelity
+workflow comprising a CPU-resident analytical model, a restricted real-GPU
+executor, and an evidence gate.  Docker isolates and pins measured execution;
+the sandbox is the larger HPC resource and evidence contract shown in
 Fig.~\ref{fig:sandbox-ladder}.
 
 This WIP makes three bounded contributions:
 \begin{itemize}
-  \item A content-addressed evidence contract that separates workload from
-  deployment controls and rejects prediction/measurement comparisons with
-  mismatched provenance or chronology.
+  \item A CPU-first, GPU-verified evidence contract that separates workload
+  from deployment controls and rejects comparisons with mismatched provenance
+  or chronology.
   \item An interpretable workload-transfer model that combines analytical
   compute, memory, and power terms with a four-feature log-residual fitted only
   on development workloads.
@@ -40,6 +40,6 @@ This WIP makes three bounded contributions:
   low-occupancy limits.
 \end{itemize}
 
-The contribution is the evidence substrate, not yet an LLM agent or a verified
-TP/PP simulator.  Search policies can consume it later only where the measured
-scope gate permits.
+The contribution is the evidence substrate, not yet an LLM agent, a GPU-queue
+scheduler, or a verified TP/PP simulator.  Search policies can consume it later
+only where the measured scope gate permits.

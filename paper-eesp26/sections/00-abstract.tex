@@ -1,27 +1,23 @@
 \begin{abstract}
-Pre-deployment estimates could screen expensive LLM inference experiments, but
-an unverified estimate is not measurement evidence.  We present \system{}, a
-lightweight, evidence-gated sandbox that combines an interpretable analytical
-projector, a sparse correction learned from measured workloads, and an
-independent validation boundary.  Every scenario, prediction, telemetry trace,
-and measurement is split-labeled and content-addressed; a prediction must be
-frozen before the corresponding hardware run.  On one H100 80GB serving
-Qwen2.5-7B with vLLM, we use one three-repeat anchor and six development
-workloads to calibrate workload transfer across context length and concurrency.
-We then freeze eight unseen workloads and collect three independent repeats per
-point.  Relative to the analytical projector, the calibrated sandbox reduces
-blind energy MAPE from \BaseEnergyMAPE{} to \CalibratedEnergyMAPE{}, preserves
-energy ordering with Spearman $\rho=\EnergySpearman{}$ and
-\EnergyPairwisePct{} pairwise accuracy, and identifies the measured
-lowest-energy workload.  Throughput and TPOT MAPE are
+GPU allocations are scarce on HPC clusters, yet screening every LLM inference
+scenario on its target accelerator is costly.  CPU-resident models can explore
+workloads without reserving a GPU, but their estimates are not hardware
+evidence.  We present \system{}, an evidence-gated, multi-fidelity sandbox that
+couples an interpretable CPU projector and sparse measured correction with a
+real-GPU executor and freeze-before-measurement validation.  On one H100 80GB
+serving Qwen2.5-7B with vLLM, a three-repeat anchor and six development
+workloads calibrate transfer across context length and concurrency.  We freeze
+eight unseen workloads before collecting three repeats per point.  The
+calibrated projector lowers blind energy MAPE from \BaseEnergyMAPE{} to
+\CalibratedEnergyMAPE{}, with Spearman $\rho=\EnergySpearman{}$ and
+\EnergyPairwisePct{} pairwise accuracy.  Throughput and TPOT MAPE are
 \CalibratedThroughputMAPE{} and \CalibratedTPOTMAPE{}; TTFT remains harder at
 \CalibratedTTFTMAPE{}, exposing a low-concurrency boundary.  The result supports
-cheap workload screening within the measured envelope, not multi-GPU or
-cross-hardware simulation, and demonstrates why explicit evidence gates are
-necessary before an optimizer or agent consumes sandbox outputs.
+CPU-first, GPU-verified screening within a measured envelope, not multi-GPU or
+cross-hardware simulation.
 \end{abstract}
 
 \begin{IEEEkeywords}
 LLM inference, energy efficiency, workload modeling, multi-fidelity evidence,
-GPU measurement
+HPC clusters, GPU measurement
 \end{IEEEkeywords}

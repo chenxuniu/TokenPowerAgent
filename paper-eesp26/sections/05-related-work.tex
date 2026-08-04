@@ -6,9 +6,10 @@ geometry, model, framework, and hardware
 across systems, while \bench{} contributes
 declarative workloads and phase-aligned device/node telemetry
 \cite{chung2025mlenergy,niu2026tokenpowerbench}.  These systems answer what a
-completed run consumed.  \system{} retains L1 measurement as calibration
-source and final authority, while L0/L2 records estimate which runs to purchase
-next.  Its phase boundary preserves the semantics needed to compare them.
+completed run consumed.  \system{} retains real-GPU measurement as calibration
+source and final authority, while CPU-resident simulated or extrapolated
+records estimate which runs to purchase next.  Its phase boundary preserves the
+semantics needed to compare them.
 
 \textbf{Serving simulation and recommendation.}  Vidur provides event-driven
 performance simulation for LLM serving; LLM-Pilot characterizes models and

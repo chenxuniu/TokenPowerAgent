@@ -1,47 +1,52 @@
 \begin{figure*}[t]
 \centering
-\resizebox{0.99\textwidth}{!}{%
+\resizebox{0.98\textwidth}{!}{%
 \begin{tikzpicture}[
   x=1cm,y=1cm,
   every node/.style={font=\sffamily},
-  box/.style={draw=tpGray,rounded corners=1.2pt,minimum height=1.28cm,
-    text width=2.15cm,align=center,inner sep=3pt,font=\scriptsize},
+  box/.style={draw=tpGray,rounded corners=1.2pt,minimum height=0.94cm,
+    text width=2.02cm,align=center,inner sep=2.6pt,font=\scriptsize},
+  lane/.style={draw=tpGray,dashed,rounded corners=2pt,inner xsep=5pt,
+    inner ysep=3.5pt},
   flow/.style={-{Stealth[length=2.1mm]},line width=0.8pt,draw=tpGray},
-  loop/.style={-{Stealth[length=2.1mm]},line width=0.8pt,draw=tpTealDark}
+  feedback/.style={-{Stealth[length=2.1mm]},line width=0.8pt,draw=tpTealDark}
 ]
-  \node[box,fill=tpGrayLight] (scenario) at (0,0)
-    {\textbf{Frozen Contracts}\\workload $s$ / config $x$\\model, SLO, target};
-  \node[box,fill=tpBlueLight] (l1) at (2.82,0)
-    {\textbf{L1 Measure}\\restricted vLLM probe\\DCGM phase energy};
-  \node[box,fill=tpGoldLight] (profile) at (5.64,0)
-    {\textbf{Calibrate}\\anchor + dev split\\profile + source hash};
-  \node[box,fill=tpTealLight] (project) at (8.46,0)
-    {\textbf{L0 / L2 Predict}\\analytical core\\sparse log-residual};
-  \node[box,fill=tpGrayLight] (freeze) at (11.28,0)
-    {\textbf{Freeze}\\prediction + interval\\timestamp + SHA-256};
-  \node[box,fill=tpBlueLight] (holdout) at (14.10,0)
-    {\textbf{Independent Run}\\unseen L1 workload\\future target L4};
-  \node[box,fill=tpRoseLight,text width=2.35cm] (validate) at (17.02,0)
-    {\textbf{Validate / Gate}\\error + coverage\\release only if verified};
+  \node[box,fill=tpGrayLight,text width=1.9cm] (scenario) at (0,0)
+    {\textbf{Frozen Contract}\\workload / config\\model, SLO, target};
 
-  \draw[flow] (scenario) -- (l1);
-  \draw[flow] (l1) -- (profile);
-  \draw[flow] (profile) -- (project);
-  \draw[flow] (project) -- (freeze);
-  \draw[flow] (freeze) -- (holdout);
-  \draw[flow] (holdout) -- (validate);
-  \draw[loop] (validate.south) |- node[below,font=\tiny,text=tpTealDark]
-    {measured error updates the next calibration design} (profile.south);
+  \node[box,fill=tpTealLight] (project) at (3.05,0.58)
+    {\textbf{CPU Projection}\\analytical + residual};
+  \node[box,fill=tpGoldLight] (gate) at (5.82,0.58)
+    {\textbf{Scope Gate}\\controls + workload};
+  \node[box,fill=tpGrayLight] (freeze) at (8.59,0.58)
+    {\textbf{Freeze + Rank}\\interval + SHA-256};
 
-  \draw[-{Stealth[length=2.3mm]},line width=0.95pt,tpRose]
-    (7.45,1.15) -- node[above,font=\scriptsize\bfseries,text=tpRoseDark]
-    {prediction becomes evidence only through an independent measurement} (15.10,1.15);
-  \node[font=\tiny,text=tpGray] at (8.45,-1.14)
-    {Completed: 3-run H100 anchor + $6\!\times\!3$ development runs $\rightarrow$ 8 frozen workloads $\rightarrow$ $8\!\times\!3$ blind H100 validation};
+  \node[box,fill=tpBlueLight] (anchor) at (3.05,-0.58)
+    {\textbf{Sparse H100 Probe}\\anchor + development};
+  \node[box,fill=tpBlueLight] (verify) at (8.59,-0.58)
+    {\textbf{Blind H100 Run}\\selected workload + DCGM};
+
+  \node[box,fill=tpRoseLight,text width=2.15cm] (release) at (11.65,0)
+    {\textbf{Evidence Decision}\\verify or abstain};
+
+  \node[lane,fit=(project)(gate)(freeze)] (cpulane) {};
+  \node[lane,fit=(anchor)(verify)] (gpulane) {};
+  \node[font=\tiny\bfseries,text=tpTealDark,anchor=south west]
+    at (cpulane.north west) {CPU path: screen and gate, zero incremental GPU-hours};
+  \node[font=\tiny\bfseries,text=tpRoseDark,anchor=north west]
+    at (gpulane.south west) {GPU path: sparse calibration and validation};
+
+  \draw[flow] (scenario.north east) -- (project.west);
+  \draw[flow] (scenario.south east) -- (anchor.west);
+  \draw[feedback] (anchor.north) -- (project.south);
+  \draw[flow] (project) -- (gate);
+  \draw[flow] (gate) -- node[above,font=\tiny]{pass} (freeze);
+  \draw[flow] (freeze.south) -- (verify.north);
+  \draw[flow] (verify.east) -- (release.south west);
 \end{tikzpicture}%
 }
-\caption{\system{} is an evidence-gated calibration and prediction workflow,
-not a virtual cluster.  Cheap projections may prioritize experiments; only an
-independent run can verify a deployment claim.}
+\caption{\system{} separates HPC resource paths.  CPU-resident projections
+screen candidates without reserving a target GPU; selected H100 runs calibrate
+and validate them.  Prediction becomes evidence only through the release gate.}
 \label{fig:sandbox-ladder}
 \end{figure*}

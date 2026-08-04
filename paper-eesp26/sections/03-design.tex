@@ -1,17 +1,6 @@
 \section{TokenPowerSandbox}
 
-\subsection{Measured Path}
-
-The L1 executor runs a digest-pinned vLLM server and CPU-only benchmark client
-in restricted Docker containers.  Prefix caching is disabled; temperature,
-seed, and output length are fixed.  A READY/GO/DONE handshake places DCGM
-cumulative-energy reads around the measured request window, excluding model
-loading, graph capture, and warmup.  Each record retains 100-ms telemetry,
-stdout/stderr, model and tokenizer revisions, image digests, server controls,
-and power-limit readback.  Repeated points are summarized by median and MAD,
-without discarding their raw traces.
-
-\subsection{Analytical Core and Sparse Correction}
+\subsection{CPU-Resident Analytical Core}
 
 The base projector rejects memory-infeasible candidates, then scales a measured
 anchor using token geometry, batch saturation, and declared topology.  It
@@ -35,9 +24,21 @@ throughput, power, TTFT, and TPOT; energy is never independently fitted, but is
 recomputed from corrected power and duration.  This keeps the correction
 sparse and the energy identity explicit.
 
+\subsection{Measured GPU Path}
+
+The L1 executor runs a digest-pinned vLLM server and CPU-only benchmark client
+in restricted Docker containers.  Prefix caching is disabled; temperature,
+seed, and output length are fixed.  A READY/GO/DONE handshake places DCGM
+cumulative-energy reads around the measured request window, excluding model
+loading, graph capture, and warmup.  Each record retains 100-ms telemetry,
+stdout/stderr, model and tokenizer revisions, image digests, server controls,
+and power-limit readback.  Repeated points are summarized by median and MAD,
+without discarding their raw traces.  Docker fixes this measured path; it does
+not emulate GPU performance.
+
 \subsection{Scope and Release Gate}
 
-The correction applies only to the exact measured model, runtime, serving
+The CPU correction applies only to the exact measured model, runtime, serving
 configuration, output length, request regime, GPU count, and bounded
 context/concurrency envelope.  Outside it, the executor abstains instead of
 extrapolating silently.  Even in scope, predictions can prioritize expensive

@@ -1,11 +1,12 @@
 \section{Artifact and Reproducibility}
 
 \textbf{Executor separation.}  The same candidate schema is consumed by a
-zero-GPU projector and a measured executor.  The former emits deterministic
-L0/L2 JSONL with a decomposition and scope decision.  The latter controls the
-real server, benchmark client, power limit, DCGM sampler, and measurement
-boundary, then emits L1 evidence.  Prediction code cannot relabel its own
-record as measured.  A campaign runner expands the frozen workload list,
+CPU-resident projector and a measured executor.  The former emits deterministic
+simulated or extrapolated JSONL with a decomposition and scope decision, without
+allocating a target GPU.  The latter controls the real server, benchmark client,
+power limit, DCGM sampler, and measurement boundary, then emits L1 evidence.
+Prediction code cannot relabel its own record as measured.  A campaign runner
+expands the frozen workload list,
 applies a cyclically balanced schedule, checkpoints every trial, and resumes
 only exact workload/repeat matches.
 
@@ -28,7 +29,8 @@ stdout/stderr, server metadata, run order, reports, and two SHA-256 manifests.
 Its digest is \texttt{2d74179245392d44f...351e12ecafb}, and the measurement
 runner and analysis commits are recorded.
 
-The next evidence stage is configuration ranking under fixed workloads, using
+CPU projection overhead will be reported as time and peak memory, not treated
+as free.  The next evidence stage is configuration ranking under fixed workloads, using
 energy rank, SLO false-safe rate, Pareto recall, and measured GPU-hours avoided.
 TP/PP and H100/H200/B200 transfer remain later stages requiring sparse
 target-topology anchors and independent target reruns.

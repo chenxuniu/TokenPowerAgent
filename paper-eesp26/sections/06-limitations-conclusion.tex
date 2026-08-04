@@ -8,15 +8,17 @@ Six development workloads are small for a four-feature model, and the
 low-concurrency TTFT outlier shows that an axis-aligned scope envelope is too
 permissive near sparse corners.  DCGM measures GPU energy but excludes host,
 network, cooling, and embodied costs.  The current prediction intervals are
-engineering bounds, not calibrated confidence intervals.
+engineering bounds, not calibrated confidence intervals.  CPU projection
+energy and queue-time savings are also unmeasured, so ``zero-GPU'' denotes
+resource allocation, not net energy.
 
 Within that boundary, \system{} converts sparse real evidence into useful
 screening signals: on eight preregistered unseen workloads it reaches
 \CalibratedEnergyMAPE{} energy MAPE and \EnergyPairwisePct{} pairwise
 energy-order accuracy, while retaining the measurements and failure modes
 behind those numbers.  The central result is therefore not that a Docker
-container simulates an H100.  It is that a measured analytical sandbox can
-reduce experiments only when prediction, provenance, abstention, and real
+container simulates an H100.  It is that CPU-first screening can guide scarce
+GPU experiments only when prediction, provenance, abstention, and real
 validation are one system.  The next step is to test whether the same contract
 reduces measured GPU-hours for SLO-constrained configuration and topology
-search.
+search on HPC clusters.

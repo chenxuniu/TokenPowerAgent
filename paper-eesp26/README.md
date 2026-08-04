@@ -4,16 +4,16 @@ This directory contains the self-contained IEEE source for a four-page body
 plus references. It is intentionally narrower than the MLSys-oriented
 TokenPowerAgent paper.
 
-Current title: **TokenPowerSandbox: Evidence-Gated Workload Transfer for
-Energy-Efficient LLM Inference (Work in Progress)**.
+Current title: **TokenPowerSandbox: Evidence-Gated Multi-Fidelity Screening for
+Energy-Efficient LLM Inference on HPC Clusters (Work in Progress)**.
 
 ## Core Claim
 
 TokenPowerSandbox is a multi-fidelity evidence workflow, not a Docker image or
 a virtual GPU cluster. It combines:
 
-1. A restricted real-H100 measurement executor.
-2. An analytical workload projector with a sparse measured residual.
+1. A CPU-resident workload projector with a sparse measured residual.
+2. A restricted real-H100 measurement executor.
 3. A scope and provenance gate that requires independent validation.
 
 The current paper tests one bounded claim: whether sparse H100 measurements can
