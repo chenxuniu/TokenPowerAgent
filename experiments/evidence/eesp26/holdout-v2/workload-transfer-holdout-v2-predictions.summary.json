@@ -1,0 +1,32 @@
+{
+  "campaign_id": "qwen2.5-7b-h100-workload-transfer-holdout-v2",
+  "campaign_sha256": "e24bfd51ed692e51cba69ffcbf2fdf89c484fd80e57e128755c2e940eda5b787",
+  "dataset_splits": {
+    "holdout-c1024-o128-k32": "holdout",
+    "holdout-c1024-o128-k8": "holdout",
+    "holdout-c2048-o128-k1": "holdout",
+    "holdout-c2048-o128-k16": "holdout",
+    "holdout-c256-o128-k32": "holdout",
+    "holdout-c256-o128-k4": "holdout",
+    "holdout-c512-o128-k1": "holdout",
+    "holdout-c512-o128-k16": "holdout"
+  },
+  "level": "L0",
+  "prediction_count": 8,
+  "profile_id": "qwen2.5-7b-h100-workload-v2",
+  "profile_publication_eligible": false,
+  "profile_sha256": "68c474085e5eb99717b4e1bb68a66bb937d8e142f8efaad456a480898cbdc4da",
+  "schema_version": "1.0",
+  "uncertainty_calibrated": false,
+  "validation_required": true,
+  "workload_ids": [
+    "holdout-c256-o128-k4",
+    "holdout-c256-o128-k32",
+    "holdout-c512-o128-k1",
+    "holdout-c512-o128-k16",
+    "holdout-c1024-o128-k8",
+    "holdout-c1024-o128-k32",
+    "holdout-c2048-o128-k1",
+    "holdout-c2048-o128-k16"
+  ]
+}

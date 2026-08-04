@@ -34,12 +34,12 @@ This WIP makes three bounded contributions:
   \item An interpretable workload-transfer model that combines analytical
   compute, memory, and power terms with a four-feature log-residual fitted only
   on development workloads.
-  \item A preregistered H100/Qwen2.5-7B study with \HoldoutMeasurements{} blind
-  measurements, showing \CalibratedEnergyMAPE{} energy MAPE and
-  \EnergyPairwisePct{} pairwise energy-order accuracy while exposing TTFT and
-  low-occupancy limits.
+  \item Two sealed H100/Qwen2.5-7B holdouts with \BlindMeasurements{} real
+  measurements: \CalibratedEnergyMAPE{} and \ConfirmationEnergyMAPE{} energy
+  MAPE, plus a preregistered decision that releases TTFT at concurrency four
+  and abstains below it.
 \end{itemize}
 
 The contribution is the evidence substrate, not yet an LLM agent, a GPU-queue
-scheduler, or a verified TP/PP simulator.  Search policies can consume it later
-only where the measured scope gate permits.
+scheduler, or a verified TP/PP simulator.  Search policies can consume it only
+where the measured scope gate permits.

@@ -16,9 +16,9 @@ performance simulation for LLM serving; LLM-Pilot characterizes models and
 hardware to recommend deployments; and Charon models fine-grained large-scale
 training and inference \cite{agrawal2024vidur,lazuka2024llmpilot,
 yang2026charon}.  Our current model is deliberately local: an analytical
-decomposition supplies a prior, six
-measured workloads learn only a sparse residual, and an exact configuration
-contract bounds reuse.  It neither creates virtual GPUs nor claims that one
+decomposition supplies a prior, six measured workloads learn only a sparse
+residual, and two no-refit holdouts audit its release boundary.  An exact
+configuration contract bounds reuse.  It neither creates virtual GPUs nor claims that one
 H100 measurement reproduces communication, queueing, or power behavior on a
 multi-node target.  Its differentiator is the release boundary: split labels,
 frozen hashes, abstention, and an independent run are first-class outputs, not

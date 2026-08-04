@@ -6,15 +6,15 @@ evidence.  We present \system{}, an evidence-gated, multi-fidelity sandbox that
 couples an interpretable CPU projector and sparse measured correction with a
 real-GPU executor and freeze-before-measurement validation.  On one H100 80GB
 serving Qwen2.5-7B with vLLM, a three-repeat anchor and six development
-workloads calibrate transfer across context length and concurrency.  We freeze
-eight unseen workloads before collecting three repeats per point.  The
-calibrated projector lowers blind energy MAPE from \BaseEnergyMAPE{} to
-\CalibratedEnergyMAPE{}, with Spearman $\rho=\EnergySpearman{}$ and
-\EnergyPairwisePct{} pairwise accuracy.  Throughput and TPOT MAPE are
-\CalibratedThroughputMAPE{} and \CalibratedTPOTMAPE{}; TTFT remains harder at
-\CalibratedTTFTMAPE{}, exposing a low-concurrency boundary.  The result supports
-CPU-first, GPU-verified screening within a measured envelope, not multi-GPU or
-cross-hardware simulation.
+workloads calibrate transfer across context length and concurrency.  The same
+frozen model is then evaluated on an eight-workload blind holdout and, without
+refitting, a nine-workload preregistered scope confirmation---\BlindMeasurements{}
+real H100 runs in total.  Energy MAPE is \CalibratedEnergyMAPE{} and
+\ConfirmationEnergyMAPE{} in the two studies.  The confirmation passes its
+15\% energy endpoint; a preregistered TTFT rule passes at concurrency four
+(\KFourTTFTMAPE{} MAPE) but triggers abstention below four
+(\SparseTTFTMAPE{}).  Thus CPU-first screening can preserve energy decisions,
+while evidence gating detects when performance fidelity does not transfer.
 \end{abstract}
 
 \begin{IEEEkeywords}

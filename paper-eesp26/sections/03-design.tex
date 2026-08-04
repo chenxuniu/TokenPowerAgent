@@ -41,7 +41,10 @@ not emulate GPU performance.
 The CPU correction applies only to the exact measured model, runtime, serving
 configuration, output length, request regime, GPU count, and bounded
 context/concurrency envelope.  Outside it, the executor abstains instead of
-extrapolating silently.  Even in scope, predictions can prioritize expensive
-runs but cannot certify themselves.  Uncalibrated intervals and placeholder
+extrapolating silently.  A second gate may narrow release inside that envelope:
+our confirmation campaign preregisters an occupancy-stratified TTFT rule,
+applies it without refitting, and writes the resulting pass/abstain decision to
+a hashed artifact.  Even in scope, predictions can prioritize expensive runs
+but cannot certify themselves.  Uncalibrated intervals and placeholder
 topology terms remain machine-labeled as requiring validation; a later random,
 Bayesian, or agentic policy cannot alter those evidence semantics.

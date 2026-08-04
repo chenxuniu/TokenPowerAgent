@@ -1,13 +1,13 @@
 \section{From Prediction to Deployment Decisions}
 
-The holdout establishes workload screening under one fixed configuration, not
+The two holdouts establish workload screening under one fixed configuration, not
 configuration selection.  A deployment search must pass three further gates.
 \textbf{Ranking} requires top-$k$ recovery, Pareto precision/recall, and
 hypervolume error on a frozen candidate set.  \textbf{SLO safety} reports both
 the rate of points predicted safe but measured unsafe and whether the final
 recommendation is false-safe; intervals must be calibrated before a disjoint
-holdout.  The current \DiagnosticCoverage{} diagnostic containment is not such
-a guarantee.  \textbf{Cost} charges every calibration, warmup, failed job, and
+holdout.  Current diagnostic containment is not such a guarantee.
+\textbf{Cost} charges every calibration, warmup, failed job, and
 verification as
 $C_{GPU}(D)=\sum_{e\in D}g_e t_e/3600$ GPU-hours.  CPU screening is reported
 separately in CPU-seconds and peak memory: zero target GPU-hours is not zero

@@ -4,21 +4,21 @@ The evidence covers one model, one H100, one fixed serving configuration,
 fixed 128-token outputs, and workload transfer only.  It does not establish
 configuration ranking, finite-rate queueing, quality equivalence, power-cap
 transfer, TP/PP fidelity, H200/B200 transfer, or net deployment energy savings.
-Six development workloads are small for a four-feature model, and the
-low-concurrency TTFT outlier shows that an axis-aligned scope envelope is too
-permissive near sparse corners.  DCGM measures GPU energy but excludes host,
+Six development workloads are small for a four-feature model.  The
+preregistered low-concurrency TTFT failure shows that a simple range envelope
+is too permissive near sparse corners, while the resulting $k<4$ abstention is
+validated only for this workload family.  DCGM measures GPU energy but excludes host,
 network, cooling, and embodied costs.  The current prediction intervals are
 engineering bounds, not calibrated confidence intervals.  CPU projection
 energy and queue-time savings are also unmeasured, so ``zero-GPU'' denotes
 resource allocation, not net energy.
 
-Within that boundary, \system{} converts sparse real evidence into useful
-screening signals: on eight preregistered unseen workloads it reaches
-\CalibratedEnergyMAPE{} energy MAPE and \EnergyPairwisePct{} pairwise
-energy-order accuracy, while retaining the measurements and failure modes
-behind those numbers.  The central result is therefore not that a Docker
-container simulates an H100.  It is that CPU-first screening can guide scarce
-GPU experiments only when prediction, provenance, abstention, and real
-validation are one system.  The next step is to test whether the same contract
-reduces measured GPU-hours for SLO-constrained configuration and topology
-search on HPC clusters.
+Within that boundary, \system{} reaches \CalibratedEnergyMAPE{} and
+\ConfirmationEnergyMAPE{} energy MAPE on two sealed holdouts with no intervening
+refit.  The second study also converts a preregistered latency failure into an
+explicit abstention rather than a confident recommendation.  The central
+result is not that a Docker container simulates an H100.  It is that CPU-first
+screening can guide scarce GPU experiments only when prediction, provenance,
+scope decisions, and real validation are one system.  The next step is to test
+whether this contract reduces measured GPU-hours for SLO-constrained
+configuration and topology search on HPC clusters.
