@@ -1,0 +1,47 @@
+\begin{figure*}[t]
+\centering
+\resizebox{0.99\textwidth}{!}{%
+\begin{tikzpicture}[
+  x=1cm,y=1cm,
+  every node/.style={font=\sffamily},
+  box/.style={draw=tpGray,rounded corners=1.2pt,minimum height=1.28cm,
+    text width=2.15cm,align=center,inner sep=3pt,font=\scriptsize},
+  flow/.style={-{Stealth[length=2.1mm]},line width=0.8pt,draw=tpGray},
+  loop/.style={-{Stealth[length=2.1mm]},line width=0.8pt,draw=tpTealDark}
+]
+  \node[box,fill=tpGrayLight] (scenario) at (0,0)
+    {\textbf{Frozen Contracts}\\workload $s$ / config $x$\\model, SLO, target};
+  \node[box,fill=tpBlueLight] (l1) at (2.82,0)
+    {\textbf{L1 Measure}\\restricted vLLM probe\\DCGM phase energy};
+  \node[box,fill=tpGoldLight] (profile) at (5.64,0)
+    {\textbf{Calibrate}\\anchor + dev split\\profile + source hash};
+  \node[box,fill=tpTealLight] (project) at (8.46,0)
+    {\textbf{L0 / L2 Predict}\\analytical core\\sparse log-residual};
+  \node[box,fill=tpGrayLight] (freeze) at (11.28,0)
+    {\textbf{Freeze}\\prediction + interval\\timestamp + SHA-256};
+  \node[box,fill=tpBlueLight] (holdout) at (14.10,0)
+    {\textbf{Independent Run}\\unseen L1 workload\\future target L4};
+  \node[box,fill=tpRoseLight,text width=2.35cm] (validate) at (17.02,0)
+    {\textbf{Validate / Gate}\\error + coverage\\release only if verified};
+
+  \draw[flow] (scenario) -- (l1);
+  \draw[flow] (l1) -- (profile);
+  \draw[flow] (profile) -- (project);
+  \draw[flow] (project) -- (freeze);
+  \draw[flow] (freeze) -- (holdout);
+  \draw[flow] (holdout) -- (validate);
+  \draw[loop] (validate.south) |- node[below,font=\tiny,text=tpTealDark]
+    {measured error updates the next calibration design} (profile.south);
+
+  \draw[-{Stealth[length=2.3mm]},line width=0.95pt,tpRose]
+    (7.45,1.15) -- node[above,font=\scriptsize\bfseries,text=tpRoseDark]
+    {prediction becomes evidence only through an independent measurement} (15.10,1.15);
+  \node[font=\tiny,text=tpGray] at (8.45,-1.14)
+    {Completed: 3-run H100 anchor + $6\!\times\!3$ development runs $\rightarrow$ 8 frozen workloads $\rightarrow$ $8\!\times\!3$ blind H100 validation};
+\end{tikzpicture}%
+}
+\caption{\system{} is an evidence-gated calibration and prediction workflow,
+not a virtual cluster.  Cheap projections may prioritize experiments; only an
+independent run can verify a deployment claim.}
+\label{fig:sandbox-ladder}
+\end{figure*}

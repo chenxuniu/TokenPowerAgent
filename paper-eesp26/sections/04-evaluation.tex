@@ -1,0 +1,80 @@
+\section{Evaluation}
+
+\subsection{Platform and Frozen Protocol}
+
+We test workload transfer on one NVIDIA H100 80GB at a 700-W limit (driver
+580.173.02, DCGM 4.6.1).  A digest-pinned vLLM 0.23.0 container serves the
+pinned Qwen2.5-7B-Instruct revision in BF16.  The fixed server uses
+TP$=$PP$=$DP$=$1, 256 maximum sequences, 8192 maximum batched tokens, chunked
+prefill, and disabled prefix caching.  Every workload generates 128 output
+tokens at unbounded offered rate; request count is eight times concurrency.
+
+The protocol has three chronological splits.  First, \AnchorRepeats{} runs at
+512 input tokens and concurrency 8 form the L1 anchor.  Second,
+\DevelopmentWorkloads{} development workloads spanning 256--2,048 input tokens
+and concurrency 1--32, with three repeats each, fit the residual model.  Its
+leave-one-workload-out energy MAPE is \DevelopmentLOOEnergyMAPE{}.  Third, we
+freeze predictions for \HoldoutWorkloads{} disjoint context/concurrency pairs,
+hash their manifest, and only then collect \HoldoutMeasurements{} L1 runs in
+cyclically balanced order.  The validator confirms that predictions precede
+measurements and verifies all 62 raw/configuration artifacts.  Base and
+corrected values are stored together in each frozen prediction, so the
+comparison below gives neither model access to holdout measurements.
+
+\subsection{Blind Holdout Results}
+
+Table~\ref{tab:holdout-validation} reports decision and point accuracy on the
+eight unseen workloads.  The sparse correction lowers energy MAPE from
+\BaseEnergyMAPE{} to \CalibratedEnergyMAPE{} (a \EnergyMAPEReduction{}
+reduction); median and maximum energy APE are \EnergyMedianAPE{} and
+\EnergyMaxAPE{}.  Energy rank correlation is $\rho=\EnergySpearman{}$, and
+\EnergyPairwise{} workload pairs are correctly ordered.  Both models select
+the measured lowest-energy workload, but the base projector badly mis-scales
+several intermediate points (Fig.~\ref{fig:holdout-energy-errors}).
+
+\input{tables/pilot-validation}
+
+\input{figures/pilot-diagnostics}
+
+\input{tables/holdout-energy-points}
+
+Throughput and TPOT improve to \CalibratedThroughputMAPE{} and
+\CalibratedTPOTMAPE{} MAPE.  TTFT remains the weakest metric at
+\CalibratedTTFTMAPE{}.  The largest error, \TTFTWorstAPE{}, occurs at 2,048
+input tokens and concurrency 1; repeat variation is low, so this is a
+model-boundary failure rather than measurement noise.  Energy remains within
+13.84\% there partly because power and duration errors offset, cautioning
+against judging a physical decomposition by energy alone.  Across all eight
+points, power and duration MAPE are \PowerMAPE{} and \DurationMAPE{}.
+
+\subsection{Error Structure and Abstention}
+
+The point-level values in Table~\ref{tab:holdout-energy-points} span a
+21.3$\times$ measured energy range, from 136.8 to 2,918.1 J/1k output tokens.
+The corrected model tracks this range rather than regressing toward its anchor.
+At concurrency at least 4, post-hoc diagnostic MAPE is 5.64\% for energy,
+3.13\% for throughput, 3.14\% for TPOT, and 10.66\% for TTFT.  At concurrency
+1, throughput, TPOT, and TTFT MAPE rise to 32.73\%, 22.55\%, and 98.71\%.
+This subgroup analysis was not preregistered and is not a second headline
+result; it localizes a sparse-occupancy failure for the next scope gate.
+
+For the 2,048/1 point, the model predicts 584.4 W and 4.41 s versus 439.9 W and
+6.73 s measured.  Their opposite signed errors yield only 13.77\% energy error,
+while TTFT is predicted as 155.9 ms versus 65.3 ms.  We therefore plan to
+replace the current axis-aligned envelope with a calibration-distance or
+convex-hull gate that abstains near unsupported corners.  The frozen holdout
+will not be reused to tune or reevaluate that change.
+
+\subsection{Repeatability, Provenance, and Cost}
+
+Median repeat CV is \EnergyRepeatCV{} for energy,
+\ThroughputRepeatCV{} for throughput, \TPOTRepeatCV{} for TPOT, and
+\TTFTRepeatCV{} for TTFT.  Frozen intervals contain \DiagnosticCoverage{}
+metric--workload medians, but they were not calibrated on an independent set;
+we therefore make no statistical coverage claim.  Excluding the three anchor
+runs, the 42 development and holdout measurements consumed
+\DevelopmentAndHoldoutGPUHours{} H100-hours; the final blind set consumed
+\HoldoutGPUHours{} H100-hours.  All 24 holdout records succeeded, cumulative
+energy remained monotonic, and each raw trace was covered by the verified
+artifact manifest.  The last frozen prediction was created at 17:31:19 UTC;
+the first holdout measurement began at 17:37:04 UTC.

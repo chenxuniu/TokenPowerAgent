@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+"""Check the TokenPowerSandbox short-paper source and rendered PDF."""
+
+from __future__ import annotations
+
+import json
+import re
+import subprocess
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+PDF = ROOT / "build/main.pdf"
+PROVENANCE = ROOT / "results/holdout_v2_provenance.json"
+
+
+def command(*args: str) -> str:
+    return subprocess.run(
+        args,
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+
+
+def main() -> None:
+    errors: list[str] = []
+
+    required = [
+        "main.tex",
+        "references.bib",
+        "results/metrics.tex",
+        "results/holdout_v2_provenance.json",
+        "figures/sandbox-ladder.tex",
+        "figures/pilot-diagnostics.tex",
+        "tables/pilot-validation.tex",
+        "tables/holdout-energy-points.tex",
+        "tables/roadmap.tex",
+    ]
+    for relative in required:
+        if not (ROOT / relative).exists():
+            errors.append(f"missing required source: {relative}")
+
+    tex_files = [ROOT / "main.tex"]
+    tex_files.extend(sorted((ROOT / "sections").glob("*.tex")))
+    tex_files.extend(sorted((ROOT / "figures").glob("*.tex")))
+    tex_files.extend(sorted((ROOT / "tables").glob("*.tex")))
+    tex_files.append(ROOT / "results/metrics.tex")
+    source = "\n".join(path.read_text(encoding="utf-8") for path in tex_files)
+
+    blockers = {
+        "FILL_ME": "unresolved site marker",
+        "CALIBRATE_TO": "unresolved calibration marker",
+        "\\draftvalue": "unmeasured result placeholder",
+        "\\pending": "pending result placeholder",
+        "Single-H100 Blind Pilot": "obsolete pilot section",
+        "25.0\\%": "obsolete one-point MAPE",
+        "38.4\\%": "obsolete one-point energy error",
+        "Qwen2.5-32B": "obsolete eight-GPU experiment",
+    }
+    for marker, description in blockers.items():
+        if marker in source:
+            errors.append(f"{description}: {marker}")
+
+    main_tex = (ROOT / "main.tex").read_text(encoding="utf-8")
+    if "Anonymous Authors" not in main_tex:
+        errors.append("anonymous author block is missing")
+    if "TokenPowerAgent:" in source:
+        errors.append("TokenPowerAgent appears as the paper title/system")
+
+    if PROVENANCE.exists():
+        provenance = json.loads(PROVENANCE.read_text(encoding="utf-8"))
+        for label, digest in provenance.get("artifacts", {}).items():
+            if not re.fullmatch(r"[0-9a-f]{64}", str(digest)):
+                errors.append(f"invalid {label}: expected a 64-character SHA-256")
+        chronology = provenance.get("chronology", {})
+        for field in (
+            "prediction_precedes_measurements",
+            "prediction_manifest_verified",
+            "raw_artifact_manifest_verified",
+        ):
+            if chronology.get(field) is not True:
+                errors.append(f"provenance chronology check is false: {field}")
+        protocol = provenance.get("protocol", {})
+        expected_counts = {
+            "development_workloads": 6,
+            "development_measurements": 18,
+            "holdout_workloads": 8,
+            "holdout_measurements": 24,
+            "raw_artifact_manifest_entries": 62,
+        }
+        for field, expected in expected_counts.items():
+            if protocol.get(field) != expected:
+                errors.append(
+                    f"provenance {field} is {protocol.get(field)!r}, expected {expected}"
+                )
+        energy = provenance.get("blind_holdout", {}).get(
+            "energy_j_per_1k_output_tokens", {}
+        )
+        if not (6.22 < energy.get("corrected_mape_pct", -1) < 6.24):
+            errors.append("headline energy MAPE is inconsistent with the sealed report")
+        if energy.get("pairwise_concordant_pairs") != 27:
+            errors.append("headline energy pairwise count is inconsistent")
+
+    if not PDF.exists():
+        errors.append("build/main.pdf is missing")
+    else:
+        info = command("pdfinfo", str(PDF))
+        pages = re.search(r"^Pages:\s+(\d+)$", info, re.MULTILINE)
+        if pages is None or int(pages.group(1)) != 5:
+            errors.append("expected four body pages plus one references page")
+        if not re.search(r"^Author:\s+Anonymous Authors$", info, re.MULTILINE):
+            errors.append("PDF metadata is not anonymous")
+
+        page_four = command(
+            "pdftotext", "-f", "4", "-l", "4", "-layout", str(PDF), "-"
+        )
+        page_five = command(
+            "pdftotext", "-f", "5", "-l", "5", "-layout", str(PDF), "-"
+        )
+        compact_page_four = re.sub(r"\s+", "", page_four).upper()
+        compact_page_five = re.sub(r"\s+", "", page_five).upper()
+        if "REFERENCES" in compact_page_four:
+            errors.append("references begin inside the four-page body")
+        if "ASSISTANCEDISCLOSURE" not in compact_page_four:
+            errors.append("AI-assistance disclosure is not inside the body limit")
+        if "REFERENCES" not in compact_page_five:
+            errors.append("references heading is not on page five")
+
+        fonts = command("pdffonts", str(PDF)).splitlines()[2:]
+        for row in fonts:
+            match = re.search(
+                r"\s+(yes|no)\s+(yes|no)\s+(yes|no)\s+\d+\s+\d+\s*$", row
+            )
+            if match is None:
+                errors.append(f"cannot parse pdffonts row: {row}")
+            elif match.group(1) != "yes":
+                errors.append(f"font is not embedded: {row.split()[0]}")
+
+    log_path = ROOT / "build/main.log"
+    if log_path.exists():
+        log = log_path.read_text(encoding="utf-8", errors="replace")
+        for marker in (
+            "Overfull \\hbox",
+            "Overfull \\vbox",
+            "undefined references",
+            "undefined citations",
+        ):
+            if marker in log:
+                errors.append(f"LaTeX log contains: {marker}")
+
+    if errors:
+        for error in errors:
+            print(f"ERROR: {error}")
+        raise SystemExit(1)
+
+    print("Submission source, provenance, and PDF gates passed.")
+
+
+if __name__ == "__main__":
+    main()

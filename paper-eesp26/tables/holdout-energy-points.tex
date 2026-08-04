@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering
+\caption{Corrected energy prediction and real H100 median $\pm$ MAD on every
+blind workload (J/1k output tokens).}
+\label{tab:holdout-energy-points}
+\scriptsize
+\setlength{\tabcolsep}{3.1pt}
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+$L_{in}$ & $k$ & Predicted & Measured & APE \\
+\midrule
+256  & 4  & 607.7  & $705.3\pm0.7$  & 13.83\% \\
+256  & 32 & 128.3  & $136.8\pm0.1$  & 6.20\% \\
+512  & 1  & 2592.2 & $2650.6\pm13.5$ & 2.21\% \\
+512  & 16 & 263.6  & $254.2\pm1.7$  & 3.72\% \\
+1024 & 8  & 505.2  & $491.5\pm4.1$  & 2.79\% \\
+1024 & 32 & 252.6  & $237.7\pm1.5$  & 6.26\% \\
+2048 & 1  & 2516.3 & $2918.1\pm1.8$ & 13.77\% \\
+2048 & 16 & 465.9  & $461.2\pm1.2$  & 1.03\% \\
+\bottomrule
+\end{tabular}
+\end{table}

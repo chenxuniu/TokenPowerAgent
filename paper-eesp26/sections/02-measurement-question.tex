@@ -1,0 +1,27 @@
+\section{Evidence Contract}
+
+The sandbox compiles two disjoint objects.  A \emph{scenario} $s$ freezes model
+and tokenizer revisions, token lengths, request count, arrival regime, target
+hardware, and SLO.  A \emph{configuration} $x\in\mathcal X$ contains only
+deployable controls: runtime, precision, batching and cache limits, TP/PP/DP,
+placement, and power cap.  This prevents a search policy from reporting an
+``improvement'' by silently reducing the requested work.
+
+Every backend returns an append-only record
+\begin{equation}
+e=\bigl(h(s),h(x),\ell,k,\mathbf y,u,c,z\bigr),
+\end{equation}
+where $h(\cdot)$ is a SHA-256 identity, $\ell$ is fidelity, $k$ distinguishes
+predicted and measured records, $\mathbf y$ holds energy and SLO metrics, $u$
+is declared uncertainty, $c$ is measured GPU-hour cost, and $z$ records
+software, topology, telemetry, and failure provenance.  L0 is a deterministic
+workload projection; L1 is a phase-controlled single-GPU measurement; L2 adds
+declared communication terms; and L4 denotes an independent target-allocation
+run.  L0/L2 records always retain \texttt{validation\_required}.
+
+Predictions, intervals, and manifests are frozen before a holdout.  The
+validator checks timestamps, hashes, split labels, scenario/configuration,
+container identity, power readback, repeat count, and every raw artifact.  A
+comparison is rejected if any check fails.  The present study exercises L1
+calibration, L0 prediction, and independent L1 validation; it makes no L2/L4
+accuracy claim.

@@ -18,6 +18,13 @@ It is reserved for the final evaluation of a profile fitted on validation-v1.
 Do not run it until the v2 profile, all eight predictions, and their manifest
 have been frozen and archived.
 
+`qwen2.5-7b-h100-scope-confirmation-v3.json` is a post-holdout, independently
+pre-registered confirmation campaign. It does not refit the v2 model. Its nine
+new workloads cross three interpolated input lengths with concurrency 1, 2,
+and 4 to test the low-occupancy latency boundary observed in holdout-v2. The
+embedded decision rule is part of the campaign hash and must not be edited
+after predictions are frozen.
+
 The required order is:
 
 1. Freeze every campaign prediction and its SHA-256 manifest.

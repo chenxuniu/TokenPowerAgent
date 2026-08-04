@@ -1,0 +1,34 @@
+\section{From Prediction to Deployment Decisions}
+
+The holdout establishes workload screening under one fixed configuration; it
+does not yet establish that the sandbox can choose a configuration.  For a
+frozen scenario $s$, let $F(s)$ be the configurations that satisfy measured
+TTFT, TPOT, throughput, and quality constraints, and let $P(s)$ be their
+measured energy--performance Pareto set.  Predictions produce
+$\widehat F(s)$ and $\widehat P(s)$.  We require three additional gates before
+using them for deployment search.
+
+\textbf{Ranking.}  Spearman correlation measures broad ordering, but a search
+must also recover the lowest-energy feasible points.  We will report pairwise
+accuracy, top-$k$ recovery, Pareto precision/recall, and normalized hypervolume
+error.  Every compared method receives the same measured-trial budget and the
+same frozen candidate set.
+
+\textbf{SLO safety.}  A false-safe point is predicted to satisfy every SLO but
+fails at least one target measurement.  We will report both its candidate rate
+and whether the final recommendation is false-safe.  Prediction intervals must
+be calibrated on a validation split and frozen again before a disjoint
+holdout; the current \DiagnosticCoverage{} diagnostic containment is not used
+as a calibrated guarantee.
+
+\textbf{Net measurement cost.}  For measured record $e$ using $g_e$ GPUs for
+$t_e$ seconds, purchased cost is
+\begin{equation}
+C(D)=\sum_{e\in D}g_e t_e/3600.
+\end{equation}
+The ledger includes calibration, warmup, failed jobs, and final verification.
+A sandbox succeeds only if it matches target-only search at the same SLO safety
+while buying fewer target GPU-hours; simulator queries alone are not counted as
+saved energy.  Table~\ref{tab:roadmap} keeps those claims separate.
+
+\input{tables/roadmap}

@@ -1,0 +1,14 @@
+.DS_Store
+build/
+tmp/
+output/
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+experiments/results/*.jsonl
+experiments/results/telemetry/
+experiments/results/serving-campaign-telemetry/

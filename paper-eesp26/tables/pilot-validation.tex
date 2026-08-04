@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Final blind holdout: eight unseen workloads, three real H100 repeats
+each.  Base and corrected predictions were frozen together before measurement.
+Order is correctly ranked pairs out of 28 (no ties).}
+\label{tab:holdout-validation}
+\scriptsize
+\setlength{\tabcolsep}{2.8pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Metric & Base MAPE & Corrected MAPE & $\rho$ & Order \\
+\midrule
+Energy / 1k output & \BaseEnergyMAPE & \CalibratedEnergyMAPE & \EnergySpearman & \EnergyPairwise \\
+Throughput & \BaseThroughputMAPE & \CalibratedThroughputMAPE & \ThroughputSpearman & \ThroughputPairwise \\
+P95 TTFT & \BaseTTFTMAPE & \CalibratedTTFTMAPE & \TTFTSpearman & \TTFTPairwise \\
+P95 TPOT & \BaseTPOTMAPE & \CalibratedTPOTMAPE & \TPOTSpearman & \TPOTPairwise \\
+\bottomrule
+\end{tabular}
+\end{table}

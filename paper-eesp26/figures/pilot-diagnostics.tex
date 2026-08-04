@@ -1,0 +1,42 @@
+\begin{figure}[t]
+\centering
+\resizebox{0.98\columnwidth}{!}{%
+\begin{tikzpicture}[x=0.034cm,y=0.50cm,font=\sffamily\scriptsize]
+  \draw[->,draw=tpGray,line width=0.7pt] (0,0) -- (168,0)
+    node[right,font=\tiny] {energy APE (\%)};
+  \foreach \x in {0,40,80,120,160} {
+    \draw[draw=tpGray] (\x,-0.10) -- (\x,0.10);
+    \node[below,font=\tiny,text=tpGray] at (\x,-0.12) {\x};
+  }
+  \draw[densely dashed,draw=tpRoseDark] (15,0.18) -- (15,8.80);
+  \node[anchor=west,font=\tiny,text=tpRoseDark] at (16,8.60) {15\%};
+
+  \foreach \wl/\yy/\base/\corr in {
+    {256/4}/7.8/43.29/13.83,
+    {256/32}/6.8/157.79/6.20,
+    {512/1}/5.8/75.44/2.21,
+    {512/16}/4.8/56.08/3.72,
+    {1024/8}/3.8/6.15/2.79,
+    {1024/32}/2.8/84.87/6.26,
+    {2048/1}/1.8/71.81/13.77,
+    {2048/16}/0.8/8.67/1.03
+  } {
+    \node[anchor=east,font=\tiny] at (-2,\yy) {\wl};
+    \fill[tpGrayLight,draw=tpGray,line width=0.25pt]
+      (0,\yy+0.08) rectangle (\base,\yy+0.35);
+    \fill[tpTealDark] (0,\yy-0.27) rectangle (\corr,\yy);
+  }
+
+  \fill[tpGrayLight,draw=tpGray,line width=0.25pt] (78,8.25) rectangle (85,8.52);
+  \node[anchor=west,font=\tiny] at (87,8.39) {analytical base};
+  \fill[tpTealDark] (123,8.25) rectangle (130,8.52);
+  \node[anchor=west,font=\tiny] at (132,8.39) {corrected};
+  \node[rotate=90,font=\tiny,text=tpGray] at (-28,4.3)
+    {input tokens / concurrency};
+\end{tikzpicture}%
+}
+\caption{Absolute energy prediction error on each preregistered holdout.
+The sparse correction is below 14\% at every point; the same frozen records
+retain the analytical base for a leakage-free comparison.}
+\label{fig:holdout-energy-errors}
+\end{figure}

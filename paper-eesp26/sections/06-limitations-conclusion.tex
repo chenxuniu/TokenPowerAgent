@@ -1,0 +1,22 @@
+\section{Limitations and Conclusion}
+
+The evidence covers one model, one H100, one fixed serving configuration,
+fixed 128-token outputs, and workload transfer only.  It does not establish
+configuration ranking, finite-rate queueing, quality equivalence, power-cap
+transfer, TP/PP fidelity, H200/B200 transfer, or net deployment energy savings.
+Six development workloads are small for a four-feature model, and the
+low-concurrency TTFT outlier shows that an axis-aligned scope envelope is too
+permissive near sparse corners.  DCGM measures GPU energy but excludes host,
+network, cooling, and embodied costs.  The current prediction intervals are
+engineering bounds, not calibrated confidence intervals.
+
+Within that boundary, \system{} converts sparse real evidence into useful
+screening signals: on eight preregistered unseen workloads it reaches
+\CalibratedEnergyMAPE{} energy MAPE and \EnergyPairwisePct{} pairwise
+energy-order accuracy, while retaining the measurements and failure modes
+behind those numbers.  The central result is therefore not that a Docker
+container simulates an H100.  It is that a measured analytical sandbox can
+reduce experiments only when prediction, provenance, abstention, and real
+validation are one system.  The next step is to test whether the same contract
+reduces measured GPU-hours for SLO-constrained configuration and topology
+search.

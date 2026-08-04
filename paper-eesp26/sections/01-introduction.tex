@@ -1,0 +1,45 @@
+\section{Introduction}
+
+LLM serving behavior changes with input/output length, concurrency, arrival
+rate, batching, KV-cache controls, power, and tensor/pipeline parallelism
+(TP/PP).  These factors jointly determine energy, throughput, time to first
+token (TTFT), and time per output token (TPOT).  Exhaustively measuring them on
+the intended cluster is expensive, while a developer may initially have only
+one GPU available.  A lightweight sandbox is therefore attractive, but it
+creates a scientific risk: a plausible prediction can be mistaken for evidence
+from the machine it approximates.
+
+Measurement systems establish what a completed run consumed
+\cite{samsi2023words,fernandez2025energy,chung2025mlenergy}; \bench{} adds
+phase-aligned device and node telemetry across LLM inference configurations
+\cite{niu2026tokenpowerbench}.  Serving simulators and learned recommendation
+systems reduce live experimentation \cite{agrawal2024vidur,lazuka2024llmpilot,
+yang2026charon}.  Pre-deployment energy modeling nevertheless has a separate
+trust question: does a cheap model preserve the energy--SLO ordering that drives
+the next experiment, and can its failure be detected before deployment?
+
+We ask: \emph{how can sparse real measurements support auditable screening of
+an unseen LLM inference workload?}  \system{} is not a Docker image or a set of
+virtual GPUs.  It is a multi-fidelity workflow comprising a restricted real-GPU
+executor, an analytical model with a small measured residual correction, and an
+evidence gate.  Docker isolates and pins the L1 experiment; the sandbox is the
+larger prediction--measurement contract shown in
+Fig.~\ref{fig:sandbox-ladder}.
+
+This WIP makes three bounded contributions:
+\begin{itemize}
+  \item A content-addressed evidence contract that separates workload from
+  deployment controls and rejects prediction/measurement comparisons with
+  mismatched provenance or chronology.
+  \item An interpretable workload-transfer model that combines analytical
+  compute, memory, and power terms with a four-feature log-residual fitted only
+  on development workloads.
+  \item A preregistered H100/Qwen2.5-7B study with \HoldoutMeasurements{} blind
+  measurements, showing \CalibratedEnergyMAPE{} energy MAPE and
+  \EnergyPairwisePct{} pairwise energy-order accuracy while exposing TTFT and
+  low-occupancy limits.
+\end{itemize}
+
+The contribution is the evidence substrate, not yet an LLM agent or a verified
+TP/PP simulator.  Search policies can consume it later only where the measured
+scope gate permits.

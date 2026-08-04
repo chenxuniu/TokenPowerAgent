@@ -1,0 +1,34 @@
+\section{Artifact and Reproducibility}
+
+\textbf{Executor separation.}  The same candidate schema is consumed by a
+zero-GPU projector and a measured executor.  The former emits deterministic
+L0/L2 JSONL with a decomposition and scope decision.  The latter controls the
+real server, benchmark client, power limit, DCGM sampler, and measurement
+boundary, then emits L1 evidence.  Prediction code cannot relabel its own
+record as measured.  A campaign runner expands the frozen workload list,
+applies a cyclically balanced schedule, checkpoints every trial, and resumes
+only exact workload/repeat matches.
+
+\textbf{Implemented workflow.}  Separate CLI commands build an L1 profile,
+fit development-only residuals, freeze predictions, execute measured trials,
+and validate the final campaign.  Fitting accepts only a verified validation
+report; final-holdout records are rejected as training input.  Applying the
+residual requires exact model, serving configuration, output length, offered
+rate, GPU count, and in-range workload features.  Tests exercise calibration
+filtering, server-contract parsing, FIFO boundaries, memory feasibility,
+residual scope rejection, evidence labels, and holdout leakage checks.
+
+\textbf{Isolation and archive.}  The CPU client reaches vLLM only through an
+internal Docker bridge; containers use read-only filesystems, dropped Linux
+capabilities, process limits, and pinned image/model revisions.  GPU power
+control stays on the host.  These restrictions make the reviewed workload
+reproducible; they do not make arbitrary generated code safe.  The final
+archive contains frozen predictions, 24 measurements, DCGM traces,
+stdout/stderr, server metadata, run order, reports, and two SHA-256 manifests.
+Its digest is \texttt{2d74179245392d44f...351e12ecafb}, and the measurement
+runner and analysis commits are recorded.
+
+The next evidence stage is configuration ranking under fixed workloads, using
+energy rank, SLO false-safe rate, Pareto recall, and measured GPU-hours avoided.
+TP/PP and H100/H200/B200 transfer remain later stages requiring sparse
+target-topology anchors and independent target reruns.
