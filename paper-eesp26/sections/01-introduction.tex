@@ -1,13 +1,23 @@
 \section{Introduction}
 
-HPC experiments have asymmetric resource cost: CPU allocations can execute
-deterministic projections without reserving accelerators, while GPU nodes may
-be scarce and queue-delayed.  LLM serving behavior changes with token lengths,
-concurrency, arrival rate, batching, KV-cache controls, power, and
-tensor/pipeline parallelism (TP/PP).  These factors jointly determine energy,
-throughput, time to first token (TTFT), and time per output token (TPOT).
-CPU-first screening avoids exhaustive target-GPU measurement, but risks
-mistaking a plausible projection for hardware evidence.
+LLM inference is a continuous operational workload and increasingly dominates
+the lifecycle energy of deployed AI services.  Its energy cost is not fixed by
+model size alone: workload profiles---including token lengths, concurrency,
+and arrival rate---and serving configurations---including batching, KV-cache
+controls, precision, inference engine, power cap, and tensor/pipeline
+parallelism (TP/PP)---can materially change energy per token, throughput, time
+to first token (TTFT), and time per output token (TPOT)
+\cite{niu2026tokenpowerbench}.  Selecting an energy-efficient serving
+configuration for a target workload is therefore a central deployment
+decision.
+
+A direct search would instantiate each candidate on its target accelerator and
+measure both energy and service-level objectives (SLOs).  This is expensive on
+HPC clusters: H100-class GPU nodes are scarce and queue-delayed, each trial
+consumes accelerator time, and multi-GPU or multi-node configurations magnify
+the cost.  CPU allocations can instead execute deterministic projections
+without reserving accelerators, making them attractive for pre-screening.
+Their estimates, however, are not hardware evidence.
 
 Measurement systems establish what a completed run consumed
 \cite{samsi2023words,fernandez2025energy,chung2025mlenergy}; \bench{} adds
@@ -19,14 +29,14 @@ trust question: does a cheap model preserve the energy--SLO ordering that drives
 the next experiment, and can its failure be detected before deployment?
 
 We ask: \emph{how can CPU-accessible projections and sparse real measurements
-support auditable screening of an unseen LLM inference workload?}  \system{}
-is not a Docker image or a set of virtual GPUs.  It is a multi-fidelity
-workflow comprising a CPU-resident analytical model, a restricted real-GPU
-executor, and an evidence gate.  Docker isolates and pins measured execution;
-the sandbox is the larger HPC resource and evidence contract shown in
-Fig.~\ref{fig:sandbox-ladder}.
+support auditable screening of unseen workload profiles before an energy-aware
+serving search purchases target-GPU trials?}  \system{} is not a Docker image
+or a set of virtual GPUs.  It is a multi-fidelity workflow comprising a
+CPU-resident analytical model, a restricted real-GPU executor, and an evidence
+gate.  Docker isolates and pins measured execution; the sandbox is the larger
+HPC resource and evidence contract shown in Fig.~\ref{fig:sandbox-ladder}.
 
-This WIP makes three bounded contributions:
+This work makes three bounded contributions:
 \begin{itemize}
   \item A CPU-first, GPU-verified evidence contract that separates workload
   from deployment controls and rejects comparisons with mismatched provenance

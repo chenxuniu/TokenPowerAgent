@@ -1,20 +1,25 @@
 \begin{abstract}
-GPU allocations are scarce on HPC clusters, yet screening every LLM inference
-scenario on its target accelerator is costly.  CPU-resident models can explore
-workloads without reserving a GPU, but their estimates are not hardware
-evidence.  We present \system{}, an evidence-gated, multi-fidelity sandbox that
-couples an interpretable CPU projector and sparse measured correction with a
+LLM inference increasingly dominates the operational energy of deployed AI
+services, while workload profiles and serving configurations can substantially
+change energy per token.  Energy-aware configuration selection is therefore
+important, but profiling every candidate by first deploying it on its target
+GPU is impractical when accelerator allocations are scarce and costly.  We
+present \system{}, an evidence-gated, multi-fidelity sandbox that couples an
+interpretable CPU projector and sparse measured correction with a restricted
 real-GPU executor and freeze-before-measurement validation.  On one H100 80GB
 serving Qwen2.5-7B with vLLM, a three-repeat anchor and six development
-workloads calibrate transfer across context length and concurrency.  The same
-frozen model is then evaluated on an eight-workload blind holdout and, without
-refitting, a nine-workload preregistered scope confirmation---\BlindMeasurements{}
-real H100 runs in total.  Energy MAPE is \CalibratedEnergyMAPE{} and
+workloads calibrate transfer across context length and concurrency under one
+fixed serving configuration.  The same frozen model is then evaluated on an
+eight-workload blind holdout and, without refitting, a nine-workload
+preregistered scope confirmation---\BlindMeasurements{} real H100 runs in
+total.  Energy MAPE is \CalibratedEnergyMAPE{} and
 \ConfirmationEnergyMAPE{} in the two studies.  The confirmation passes its
 15\% energy endpoint; a preregistered TTFT rule passes at concurrency four
 (\KFourTTFTMAPE{} MAPE) but triggers abstention below four
-(\SparseTTFTMAPE{}).  Thus CPU-first screening can preserve energy decisions,
-while evidence gating detects when performance fidelity does not transfer.
+(\SparseTTFTMAPE{}).  Thus CPU-first screening can preserve in-scope energy
+decisions while evidence gating detects when performance fidelity does not
+transfer, providing a measured foundation for later serving-configuration
+search.
 \end{abstract}
 
 \begin{IEEEkeywords}
