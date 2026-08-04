@@ -5,13 +5,15 @@ import sys
 
 import pytest
 
-from tokenpoweragent.executors.sandbox import SandboxExecutionError
+from tokenpoweragent.executors.sandbox import PowerState, SandboxExecutionError
 from tokenpoweragent.executors.serving import (
+    MarkedRun,
+    ServerEnvironment,
     ServingSandboxExecutor,
     parse_vllm_server_configuration,
     parse_vllm_benchmark_output,
 )
-from tokenpoweragent.schema import Candidate
+from tokenpoweragent.schema import Candidate, EvidenceLevel
 
 
 BENCHMARK_OUTPUT = """
@@ -273,3 +275,54 @@ def test_serving_environment_rejects_implicit_prefix_cache(tmp_path) -> None:
         executor._verify_serving_environment(
             executor._serving_contract(serving_candidate())
         )
+
+
+def test_serving_record_exposes_agent_objective_energy_aliases(tmp_path) -> None:
+    class FakeMeasuredExecutor(ServingSandboxExecutor):
+        def __init__(self) -> None:
+            super().__init__(
+                telemetry_dir=tmp_path,
+                use_sudo=False,
+                settle_seconds=0,
+            )
+
+        def _verify_serving_environment(self, contract):
+            return ServerEnvironment(
+                image="vllm/vllm-openai:v0.23.0",
+                image_id="sha256:server",
+                command=("vllm", "serve"),
+                configuration={"prefix_caching": False},
+            )
+
+        def _image_id(self, image):
+            return "sha256:client"
+
+        def _query_power_state(self):
+            return PowerState(current_w=700, minimum_w=200, maximum_w=700)
+
+        def _set_power_limit(self, power_limit_w):
+            pass
+
+        def _restore_power_limit(self, power_limit_w):
+            pass
+
+        def _start_telemetry(self, telemetry_path):
+            return None, None
+
+        def _run_gated(self, command, events_fifo, commands_fifo):
+            return MarkedRun(
+                returncode=0,
+                output=BENCHMARK_OUTPUT,
+                energy_start_mj=1000,
+                energy_end_mj=257000,
+                window_seconds=0.5,
+            )
+
+    record = FakeMeasuredExecutor().execute(
+        serving_candidate(), EvidenceLevel.L1, seed=0
+    )
+
+    assert record.metrics["j_per_output_token"] == pytest.approx(0.5)
+    assert record.metrics["energy_j_per_1k_tokens"] == pytest.approx(500)
+    assert record.metrics["energy_j_per_1k_output_tokens"] == pytest.approx(500)
+    assert record.metrics["energy_j_per_1k_total_tokens"] == pytest.approx(100)

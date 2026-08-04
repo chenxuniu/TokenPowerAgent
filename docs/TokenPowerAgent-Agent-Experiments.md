@@ -92,8 +92,8 @@ Workshop corpus:
 |---|---|
 | input/output tokens | 2048/128 |
 | concurrency | 32 |
-| target prompts | 128 |
-| L1 probe prompts | 32 |
+| target prompts | 256 |
+| L1 probe prompts | 64 |
 | max number of sequences | 8, 16, 32 |
 | max batched tokens | 2048, 4096, 8192 |
 | chunked prefill | off, on |

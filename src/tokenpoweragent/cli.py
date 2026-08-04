@@ -24,6 +24,10 @@ from tokenpoweragent.calibration import (
     CalibrationBuildError,
     build_serving_calibration_profile,
 )
+from tokenpoweragent.configuration_campaign import (
+    ConfigurationCampaignError,
+    freeze_configuration_campaign,
+)
 from tokenpoweragent.evidence import EvidenceStore
 from tokenpoweragent.executors.base import RoutedExecutor
 from tokenpoweragent.executors.cluster import ClusterExecutor
@@ -418,6 +422,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="defaults to OUTPUT with a .summary.json suffix",
     )
     freeze_campaign.add_argument("--manifest", type=Path, required=True)
+
+    freeze_config_campaign = subparsers.add_parser(
+        "freeze-config-campaign",
+        help="freeze a serving-configuration search before GPU measurement",
+    )
+    freeze_config_campaign.add_argument("--campaign", type=Path, required=True)
+    freeze_config_campaign.add_argument(
+        "--calibration", type=Path, required=True
+    )
+    freeze_config_campaign.add_argument("--scenario", type=Path, required=True)
+    freeze_config_campaign.add_argument(
+        "--predictions", type=Path, required=True
+    )
+    freeze_config_campaign.add_argument("--schedule", type=Path, required=True)
+    freeze_config_campaign.add_argument("--summary", type=Path, required=True)
+    freeze_config_campaign.add_argument("--manifest", type=Path, required=True)
 
     run_campaign = subparsers.add_parser(
         "run-serving-campaign",
@@ -927,6 +947,33 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 summary["campaign_id"],
                 args.output,
                 summary_path,
+                args.manifest,
+            )
+        )
+        return 0
+
+    if args.command == "freeze-config-campaign":
+        try:
+            summary = freeze_configuration_campaign(
+                campaign_path=args.campaign,
+                calibration_path=args.calibration,
+                scenario_path=args.scenario,
+                predictions_path=args.predictions,
+                schedule_path=args.schedule,
+                summary_path=args.summary,
+                manifest_path=args.manifest,
+            )
+        except (ConfigurationCampaignError, OSError) as exc:
+            raise SystemExit(
+                "cannot freeze configuration campaign: %s" % exc
+            ) from exc
+        print(
+            "froze %d L0 predictions and %d balanced L1/L4 measurements "
+            "for %s; manifest=%s"
+            % (
+                summary["l0_prediction_count"],
+                summary["measurement_count"],
+                summary["campaign_id"],
                 args.manifest,
             )
         )

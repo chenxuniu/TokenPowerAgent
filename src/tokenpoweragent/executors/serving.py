@@ -463,6 +463,15 @@ class ServingSandboxExecutor(SandboxExecutor):
                 "trial_elapsed_ms": trial_seconds * 1000.0,
                 "j_per_output_token": energy_j / benchmark["output_tokens"],
                 "j_per_total_token": energy_j / total_tokens,
+                "energy_j_per_1k_tokens": (
+                    1000.0 * energy_j / benchmark["output_tokens"]
+                ),
+                "energy_j_per_1k_output_tokens": (
+                    1000.0 * energy_j / benchmark["output_tokens"]
+                ),
+                "energy_j_per_1k_total_tokens": (
+                    1000.0 * energy_j / total_tokens
+                ),
                 "ttft_ms": benchmark["p95_ttft_ms"],
                 "tpot_ms": benchmark["p95_tpot_ms"],
                 "throughput_tok_s": benchmark["output_throughput_tok_s"],
