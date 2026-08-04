@@ -29,6 +29,10 @@ from tokenpoweragent.residual_calibration import (
 )
 from tokenpoweragent.search_space import CandidateGrid
 from tokenpoweragent.schema import Candidate, EvidenceLevel, Scenario
+from tokenpoweragent.scope_analysis import (
+    ScopeConfirmationAnalysisError,
+    build_scope_confirmation_decision,
+)
 from tokenpoweragent.twin.topology import (
     CalibrationError,
     CalibrationProfile,
@@ -256,6 +260,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     campaign_validation.add_argument("--artifact-manifest", type=Path)
     campaign_validation.add_argument("--output", type=Path, required=True)
+
+    scope_analysis = subparsers.add_parser(
+        "analyze-scope-confirmation",
+        help="apply a campaign's pre-registered energy and latency scope rules",
+    )
+    scope_analysis.add_argument("--campaign", type=Path, required=True)
+    scope_analysis.add_argument("--report", type=Path, required=True)
+    scope_analysis.add_argument(
+        "--artifact-manifest", type=Path, required=True
+    )
+    scope_analysis.add_argument("--output", type=Path, required=True)
 
     freeze_campaign = subparsers.add_parser(
         "freeze-workload-campaign",
@@ -723,6 +738,39 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 ),
                 energy["interval_covered_workloads"],
                 energy["interval_evaluated_workloads"],
+                args.output,
+            )
+        )
+        return 0
+
+    if args.command == "analyze-scope-confirmation":
+        try:
+            decision = build_scope_confirmation_decision(
+                campaign_path=args.campaign,
+                report_path=args.report,
+                artifact_manifest_path=args.artifact_manifest,
+            )
+        except (ScopeConfirmationAnalysisError, OSError, KeyError) as exc:
+            raise SystemExit(
+                "cannot analyze scope confirmation: %s" % exc
+            ) from exc
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(decision, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        primary = decision["primary_endpoint"]
+        latency = decision["latency_scope"]
+        print(
+            "scope confirmation: energy MAPE %.2f%% (%s); "
+            "supported TTFT MAPE %.2f%%, sparse TTFT MAPE %.2f%%; "
+            "decision=%s; wrote %s"
+            % (
+                primary["observed_mape_pct"],
+                "pass" if primary["passed"] else "fail",
+                latency["supported_stratum"]["observed_mape_pct"],
+                latency["sparse_stratum"]["observed_mape_pct"],
+                latency["decision"],
                 args.output,
             )
         )
