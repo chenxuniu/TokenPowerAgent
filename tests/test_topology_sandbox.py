@@ -89,6 +89,10 @@ def test_l2_adds_tp_communication_that_l0_omits() -> None:
     l2 = projector.predict(target, reference_workload(), EvidenceLevel.L2)
 
     assert l0.metrics["throughput_tok_s"] > l2.metrics["throughput_tok_s"]
+    assert l0.metrics["energy_j_per_1k_output_tokens_lower"] > 0
+    assert l0.metrics["energy_j_per_1k_output_tokens_upper"] > l0.metrics[
+        "energy_j_per_1k_output_tokens"
+    ]
     assert l0.relative_uncertainty > l2.relative_uncertainty
     assert l0.decomposition["topology_terms_enabled"] is False
     assert l2.decomposition["topology_terms_enabled"] is True

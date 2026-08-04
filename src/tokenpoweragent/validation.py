@@ -7,7 +7,7 @@ import math
 from datetime import datetime
 from pathlib import Path
 from statistics import median, stdev
-from typing import Any, Callable, Dict, Mapping, Sequence
+from typing import Any, Callable, Dict, Mapping, Sequence, Tuple
 
 from tokenpoweragent.evidence import (
     EvidenceKind,
@@ -148,6 +148,7 @@ def _metric_summary(
     prediction_key: str,
     observed: Callable[[EvidenceRecord], float],
     observed_semantics: str,
+    interval_aliases: Tuple[str, ...] = (),
 ) -> Dict[str, Any]:
     values = [float(observed(record)) for record in measurements]
     if any(not math.isfinite(value) for value in values):
@@ -160,8 +161,17 @@ def _metric_summary(
     sample_sd = float(stdev(values)) if len(values) > 1 else 0.0
     predicted = float(prediction.metrics[prediction_key])
     signed_error_pct = (predicted - observed_median) / observed_median * 100.0
-    lower = prediction.metrics.get(prediction_key + "_lower")
-    upper = prediction.metrics.get(prediction_key + "_upper")
+    interval_source = None
+    lower = None
+    upper = None
+    for interval_key in (prediction_key,) + interval_aliases:
+        candidate_lower = prediction.metrics.get(interval_key + "_lower")
+        candidate_upper = prediction.metrics.get(interval_key + "_upper")
+        if candidate_lower is not None and candidate_upper is not None:
+            interval_source = interval_key
+            lower = candidate_lower
+            upper = candidate_upper
+            break
     covered = None
     interval = None
     if lower is not None and upper is not None:
@@ -177,6 +187,7 @@ def _metric_summary(
         "signed_prediction_error_pct": signed_error_pct,
         "absolute_percentage_error_pct": abs(signed_error_pct),
         "prediction_interval": interval,
+        "prediction_interval_source": interval_source,
         "interval_covers_observed_median": covered,
         "observed_semantics": observed_semantics,
     }
@@ -243,6 +254,7 @@ def build_holdout_validation_report(
             "energy_j_per_1k_output_tokens",
             lambda record: record.metrics["j_per_output_token"] * 1000.0,
             "GPU joules per 1,000 output tokens",
+            interval_aliases=("energy_j_per_1k_tokens",),
         ),
         "throughput_tok_s": _metric_summary(
             prediction,

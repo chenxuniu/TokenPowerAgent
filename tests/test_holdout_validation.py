@@ -19,8 +19,8 @@ def _prediction(created_at: str) -> EvidenceRecord:
         level=EvidenceLevel.L0,
         metrics={
             "energy_j_per_1k_output_tokens": 440.0,
-            "energy_j_per_1k_output_tokens_lower": 250.0,
-            "energy_j_per_1k_output_tokens_upper": 640.0,
+            "energy_j_per_1k_tokens_lower": 250.0,
+            "energy_j_per_1k_tokens_upper": 640.0,
             "throughput_tok_s": 1400.0,
             "throughput_tok_s_lower": 800.0,
             "throughput_tok_s_upper": 2000.0,
@@ -154,6 +154,12 @@ def test_build_holdout_validation_report(tmp_path) -> None:
     assert (
         report["metrics"]["energy_j_per_1k_output_tokens"]["observed_median"]
         == 321.0
+    )
+    assert (
+        report["metrics"]["energy_j_per_1k_output_tokens"][
+            "prediction_interval_source"
+        ]
+        == "energy_j_per_1k_tokens"
     )
     assert report["summary"]["interval_covered_metric_count"] == 4
     assert report["summary"]["publication_ready"] is False

@@ -587,6 +587,7 @@ class TopologyProjector:
 
     _INTERVAL_METRICS = (
         "energy_j_per_1k_tokens",
+        "energy_j_per_1k_output_tokens",
         "throughput_tok_s",
         "ttft_ms",
         "tpot_ms",
