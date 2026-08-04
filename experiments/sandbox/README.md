@@ -268,3 +268,25 @@ If the host session is interrupted, rerun the same command with `--resume`.
 Completed `(workload_id, repeat)` pairs are hash-checked and skipped. Do not add
 these `dataset_split=validation` records to the calibration profile or use them
 as final holdout evidence.
+
+After the raw measurement JSONL and its referenced client/DCGM files have been
+sealed in a SHA-256 manifest, generate the validation report:
+
+```bash
+tokenpoweragent validate-workload-campaign \
+  --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-validation-v1.json \
+  --predictions experiments/results/workload-transfer-validation-v1-predictions.jsonl \
+  --measurements experiments/results/workload-transfer-validation-v1-measurements.jsonl \
+  --freeze-manifest experiments/results/workload-transfer-validation-v1-freeze.sha256 \
+  --artifact-manifest experiments/results/workload-transfer-validation-v1-artifacts.sha256 \
+  --output experiments/results/workload-transfer-validation-v1-report.json
+```
+
+The validator requires the exact pre-registered cyclic schedule and three
+repeats per workload. It checks timestamps, campaign and prediction hashes,
+server/client image identity, serving configuration, power-limit readback, and
+the sealed raw traces. It reports per-workload medians and MADs, repeat CV,
+MAPE, interval coverage, Spearman workload-ranking correlation, pairwise order
+accuracy, and average-power/runtime diagnostics. These six workloads may be
+used to revise the model or calibrate uncertainty, so the report always marks a
+separate frozen final holdout as required.

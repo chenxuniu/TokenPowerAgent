@@ -32,7 +32,9 @@ from tokenpoweragent.twin.topology import (
 )
 from tokenpoweragent.validation import (
     HoldoutValidationError,
+    WorkloadCampaignValidationError,
     build_holdout_validation_report,
+    build_workload_campaign_validation_report,
 )
 from tokenpoweragent.workload_campaign import (
     WorkloadCampaign,
@@ -226,6 +228,19 @@ def build_parser() -> argparse.ArgumentParser:
     validation.add_argument("--freeze-manifest", type=Path, required=True)
     validation.add_argument("--min-repeats", type=int, default=3)
     validation.add_argument("--output", type=Path, required=True)
+
+    campaign_validation = subparsers.add_parser(
+        "validate-workload-campaign",
+        help="analyze a frozen workload-transfer validation campaign",
+    )
+    campaign_validation.add_argument("--campaign", type=Path, required=True)
+    campaign_validation.add_argument("--predictions", type=Path, required=True)
+    campaign_validation.add_argument("--measurements", type=Path, required=True)
+    campaign_validation.add_argument(
+        "--freeze-manifest", type=Path, required=True
+    )
+    campaign_validation.add_argument("--artifact-manifest", type=Path)
+    campaign_validation.add_argument("--output", type=Path, required=True)
 
     freeze_campaign = subparsers.add_parser(
         "freeze-workload-campaign",
@@ -611,6 +626,51 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 summary["mean_absolute_percentage_error_pct"],
                 summary["interval_covered_metric_count"],
                 summary["metric_count"],
+                args.output,
+            )
+        )
+        return 0
+
+    if args.command == "validate-workload-campaign":
+        try:
+            report = build_workload_campaign_validation_report(
+                campaign_path=args.campaign,
+                predictions_path=args.predictions,
+                measurements_path=args.measurements,
+                freeze_manifest_path=args.freeze_manifest,
+                artifact_manifest_path=args.artifact_manifest,
+            )
+        except (
+            HoldoutValidationError,
+            WorkloadCampaignValidationError,
+            OSError,
+            KeyError,
+        ) as exc:
+            raise SystemExit(
+                "cannot validate workload campaign: %s" % exc
+            ) from exc
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(report, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        energy = report["aggregate_metrics"][
+            "energy_j_per_1k_output_tokens"
+        ]
+        print(
+            "validated %d workloads and %d measurements: energy MAPE %.2f%%, "
+            "Spearman %s, interval coverage %d/%d; wrote %s"
+            % (
+                report["protocol"]["workload_count"],
+                report["protocol"]["measurement_count"],
+                energy["mean_absolute_percentage_error_pct"],
+                (
+                    "N/A"
+                    if energy["spearman_rank_correlation"] is None
+                    else "%.3f" % energy["spearman_rank_correlation"]
+                ),
+                energy["interval_covered_workloads"],
+                energy["interval_evaluated_workloads"],
                 args.output,
             )
         )

@@ -18,6 +18,9 @@ paper experiments.
 - A calibrated topology projector with explicit TP/PP communication, memory,
   placement, energy, and uncertainty terms.
 - A real-L1-to-calibration builder with source hashes and repeat aggregation.
+- Pre-registered workload-transfer campaigns with frozen predictions,
+  resumable balanced measurement, raw-artifact sealing, and ranking/error
+  validation reports.
 - Deterministic TP/PP/batching grid generation with geometry and memory guards.
 - Fidelity routing and a topology-backed Energy Twin that can start without
   hand-written prior metrics.
