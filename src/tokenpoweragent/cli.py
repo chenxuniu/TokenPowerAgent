@@ -34,6 +34,12 @@ from tokenpoweragent.validation import (
     HoldoutValidationError,
     build_holdout_validation_report,
 )
+from tokenpoweragent.workload_campaign import (
+    WorkloadCampaign,
+    WorkloadCampaignError,
+    freeze_workload_campaign,
+    run_serving_campaign,
+)
 
 
 def _power_limits(value: str) -> tuple[int, ...]:
@@ -220,6 +226,53 @@ def build_parser() -> argparse.ArgumentParser:
     validation.add_argument("--freeze-manifest", type=Path, required=True)
     validation.add_argument("--min-repeats", type=int, default=3)
     validation.add_argument("--output", type=Path, required=True)
+
+    freeze_campaign = subparsers.add_parser(
+        "freeze-workload-campaign",
+        help="freeze all workload-transfer predictions before measurement",
+    )
+    freeze_campaign.add_argument("--campaign", type=Path, required=True)
+    freeze_campaign.add_argument("--calibration", type=Path, required=True)
+    freeze_campaign.add_argument(
+        "--level", type=EvidenceLevel.parse, default=EvidenceLevel.L0
+    )
+    freeze_campaign.add_argument("--output", type=Path, required=True)
+    freeze_campaign.add_argument(
+        "--summary",
+        type=Path,
+        help="defaults to OUTPUT with a .summary.json suffix",
+    )
+    freeze_campaign.add_argument("--manifest", type=Path, required=True)
+
+    run_campaign = subparsers.add_parser(
+        "run-serving-campaign",
+        help="measure a pre-frozen workload-transfer campaign",
+    )
+    run_campaign.add_argument("--campaign", type=Path, required=True)
+    run_campaign.add_argument("--predictions", type=Path, required=True)
+    run_campaign.add_argument("--freeze-manifest", type=Path, required=True)
+    run_campaign.add_argument("--image", default="tokenpower-vllm-client:v0.23.0")
+    run_campaign.add_argument("--server-container", default="tpa-vllm-qwen7b")
+    run_campaign.add_argument("--network", default="tpa-serving-bench")
+    run_campaign.add_argument("--cache-volume", default="tpa-hf-cache")
+    run_campaign.add_argument(
+        "--base-url", default="http://tpa-vllm-qwen7b:8000"
+    )
+    run_campaign.add_argument("--served-model-name", default="qwen2.5-7b")
+    run_campaign.add_argument("--gpu-id", type=int, default=0)
+    run_campaign.add_argument("--timeout-seconds", type=float, default=900.0)
+    run_campaign.add_argument("--output", type=Path, required=True)
+    run_campaign.add_argument(
+        "--telemetry-dir",
+        type=Path,
+        default=Path("experiments/results/serving-campaign-telemetry"),
+    )
+    run_campaign.add_argument("--resume", action="store_true")
+    run_campaign.add_argument(
+        "--no-sudo",
+        action="store_true",
+        help="run Docker and power-limit commands without sudo",
+    )
     return parser
 
 
@@ -561,6 +614,63 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 args.output,
             )
         )
+        return 0
+
+    if args.command == "freeze-workload-campaign":
+        summary_path = args.summary or args.output.with_suffix(".summary.json")
+        try:
+            summary = freeze_workload_campaign(
+                campaign_path=args.campaign,
+                calibration_path=args.calibration,
+                output_path=args.output,
+                summary_path=summary_path,
+                manifest_path=args.manifest,
+                level=args.level,
+            )
+        except (WorkloadCampaignError, OSError) as exc:
+            raise SystemExit("cannot freeze workload campaign: %s" % exc) from exc
+        print(
+            "froze %d %s predictions for %s; wrote %s, %s, and %s"
+            % (
+                summary["prediction_count"],
+                summary["level"],
+                summary["campaign_id"],
+                args.output,
+                summary_path,
+                args.manifest,
+            )
+        )
+        return 0
+
+    if args.command == "run-serving-campaign":
+        try:
+            campaign = WorkloadCampaign.load(args.campaign)
+            executor = ServingSandboxExecutor(
+                telemetry_dir=args.telemetry_dir,
+                gpu_id=args.gpu_id,
+                sample_ms=campaign.sample_ms,
+                use_sudo=not args.no_sudo,
+                timeout_seconds=args.timeout_seconds,
+            )
+            report = run_serving_campaign(
+                campaign_path=args.campaign,
+                predictions_path=args.predictions,
+                manifest_path=args.freeze_manifest,
+                output_path=args.output,
+                executor=executor,
+                runtime={
+                    "image": args.image,
+                    "server_container": args.server_container,
+                    "network": args.network,
+                    "cache_volume": args.cache_volume,
+                    "base_url": args.base_url,
+                    "served_model_name": args.served_model_name,
+                },
+                resume=args.resume,
+            )
+        except (WorkloadCampaignError, SandboxExecutionError, OSError) as exc:
+            raise SystemExit("cannot run serving campaign: %s" % exc) from exc
+        print(json.dumps(report, indent=2, sort_keys=True))
         return 0
 
     scenario = Scenario.load(args.scenario)

@@ -214,6 +214,11 @@ class ServingSandboxExecutor(SandboxExecutor):
     DONE_EVENT = "DONE"
     END_COMMAND = "ACK"
 
+    def inspect_environment(self, candidate: Candidate) -> ServerEnvironment:
+        """Validate and return the persistent server used by a candidate."""
+
+        return self._verify_serving_environment(self._serving_contract(candidate))
+
     def client_command(
         self, candidate: Candidate, seed: int, control_dir: Path
     ) -> Sequence[str]:

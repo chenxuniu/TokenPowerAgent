@@ -235,3 +235,36 @@ absolute percentage error, and interval coverage for energy, throughput, P95
 TTFT, and P95 TPOT. Average-power and benchmark-duration errors are reported as
 diagnostics for interpreting energy error. Coverage from one workload is
 diagnostic only; it does not make an uncalibrated profile publication eligible.
+
+## Workload-Transfer Validation Campaign
+
+The first matrix keeps the Qwen2.5-7B server configuration and 700 W limit
+fixed while varying context length and concurrency over six pre-registered
+validation points. Freeze all predictions before running any of them:
+
+```bash
+tokenpoweragent freeze-workload-campaign \
+  --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-validation-v1.json \
+  --calibration experiments/results/qwen2.5-7b-h100-l1-v1.json \
+  --level L0 \
+  --output experiments/results/workload-transfer-validation-v1-predictions.jsonl \
+  --manifest experiments/results/workload-transfer-validation-v1-freeze.sha256
+```
+
+After independently reviewing and archiving the frozen artifacts, run 18
+measurements: six workloads, three repeats each. The runner verifies the
+manifest and live server contract, uses a cyclically balanced order, and
+checkpoints after every measurement:
+
+```bash
+tokenpoweragent run-serving-campaign \
+  --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-validation-v1.json \
+  --predictions experiments/results/workload-transfer-validation-v1-predictions.jsonl \
+  --freeze-manifest experiments/results/workload-transfer-validation-v1-freeze.sha256 \
+  --output experiments/results/workload-transfer-validation-v1-measurements.jsonl
+```
+
+If the host session is interrupted, rerun the same command with `--resume`.
+Completed `(workload_id, repeat)` pairs are hash-checked and skipped. Do not add
+these `dataset_split=validation` records to the calibration profile or use them
+as final holdout evidence.
