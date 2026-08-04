@@ -1,0 +1,20 @@
+\begin{table}[t]
+\centering
+\caption{Frozen-corpus agent-search comparison.  Values are populated only
+from the hashed \texttt{benchmark-replay} report.}
+\label{tab:agent-results}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrr}
+\toprule
+Policy & Pareto recall & GPU-hours & Unneeded L4 \\
+\midrule
+IPIG proxy & \AgentParetoRecall{} & \AgentGPUHours{} &
+\AgentUnnecessaryEscalations{} \\
+Random & \RandomParetoRecall{} & \RandomGPUHours{} &
+\RandomUnnecessaryEscalations{} \\
+Cost-blind & \draftvalue{TBD} & \draftvalue{TBD} & \draftvalue{TBD} \\
+Cheapest-first & \draftvalue{TBD} & \draftvalue{TBD} & \draftvalue{TBD} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,30 @@
+\begin{abstract}
+LLM inference increasingly dominates the operational energy of deployed AI
+services, yet energy per token changes substantially with workload shape,
+serving configuration, hardware, and scale.  Exhaustively profiling every
+candidate on its target GPU cluster is impractical when accelerator
+allocations are scarce.  We present \system{}, a bounded hybrid agent that
+treats tuning as an evidence-allocation problem: which configuration should be
+examined next, at what fidelity, and when is real-GPU verification worth its
+cost?  A constrained LLM planner maps natural-language intent to typed
+subgoals, while deterministic guards select candidate--fidelity actions,
+enforce GPU-hour and SLO constraints, maintain the Pareto state, and permit
+recommendations only after target-level verification.  Its evidence substrate,
+\sandbox{}, combines a CPU-resident projector, sparse measured correction,
+restricted GPU execution, immutable provenance, and explicit abstention.  On
+one H100 80GB serving Qwen2.5-7B with vLLM, we calibrate workload transfer under
+one fixed configuration and evaluate the frozen model on two preregistered
+holdouts totaling \BlindMeasurements{} real runs.  Energy MAPE is
+\CalibratedEnergyMAPE{} on an eight-workload holdout and
+\ConfirmationEnergyMAPE{} on a disjoint nine-workload confirmation.  A
+preregistered gate supports TTFT at concurrency four
+(\KFourTTFTMAPE{} MAPE) and abstains below four (\SparseTTFTMAPE{}), showing
+that cheap evidence can guide decisions without being mislabeled as hardware
+truth.  The resulting system provides a reproducible foundation for
+budget-aware agentic configuration search on HPC clusters.
+\end{abstract}
+
+\begin{IEEEkeywords}
+agentic AI, LLM inference, energy efficiency, multi-fidelity optimization,
+Pareto search, HPC clusters
+\end{IEEEkeywords}

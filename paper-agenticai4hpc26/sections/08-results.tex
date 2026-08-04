@@ -1,0 +1,60 @@
+\section{Results}
+
+\subsection{RQ1: Cheap Evidence Preserves Energy Decisions}
+
+Table~\ref{tab:evidence-results} summarizes the two sealed holdouts.  On the
+eight-workload v2 holdout, energy MAPE is \CalibratedEnergyMAPE{}, median APE is
+\EnergyMedianAPE{}, and the maximum APE is \EnergyMaxAPE{}.  Energy rank
+correlation is \EnergySpearman{}, and \EnergyPairwise{} pairwise orderings
+(\EnergyPairwisePct{}) are correct.  Median repeat CV is only
+\EnergyRepeatCV{}, indicating that prediction error, rather than measurement
+noise, dominates.  Throughput and TPOT MAPE are
+\CalibratedThroughputMAPE{} and \CalibratedTPOTMAPE{}.  TTFT is less accurate
+at \CalibratedTTFTMAPE{}, motivating the separate release gate below.
+
+Without refitting, scope confirmation obtains \ConfirmationEnergyMAPE{}
+energy MAPE, \ConfirmationEnergySpearman{} rank correlation, and
+\ConfirmationEnergyPairwise{} correct pairwise orderings.  Its largest energy
+error is \ConfirmationEnergyMaxAPE{}, so the preregistered 15\% primary
+endpoint passes on all nine workloads.  The result supports CPU-first energy
+screening inside the measured workload and runtime envelope; it does not
+establish cross-GPU or multi-node accuracy.
+
+\input{tables/evidence-results}
+
+\subsection{RQ2: Scope Gating Prevents a False Latency Claim}
+
+Aggregate TTFT MAPE in the confirmation is \ConfirmationTTFTMAPE{}, which by
+itself would reject a global TTFT claim.  Stratification reveals the boundary
+in Table~\ref{tab:scope-results}.  At concurrency four, TTFT MAPE is
+\KFourTTFTMAPE{} and maximum APE is \SupportedTTFTMaxAPE{}, passing the
+preregistered 20\% rule.  At concurrency one and two, TTFT MAPE rises to
+\KOneTTFTMAPE{} and \KTwoTTFTMAPE{}; the combined sparse-stratum error is
+\SparseTTFTMAPE{}.  The generated decision therefore supports latency at
+concurrency at least four and abstains below four.  Energy remains stable in
+all three strata.  This is the desired behavior for an evidence-gated agent:
+it narrows a claim instead of turning confident energy estimates into an
+unsupported latency recommendation.
+
+\input{tables/scope-results}
+
+\subsection{RQ3: Configuration-Search Efficiency}
+
+The runtime can already execute sealed replay episodes for IPIG, random,
+cost-blind, and cheapest-first policies and produce all metrics in
+Table~\ref{tab:agent-results}.  The bundled three-candidate corpus is explicitly
+synthetic and is used only for software tests.  Publication values require the
+frozen H100 serving-configuration corpus described in Section~VII; until that
+campaign is sealed, we make no claim that IPIG outperforms a search baseline.
+
+\input{tables/agent-results}
+
+\subsection{RQ4: Bounded Runtime Behavior}
+
+All 58 automated tests pass.  Injected executor failure becomes a failed
+evidence record charged at its declared cost, and the next event enters
+\textsc{Repair}.  Malformed LLM output triggers a recorded rule-based fallback.
+Replay and topology tools cannot relabel L0/L2 outputs as verified, budget
+overruns raise a hard error, and the returned recommendation set is computed
+only from successful L4 evidence that satisfies the SLO.  These tests establish
+mechanism enforcement, not the semantic quality of a particular planner model.

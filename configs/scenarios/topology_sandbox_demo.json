@@ -1,6 +1,7 @@
 {
   "schema_version": "1.0",
   "name": "qwen2.5-7b-topology-sandbox-demo",
+  "intent": "Use CPU-first topology evidence to identify an energy-efficient TP/PP and batching configuration under the latency SLO, then require target-scale verification before recommendation.",
   "model": "Qwen/Qwen2.5-7B-Instruct",
   "hardware": {
     "gpu": "H100-80GB",

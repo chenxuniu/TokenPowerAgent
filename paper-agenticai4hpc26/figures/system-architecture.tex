@@ -1,0 +1,57 @@
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  x=1cm,y=1cm,
+  every node/.style={font=\sffamily},
+  stage/.style={draw=tpGray,rounded corners=2pt,minimum height=2.05cm,
+    align=center,inner sep=4pt,font=\scriptsize},
+  memory/.style={draw=tpGray,rounded corners=1.5pt,minimum height=0.72cm,
+    align=center,inner sep=3pt,font=\scriptsize},
+  flow/.style={-{Stealth[length=2.3mm]},line width=0.9pt,draw=tpGray},
+  dataflow/.style={-{Stealth[length=2.1mm]},line width=0.8pt,draw=tpTealDark,dashed}
+]
+  \node[stage,fill=tpRoseLight,text width=2.15cm] (scenario) at (1.35,0.55)
+    {\textbf{Inference Scenario}\\[2pt]model + workload\\hardware + SLO\\GPU-hour budget};
+  \node[stage,fill=tpBlueLight,text width=2.28cm] (compiler) at (4.15,0.55)
+    {\textbf{Scenario Compiler}\\[2pt]typed search space\\memory / support\\feasibility filter};
+  \node[stage,fill=tpGoldLight,text width=2.72cm] (agent) at (7.35,0.55)
+    {\textbf{Hybrid Agent}\\[2pt]semantic subgoal\\\ipig{}\ action selection\\
+     reflect / repair};
+  \node[stage,fill=tpTealLight,text width=3.00cm] (twin) at (11.05,0.55)
+    {\textbf{Energy Twin + Tools}\\[2pt]serving schedule\\phase + communication energy\\uncertainty + Pareto search};
+  \node[stage,fill=tpRoseLight,text width=2.52cm] (output) at (14.62,0.55)
+    {\textbf{Verified Output}\\[2pt]Pareto configurations\\confidence + provenance\\runnable scripts};
+
+  \draw[flow] (scenario) -- (compiler);
+  \draw[flow] (compiler) -- (agent);
+  \draw[flow] (agent) -- (twin);
+  \draw[flow] (twin) -- (output);
+
+  \node[memory,fill=tpGrayLight,text width=3.15cm] (history) at (5.15,-1.68)
+    {\textbf{Historical \bench{}}\quad measured priors};
+  \node[memory,fill=tpBlueLight,text width=3.55cm] (sandbox) at (9.20,-1.68)
+    {\textbf{Multi-Fidelity Sandbox}\quad L0--L4 evidence};
+  \node[memory,fill=tpTealLight,text width=3.30cm] (store) at (13.35,-1.68)
+    {\textbf{Evidence Store}\quad telemetry + hashes};
+
+  \draw[dataflow] (history.north) to[out=85,in=250] (twin.south west);
+  \draw[dataflow] (sandbox.north) -- (twin.south);
+  \draw[dataflow] (twin.south east) to[out=300,in=90] (store.north);
+  \draw[dataflow] (store.west) -- (sandbox.east);
+  \draw[-{Stealth[length=2.1mm]},line width=0.8pt,draw=tpRoseDark,dashed]
+    (output.north) to[out=120,in=60]
+    node[above,font=\scriptsize,text=tpRoseDark] {verification feedback}
+    (agent.north);
+
+  \node[draw=tpGray!50,rounded corners=2pt,fit=(scenario)(compiler)(agent)(twin)(output)(history)(store),
+    inner sep=7pt] (frame) {};
+  \node[anchor=west,font=\small\bfseries,text=tpGray] at (frame.north west)
+    {\system{}};
+\end{tikzpicture}
+\caption{\system{}\ overview.  The language model selects a typed experiment
+subgoal, while \ipig{}\ chooses a candidate--fidelity action.  Deterministic tools
+perform feasibility checking, simulation, telemetry integration, surrogate
+fitting, and Pareto analysis; target-scale \bench{}\ evidence gates every
+recommendation.}
+\label{fig:architecture}
+\end{figure*}

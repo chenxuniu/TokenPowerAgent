@@ -1,0 +1,27 @@
+\section{Limitations and Threats to Validity}
+
+\textbf{Current empirical scope.}  Evidence validation covers one H100, one 7B
+model, one vLLM version, one serving configuration, fixed output length, and a
+bounded context/concurrency envelope.  It supports workload-transfer and scope
+gating, not TP/PP, cross-hardware, or multi-node accuracy.  The configuration
+corpus needed for RQ3 is kept visibly unresolved; synthetic replay cannot
+support a search-superiority claim.
+
+\textbf{Fidelity and telemetry.}  A single GPU cannot reveal communication,
+placement, fabric contention, or scheduler effects.  DCGM cumulative energy
+captures GPU-device energy rather than host, network, or facility energy.  It
+can also miss short power transients even when total energy remains monotonic.
+Every result therefore states its measurement boundary, and multi-node
+recommendations require new L2/L3 calibration and independent L4 verification.
+
+\textbf{Uncertainty.}  The frozen intervals are useful release diagnostics but
+are not yet calibrated across hardware generations.  New kernels, engines,
+GPUs, request processes, or MoE routing may invalidate residual corrections.
+The agent can expose distance, uncertainty, and abstention; it cannot make an
+unsupported distribution shift disappear.
+
+\textbf{Agent value.}  The implemented planner boundary and safety mechanisms
+are tested, but a language model may still choose an unhelpful subgoal.  The
+current IPIG estimator is an auditable proxy rather than exact Pareto mutual
+information.  Neither mechanism should be called superior until the frozen
+configuration corpus shows gains over optimizer-only and non-agent baselines.

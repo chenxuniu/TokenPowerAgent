@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Frozen-model results on two disjoint H100 holdouts.  Each workload
+has three repeats; MAPE compares the frozen prediction with the observed
+median.}
+\label{tab:evidence-results}
+\small
+\setlength{\tabcolsep}{3.8pt}
+\begin{tabular}{lrrrr}
+\toprule
+Study & Workloads & Runs & Energy MAPE & $\rho$ \\
+\midrule
+Holdout v2 & \HoldoutWorkloads{} & \HoldoutMeasurements{} &
+\CalibratedEnergyMAPE{} & \EnergySpearman{} \\
+Scope v3 & \ConfirmationWorkloads{} & \ConfirmationMeasurements{} &
+\ConfirmationEnergyMAPE{} & \ConfirmationEnergySpearman{} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -28,7 +28,15 @@ paper experiments.
 - Fidelity routing and a topology-backed Energy Twin that can start without
   hand-written prior metrics.
 - A Slurm renderer and injectable live-cluster execution boundary.
-- A hybrid controller with semantic subgoals and a pluggable IPIG estimator.
+- A failure-aware plan-act-observe-reflect controller with semantic subgoals,
+  frontier-stability stopping, conservative budget charging, and a pluggable
+  IPIG estimator.
+- A constrained OpenAI-compatible LLM planner. The model may select only a
+  typed semantic subgoal; malformed output falls back to the deterministic
+  planner and is recorded in the decision trace.
+- Reproducible IPIG, random, cost-blind, and cheapest-first replay policies
+  with Pareto recall, primary-objective regret, unnecessary escalation, and
+  GPU-hour metrics.
 - Pareto filtering, SLO checks, final L4-only recommendations, and tests.
 
 The bundled IPIG estimator is a transparent posterior-uncertainty proxy. The
@@ -44,9 +52,39 @@ python -m pip install -e .
 tokenpoweragent replay \
   --scenario configs/scenarios/replay_demo.json \
   --records configs/replay/demo_records.jsonl \
-  --max-steps 5
+  --policy ipig \
+  --max-steps 5 \
+  --output experiments/results/replay-agent-run.json
+
+tokenpoweragent benchmark-replay \
+  --scenario configs/scenarios/replay_demo.json \
+  --records configs/replay/demo_records.jsonl \
+  --policies ipig,random,cost-blind,cheapest-first \
+  --episodes 20 \
+  --max-steps 5 \
+  --output experiments/results/replay-policy-benchmark.json
 pytest
 ```
+
+The bundled replay records are synthetic test fixtures. They verify control
+flow and metric generation; they are not publication results.
+
+Run the same bounded planner against an OpenAI-compatible endpoint:
+
+```bash
+export TOKENPOWERAGENT_LLM_BASE_URL=http://127.0.0.1:8001/v1
+export TOKENPOWERAGENT_LLM_MODEL=qwen2.5-7b-agent
+
+tokenpoweragent replay \
+  --scenario configs/scenarios/replay_demo.json \
+  --records configs/replay/demo_records.jsonl \
+  --planner llm \
+  --max-steps 5
+```
+
+The endpoint cannot bypass the action guard: candidate selection, fidelity
+routing, budget accounting, SLO checks, Pareto computation, and L4-only final
+recommendations remain deterministic.
 
 Render a target-scale Slurm job without submitting it:
 
@@ -140,16 +178,19 @@ they are replaced by measured data.
 
 ## Research Status
 
-1. Replay evaluation and guard semantics: implemented.
+1. Bounded agent runtime, replay baselines, and guard semantics: implemented.
 2. L1 serving evidence to sandbox calibration: implemented.
 3. Exact IPIG nested-posterior estimator: interface defined, implementation
    pending.
 4. Live Slurm runner and telemetry verifier: boundary defined, cluster-specific
    integration pending.
 5. Topology-aware L0/L2 projection and candidate compiler: implemented.
-6. Single-H100 workload-transfer v2: implemented; final frozen holdout pending.
+6. Single-H100 workload-transfer v2 and scope-confirmation v3: implemented
+   with sealed final holdouts (51 blind measurements in total).
 7. H100/H200/B200 multi-GPU and multi-node validation: pending measured experiments.
 
 See [`docs/TokenPowerAgent-Complete-Workflow.md`](docs/TokenPowerAgent-Complete-Workflow.md)
-for the full method and [`experiments/README.md`](experiments/README.md) for the
-measurement protocol.
+for the full method,
+[`docs/TokenPowerAgent-Agent-Experiments.md`](docs/TokenPowerAgent-Agent-Experiments.md)
+for the runnable agent evaluation, and
+[`experiments/README.md`](experiments/README.md) for the measurement protocol.

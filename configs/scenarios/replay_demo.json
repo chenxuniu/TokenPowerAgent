@@ -1,6 +1,7 @@
 {
   "schema_version": "1.0",
   "name": "llama-70b-two-node-demo",
+  "intent": "Find the lowest-energy serving configuration that satisfies the latency and goodput SLO, spend no more than four GPU-hours, and verify at most two Pareto candidates at target scale.",
   "model": "meta-llama/Llama-3.1-70B-Instruct",
   "hardware": {
     "gpu": "H100-80GB",

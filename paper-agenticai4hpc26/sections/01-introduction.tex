@@ -1,0 +1,99 @@
+\section{Introduction}
+
+An operator deploying an LLM service must choose more than a GPU.  Batch and
+token limits, chunked prefill, precision, tensor and pipeline parallelism,
+placement, and power policy jointly determine throughput, time to first token
+(TTFT), time per output token (TPOT), and energy.  Their effects also change
+with request geometry: long prompts emphasize prefill compute, long responses
+emphasize memory-intensive decode, and distributed models add collectives,
+pipeline bubbles, and idle synchronization.  Consequently, two configurations
+with similar throughput can differ materially in joules per token or in their
+ability to satisfy a tail-latency service-level objective (SLO).
+
+The measurement path is increasingly mature.  Prior studies quantify LLM
+inference energy across models, engines, and multi-GPU systems
+\cite{samsi2023words,niu2025engines,fernandez2025energy}.  \bench{} further
+provides declarative, phase-aligned GPU, node, and system telemetry from a
+single GPU to multi-node deployments \cite{niu2026tokenpowerbench}.  Such tools
+answer \emph{what did this run consume?}  They do not answer the planning
+question that dominates a new deployment: \emph{given a finite allocation,
+which measurements should be run before selecting a configuration?}
+
+That question is expensive because the search space and the cost of observing
+it grow together.  A single-GPU probe may reveal prefill, decode, and power-cap
+behavior, but it cannot expose unseen NVLink/NVSwitch contention, inter-node
+fabric behavior, placement, or queueing.  Conversely, measuring every
+configuration at target scale spends the most expensive evidence on candidates
+that a cheap replay or probe could have eliminated.  The useful object is
+therefore neither a universal simulator nor a dense benchmark sweep.  It is a
+policy for deciding \emph{which configuration--fidelity pair to evaluate next}
+and when the remaining uncertainty warrants a target-scale run.
+
+Recent MLSys systems make this distinction important.  BEAM jointly controls
+batching and GPU frequency under SLOs, but assumes an offline energy--performance
+table \cite{lee2026beam}.  BOute applies multi-objective Bayesian optimization
+to routing and deployment choices, while OptiKIT uses full hardware trials to
+tune serving configurations \cite{jiang2026boute,santavas2026optikit}.  Charon
+and a large Meta deployment study make broad configuration search practical
+through calibrated simulation and profiling \cite{yang2026charon,cho2026deployment}.
+PROMPTS adds agent reasoning to distributed configuration recommendation
+\cite{ding2026prompts}.  These systems optimize a configuration, a runtime
+control action, or an agent proposal.  None treats the scale and cost of the
+next measurement as a joint decision variable while requiring measured
+target-scale evidence for every released energy--SLO recommendation.
+
+We present \system{}, an agentic multi-fidelity Pareto search framework built on
+\bench{}.  A scenario specifies a model, workload, target cluster, serving
+runtime, SLOs, and a real-measurement budget in GPU-hours.  \system{} compiles a
+typed feasible configuration pool and maintains a cross-fidelity belief over
+energy, TTFT, TPOT, and throughput.  At each step it selects an action
+$a=(x,\ell)$: a serving configuration $x$ and an evidence level $\ell$ ranging
+from historical replay and simulation to single-GPU, intra-node, sparse
+multi-node, and target-scale execution.  Its acquisition criterion, \emph{Intent-
+Conditioned Pareto Information Gain} (\ipig{}), prioritizes the expected reduction
+in uncertainty about the high-fidelity SLO-feasible Pareto set per GPU-hour.
+
+The LLM component is deliberately bounded.  It maps natural-language intent to
+a typed objective, selects an experiment subgoal, interprets failures, and
+produces an evidence-grounded explanation.  Deterministic tools compile
+feasible configurations, calculate acquisition scores, account for cost,
+ingest telemetry, and compute Pareto sets.  Predictions retain fidelity and
+provenance labels, and an independent gate rejects any deployment
+recommendation lacking target-scale measurement.  Thus, the agent reasons
+about \emph{how to acquire evidence}; it never estimates joules through
+free-form language generation.
+
+The current prototype now implements the bounded plan--act--observe--reflect
+loop, routed fidelity tools, conservative failure accounting, frontier-stability
+stopping, mandatory L4 verification, and replay baselines.  Its measured
+foundation is evaluated on one H100: an L0 model is calibrated from repeated
+L1 measurements, every holdout prediction is hashed before execution, and raw
+telemetry is sealed before analysis.  Two disjoint holdouts contain
+\BlindMeasurements{} real measurements.  They test whether the cheap evidence
+used by the agent is accurate enough to screen decisions and whether its scope
+gate abstains when that evidence does not transfer.  A separate frozen
+configuration corpus is required to test search superiority; workload-transfer
+accuracy alone is not presented as an agent-search result.
+
+This paper makes four contributions:
+\begin{itemize}
+    \item We formulate energy-aware LLM inference tuning as \emph{budgeted
+    configuration--fidelity co-selection}: recover an SLO-feasible
+    energy--performance Pareto set while minimizing the real GPU-hours spent
+    acquiring and verifying evidence.
+    \item We design a cross-fidelity evidence model that separates phase-local
+    compute from intra- and inter-node effects, preserves uncertainty under
+    hardware and scale shifts, and exposes an explicit L0--L4 evidence
+    contract rather than presenting simulation as cluster truth.
+    \item We introduce an \ipig{} policy interface and integrate its auditable
+    uncertainty-per-cost proxy with a bounded LLM planner, deterministic
+    action guards, typed executors, failure-aware reflection, and mandatory
+    target-scale verification.
+    \item We implement the complete agent runtime and a provenance-preserving
+    L0/L1 serving path.  Across two preregistered H100 holdouts, energy MAPE is
+    \CalibratedEnergyMAPE{} and \ConfirmationEnergyMAPE{}; the release gate
+    supports TTFT at concurrency four and correctly abstains in the sparse
+    low-concurrency stratum.  We release replay protocols for comparing IPIG,
+    random, cost-blind, and fixed-ladder acquisition on a frozen configuration
+    corpus.
+\end{itemize}

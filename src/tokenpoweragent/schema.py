@@ -104,6 +104,7 @@ class Candidate:
 class Scenario:
     schema_version: str
     name: str
+    intent: str
     model: str
     hardware: Mapping[str, Any]
     workload: Mapping[str, Any]
@@ -146,9 +147,16 @@ class Scenario:
 
         slo_raw = raw.get("slo", {})
         budget_raw = raw["budget"]
+        intent = str(raw.get("intent", "")).strip()
+        if not intent:
+            intent = (
+                "Find an SLO-feasible, energy-efficient LLM serving "
+                "configuration within the GPU-hour budget."
+            )
         return cls(
             schema_version=str(raw.get("schema_version", "1.0")),
             name=str(raw.get("name", "unnamed-scenario")),
+            intent=intent,
             model=str(raw["model"]),
             hardware=dict(raw.get("hardware", {})),
             workload=dict(raw.get("workload", {})),

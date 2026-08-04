@@ -1,0 +1,67 @@
+\section{Motivation and Design Requirements}
+
+\bench{} supplies controlled inference execution and phase-aligned GPU, node,
+and system telemetry, including Ray-based multi-node runs
+\cite{niu2026tokenpowerbench}.  \system{} does not replace that measurement
+path.  It changes how the path is used: prior runs become a cheap prior,
+selected probes become active calibration evidence, and final recommendations
+return to \bench{} for independent verification.  Figure~\ref{fig:motivation}
+summarizes the resulting decision problem.
+
+\input{figures/motivation-gap}
+
+\subsection{Observation 1: Configuration Rankings Are Conditional}
+
+Prefill and decode stress different hardware resources, so a serving knob can
+change energy and latency in opposite directions across token geometries.
+Continuous batching, chunked prefill, prefix reuse, quantization,
+disaggregation, and power policy further alter the realized schedule
+\cite{kwon2023vllm,agrawal2024sarathi,zhong2024distserve,lee2026beam}.
+Likewise, a parallelism choice that is efficient within one node may incur
+collective or pipeline overhead across nodes.  Prior energy studies therefore
+find no universally best model--engine--workload configuration
+\cite{niu2025engines,fernandez2025energy}.  A useful search state must preserve
+workload geometry, serving schedule, topology, and SLO, rather than reduce a
+request to model FLOPs or mean GPU utilization.
+
+\textbf{Requirement R1: scenario-conditioned decisions.}  The controller must
+represent the complete deployment scenario and optimize the feasible frontier
+for that intent, not learn one global configuration ranking.
+
+\subsection{Observation 2: Cheap Evidence Is Useful but Not Authoritative}
+
+Serving simulators can prune large configuration spaces after small profiling
+campaigns \cite{agrawal2024vidur,yang2026charon}.  A single-GPU probe can also
+measure device-local prefill, decode, and power response directly.  Neither
+source observes every scale-dependent term.  Intra-node tensor parallelism
+introduces PCIe, NVLink, or NVSwitch collectives; multi-node execution adds
+fabric transfer, placement, synchronization, and pipeline gaps; request traces
+add queueing and scheduler interference.  Prediction uncertainty must therefore
+grow when a candidate crosses an unmeasured hardware, topology, or scale
+boundary.
+
+\textbf{Requirement R2: explicit evidence contracts.}  The sandbox must be a
+calibration ladder, not a claim that one GPU emulates a cluster.  Every outcome
+must retain its fidelity, provenance, and uncertainty, and target-scale
+deployment claims must be supported by target-scale measurements.
+
+\subsection{Observation 3: Measurement Value Is Decision Dependent}
+
+Uniform sweeps give equal priority to unequal decisions.  A candidate that is
+clearly infeasible or dominated does not need a precise target-scale label.
+By contrast, a cheap observation can be valuable when it changes the ordering
+of two candidates near the frontier, resolves whether an SLO is met, or
+calibrates a previously unseen topology.  Generic predictive variance is also
+insufficient: high uncertainty far from the feasible frontier may have no
+effect on the final recommendation.
+
+\textbf{Requirement R3: cost-normalized decision information.}  Acquisition
+must jointly select configuration and fidelity according to expected change in
+the high-fidelity SLO/Pareto decision per real GPU-hour.
+
+\textbf{Requirement R4: bounded semantic autonomy.}  Natural-language intent,
+heterogeneous execution failures, and human escalation benefit from an LLM
+planner, but numerical prediction, feasibility, Pareto sorting, budget
+accounting, and recommendation release must remain deterministic and auditable.
+This separation makes the agent contribution testable against both an
+optimizer-only controller and an LLM-only tool user.

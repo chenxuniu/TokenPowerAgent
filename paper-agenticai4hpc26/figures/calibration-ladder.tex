@@ -1,0 +1,34 @@
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  x=1cm,y=1cm,
+  every node/.style={font=\sffamily},
+  level/.style={draw=tpGray,rounded corners=2pt,minimum height=2.25cm,
+    text width=2.55cm,align=center,inner sep=3pt,font=\scriptsize},
+  flow/.style={-{Stealth[length=2.3mm]},line width=0.9pt,draw=tpGray}
+]
+  \node[level,fill=tpGrayLight] (l0) at (1.45,0.05)
+    {\textbf{L0: Replay}\\[2pt]\textbf{0 GPUs}\\history retrieval\\analytic / event simulation\\\emph{simulated}};
+  \node[level,fill=tpBlueLight] (l1) at (4.85,0.25)
+    {\textbf{L1: Phase Probe}\\[2pt]\textbf{1 GPU}\\idle + warmup\\prefill / decode buckets\\\emph{device measured}};
+  \node[level,fill=tpTealLight] (l2) at (8.25,0.45)
+    {\textbf{L2: Node Probe}\\[2pt]\textbf{2--8 GPUs}\\TP / PP collectives\\NVLink / PCIe + KV\\\emph{node measured}};
+  \node[level,fill=tpGoldLight] (l3) at (11.65,0.65)
+    {\textbf{L3: Scale Probe}\\[2pt]\textbf{2+ nodes}\\fabric + placement\\sync / pipeline gaps\\\emph{sparse measured}};
+  \node[level,fill=tpRoseLight] (l4) at (15.05,0.85)
+    {\textbf{L4: Verification}\\[2pt]\textbf{target scale}\\arrival-trace replay\\queue + SLO behavior\\\emph{verified measured}};
+
+  \draw[flow] (l0.east) -- (l1.west);
+  \draw[flow] (l1.east) -- (l2.west);
+  \draw[flow] (l2.east) -- (l3.west);
+  \draw[flow] (l3.east) -- (l4.west);
+  \draw[-{Stealth[length=2.5mm]},very thick,tpRose]
+    (0.0,-1.55) -- node[below,font=\scriptsize\bfseries,text=tpRoseDark]
+    {increasing fidelity, topology coverage, and GPU-hour cost} (16.65,-1.55);
+\end{tikzpicture}
+\caption{Multi-fidelity sandbox calibration.  Each hierarchical level exposes
+effects that cannot be inferred reliably below it.  The agent escalates only
+candidates whose uncertainty can change SLO feasibility or the Pareto frontier;
+a final deployment recommendation requires target-scale trace verification.}
+\label{fig:calibration}
+\end{figure*}

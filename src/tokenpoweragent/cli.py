@@ -3,17 +3,29 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import sys
+from dataclasses import replace
 from pathlib import Path
 from typing import Optional, Sequence
 
 from tokenpoweragent.agent.controller import TokenPowerAgent
+from tokenpoweragent.agent.evaluation import (
+    POLICY_NAMES,
+    ReplayEvaluationError,
+    build_policy,
+    evaluate_replay_policies,
+)
+from tokenpoweragent.agent.llm import OpenAICompatibleCompletion
+from tokenpoweragent.agent.planner import ConstrainedLLMPlanner, RuleBasedPlanner
 from tokenpoweragent.calibration import (
     CalibrationBuildError,
     build_serving_calibration_profile,
 )
 from tokenpoweragent.evidence import EvidenceStore
+from tokenpoweragent.executors.base import RoutedExecutor
 from tokenpoweragent.executors.cluster import ClusterExecutor
 from tokenpoweragent.executors.replay import ReplayExecutor
 from tokenpoweragent.executors.sandbox import SandboxExecutionError, SandboxExecutor
@@ -37,6 +49,7 @@ from tokenpoweragent.twin.topology import (
     CalibrationError,
     CalibrationProfile,
     InferenceWorkload,
+    TopologyEnergyTwin,
 )
 from tokenpoweragent.validation import (
     HoldoutValidationError,
@@ -88,15 +101,132 @@ def _request_rate(value: str) -> str:
     return "%g" % rate
 
 
+def _policy_names(value: str) -> tuple[str, ...]:
+    names = tuple(item.strip().lower() for item in value.split(",") if item.strip())
+    if not names or len(names) != len(set(names)):
+        raise argparse.ArgumentTypeError("policies must be unique comma-separated names")
+    unknown = [name for name in names if name not in POLICY_NAMES]
+    if unknown:
+        raise argparse.ArgumentTypeError(
+            "unknown policies %s; choose from %s"
+            % (", ".join(unknown), ", ".join(POLICY_NAMES))
+        )
+    return names
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _add_agent_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--max-steps", type=int, default=20)
+    parser.add_argument("--min-ipig-score", type=float, default=0.0)
+    parser.add_argument("--frontier-patience", type=int, default=0)
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--policy", choices=POLICY_NAMES, default="ipig")
+    parser.add_argument("--intent", help="override the scenario's natural-language intent")
+    parser.add_argument("--planner", choices=("rule", "llm"), default="rule")
+    parser.add_argument(
+        "--planner-base-url",
+        default=os.environ.get("TOKENPOWERAGENT_LLM_BASE_URL", ""),
+        help="OpenAI-compatible base URL ending in /v1",
+    )
+    parser.add_argument(
+        "--planner-model",
+        default=os.environ.get("TOKENPOWERAGENT_LLM_MODEL", ""),
+    )
+    parser.add_argument(
+        "--planner-api-key-env",
+        default="TOKENPOWERAGENT_LLM_API_KEY",
+    )
+    parser.add_argument("--planner-timeout-seconds", type=float, default=30.0)
+
+
+def _planner_from_args(args: argparse.Namespace):
+    if args.planner == "rule":
+        return RuleBasedPlanner()
+    if not args.planner_base_url or not args.planner_model:
+        raise SystemExit(
+            "--planner llm requires --planner-base-url and --planner-model"
+        )
+    completion = OpenAICompatibleCompletion(
+        base_url=args.planner_base_url,
+        model=args.planner_model,
+        api_key=os.environ.get(args.planner_api_key_env),
+        timeout_seconds=args.planner_timeout_seconds,
+    )
+    return ConstrainedLLMPlanner(completion)
+
+
+def _run_agent(
+    args: argparse.Namespace,
+    scenario: Scenario,
+    executor,
+    twin=None,
+):
+    if args.intent:
+        scenario = replace(scenario, intent=args.intent.strip())
+    return TokenPowerAgent(
+        scenario=scenario,
+        executor=executor,
+        twin=twin,
+        planner=_planner_from_args(args),
+        policy=build_policy(args.policy, seed=args.seed),
+    ).run(
+        max_steps=args.max_steps,
+        min_ipig_score=args.min_ipig_score,
+        frontier_patience=args.frontier_patience,
+        run_seed=args.seed,
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="tokenpoweragent")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    replay = subparsers.add_parser("replay", help="run a deterministic replay episode")
+    replay = subparsers.add_parser(
+        "replay", help="run one bounded TokenPowerAgent replay episode"
+    )
     replay.add_argument("--scenario", type=Path, required=True)
     replay.add_argument("--records", type=Path, required=True)
-    replay.add_argument("--max-steps", type=int, default=20)
     replay.add_argument("--output", type=Path)
+    _add_agent_arguments(replay)
+
+    agent_search = subparsers.add_parser(
+        "agent-search",
+        help="run L0/L2 topology tools and replay higher-fidelity evidence",
+    )
+    agent_search.add_argument("--scenario", type=Path, required=True)
+    agent_search.add_argument("--calibration", type=Path, required=True)
+    agent_search.add_argument(
+        "--records",
+        type=Path,
+        required=True,
+        help="sealed L1/L3/L4 evidence available to the routed executor",
+    )
+    agent_search.add_argument("--output", type=Path, required=True)
+    _add_agent_arguments(agent_search)
+
+    benchmark = subparsers.add_parser(
+        "benchmark-replay",
+        help="compare acquisition policies against a sealed L4 replay oracle",
+    )
+    benchmark.add_argument("--scenario", type=Path, required=True)
+    benchmark.add_argument("--records", type=Path, required=True)
+    benchmark.add_argument(
+        "--policies",
+        type=_policy_names,
+        default=POLICY_NAMES,
+    )
+    benchmark.add_argument("--episodes", type=int, default=20)
+    benchmark.add_argument("--max-steps", type=int, default=20)
+    benchmark.add_argument("--min-ipig-score", type=float, default=0.0)
+    benchmark.add_argument("--frontier-patience", type=int, default=0)
+    benchmark.add_argument("--output", type=Path, required=True)
 
     render = subparsers.add_parser("render-slurm", help="render without submitting")
     render.add_argument("--scenario", type=Path, required=True)
@@ -834,11 +964,84 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     scenario = Scenario.load(args.scenario)
+    if args.command == "benchmark-replay":
+        records = EvidenceStore.read_jsonl(args.records).records
+        try:
+            report = evaluate_replay_policies(
+                scenario=scenario,
+                records=records,
+                policy_names=args.policies,
+                episodes=args.episodes,
+                max_steps=args.max_steps,
+                min_ipig_score=args.min_ipig_score,
+                frontier_patience=args.frontier_patience,
+                source_sha256=_sha256_file(args.records),
+                scenario_sha256=_sha256_file(args.scenario),
+            )
+        except ReplayEvaluationError as exc:
+            raise SystemExit("cannot benchmark replay: %s" % exc) from exc
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(report, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        print(json.dumps(report["aggregate"], indent=2, sort_keys=True))
+        print("wrote replay benchmark to %s" % args.output)
+        return 0
+
+    if args.command == "agent-search":
+        try:
+            profile = CalibrationProfile.load(args.calibration)
+            workload = InferenceWorkload.from_mapping(scenario.workload)
+            sandbox_executor = TopologySandboxExecutor(
+                profile=profile,
+                workload=workload,
+                expected_model=scenario.model,
+                profile_path=args.calibration,
+                scenario_path=args.scenario,
+            )
+            replay_executor = ReplayExecutor.from_jsonl(args.records)
+            routes = {
+                level: (
+                    sandbox_executor
+                    if level in {EvidenceLevel.L0, EvidenceLevel.L2}
+                    else replay_executor
+                )
+                for level in scenario.available_levels
+            }
+            result = _run_agent(
+                args,
+                scenario,
+                RoutedExecutor(routes),
+                twin=TopologyEnergyTwin(profile, workload),
+            )
+        except (CalibrationError, TopologySandboxError) as exc:
+            raise SystemExit("cannot run agent search: %s" % exc) from exc
+        rendered = result.to_dict()
+        rendered["input_provenance"] = {
+            "scenario_sha256": _sha256_file(args.scenario),
+            "calibration_sha256": _sha256_file(args.calibration),
+            "records_sha256": _sha256_file(args.records),
+        }
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(rendered, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        print(json.dumps(rendered, indent=2, sort_keys=True))
+        return 0
+
     if args.command == "replay":
         executor = ReplayExecutor.from_jsonl(args.records)
-        report = TokenPowerAgent(scenario, executor).run(max_steps=args.max_steps)
-        rendered = json.dumps(report.to_dict(), indent=2, sort_keys=True)
+        report = _run_agent(args, scenario, executor)
+        payload = report.to_dict()
+        payload["input_provenance"] = {
+            "scenario_sha256": _sha256_file(args.scenario),
+            "records_sha256": _sha256_file(args.records),
+        }
+        rendered = json.dumps(payload, indent=2, sort_keys=True)
         if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(rendered + "\n", encoding="utf-8")
         print(rendered)
         return 0
