@@ -25,8 +25,14 @@ from tokenpoweragent.calibration import (
     build_serving_calibration_profile,
 )
 from tokenpoweragent.configuration_campaign import (
+    ConfigurationCampaign,
     ConfigurationCampaignError,
     freeze_configuration_campaign,
+)
+from tokenpoweragent.configuration_runner import (
+    ConfigurationRunnerError,
+    DockerVLLMServerManager,
+    run_configuration_campaign,
 )
 from tokenpoweragent.evidence import EvidenceStore
 from tokenpoweragent.executors.base import RoutedExecutor
@@ -438,6 +444,47 @@ def build_parser() -> argparse.ArgumentParser:
     freeze_config_campaign.add_argument("--schedule", type=Path, required=True)
     freeze_config_campaign.add_argument("--summary", type=Path, required=True)
     freeze_config_campaign.add_argument("--manifest", type=Path, required=True)
+
+    run_config_campaign = subparsers.add_parser(
+        "run-config-campaign",
+        help="run a frozen, resumable L1/L4 serving-configuration campaign",
+    )
+    run_config_campaign.add_argument("--campaign", type=Path, required=True)
+    run_config_campaign.add_argument(
+        "--predictions", type=Path, required=True
+    )
+    run_config_campaign.add_argument("--schedule", type=Path, required=True)
+    run_config_campaign.add_argument("--summary", type=Path, required=True)
+    run_config_campaign.add_argument(
+        "--freeze-manifest", type=Path, required=True
+    )
+    run_config_campaign.add_argument("--output", type=Path, required=True)
+    run_config_campaign.add_argument(
+        "--telemetry-dir",
+        type=Path,
+        default=Path("experiments/results/config-search-v1-telemetry"),
+    )
+    run_config_campaign.add_argument(
+        "--server-log-dir",
+        type=Path,
+        default=Path("experiments/results/config-search-v1-server-logs"),
+    )
+    run_config_campaign.add_argument("--gpu-id", type=int, default=0)
+    run_config_campaign.add_argument(
+        "--timeout-seconds", type=float, default=900.0
+    )
+    run_config_campaign.add_argument(
+        "--max-actions",
+        type=int,
+        default=0,
+        help="run at most this many frozen actions; zero runs all remaining",
+    )
+    run_config_campaign.add_argument("--resume", action="store_true")
+    run_config_campaign.add_argument(
+        "--no-sudo",
+        action="store_true",
+        help="run Docker and power-limit commands without sudo",
+    )
 
     run_campaign = subparsers.add_parser(
         "run-serving-campaign",
@@ -977,6 +1024,46 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 args.manifest,
             )
         )
+        return 0
+
+    if args.command == "run-config-campaign":
+        try:
+            campaign = ConfigurationCampaign.load(args.campaign)
+            executor = ServingSandboxExecutor(
+                telemetry_dir=args.telemetry_dir,
+                gpu_id=args.gpu_id,
+                sample_ms=campaign.sample_ms,
+                use_sudo=not args.no_sudo,
+                timeout_seconds=args.timeout_seconds,
+            )
+            server_manager = DockerVLLMServerManager(
+                campaign=campaign,
+                server_log_dir=args.server_log_dir,
+                gpu_id=args.gpu_id,
+                use_sudo=not args.no_sudo,
+            )
+            report = run_configuration_campaign(
+                campaign_path=args.campaign,
+                predictions_path=args.predictions,
+                schedule_path=args.schedule,
+                summary_path=args.summary,
+                manifest_path=args.freeze_manifest,
+                output_path=args.output,
+                executor=executor,
+                server_manager=server_manager,
+                resume=args.resume,
+                max_actions=args.max_actions,
+            )
+        except (
+            ConfigurationCampaignError,
+            ConfigurationRunnerError,
+            SandboxExecutionError,
+            OSError,
+        ) as exc:
+            raise SystemExit(
+                "cannot run configuration campaign: %s" % exc
+            ) from exc
+        print(json.dumps(report, indent=2, sort_keys=True))
         return 0
 
     if args.command == "run-serving-campaign":

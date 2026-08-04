@@ -96,6 +96,10 @@ class ConfigurationCampaign:
     num_warmups: int
     sample_ms: int
     schedule_seed: int
+    restart_server_per_candidate: bool
+    cooldown_temperature_c: float
+    server_ready_timeout_seconds: float
+    failure_policy: str
     candidates: Tuple[ConfigurationPoint, ...]
 
     @classmethod
@@ -280,6 +284,25 @@ class ConfigurationCampaign:
             raise ConfigurationCampaignError(
                 "measurement.num_warmups must be non-negative"
             )
+        if measurement.get("restart_server_per_candidate") is not True:
+            raise ConfigurationCampaignError(
+                "measurement must restart the server for every candidate block"
+            )
+        cooldown_temperature_c = _positive_float(
+            measurement, "cooldown_temperature_c"
+        )
+        if not 20 <= cooldown_temperature_c <= 90:
+            raise ConfigurationCampaignError(
+                "measurement.cooldown_temperature_c must be in [20, 90]"
+            )
+        server_ready_timeout_seconds = _positive_float(
+            measurement, "server_ready_timeout_seconds"
+        )
+        failure_policy = str(measurement.get("failure_policy", "")).strip()
+        if failure_policy != "stop-and-resume-same-schedule":
+            raise ConfigurationCampaignError(
+                "measurement.failure_policy must stop and resume the same schedule"
+            )
 
         candidates_raw = raw.get("candidates")
         if not isinstance(candidates_raw, Sequence) or isinstance(
@@ -380,6 +403,10 @@ class ConfigurationCampaign:
             num_warmups=num_warmups,
             sample_ms=sample_ms,
             schedule_seed=schedule_seed,
+            restart_server_per_candidate=True,
+            cooldown_temperature_c=cooldown_temperature_c,
+            server_ready_timeout_seconds=server_ready_timeout_seconds,
+            failure_policy=failure_policy,
             candidates=tuple(candidates),
         )
 
@@ -562,7 +589,7 @@ def freeze_configuration_campaign(
             robust_rows.append((record.candidate_id, pessimistic))
     robust_frontier = pareto_front(robust_rows, scenario.objectives)
 
-    schedule = _measurement_schedule(campaign, campaign_hash)
+    schedule = configuration_measurement_schedule(campaign, campaign_hash)
     summary = {
         "schema_version": campaign.schema_version,
         "campaign_id": campaign.campaign_id,
@@ -632,7 +659,7 @@ def freeze_configuration_campaign(
     return summary
 
 
-def _measurement_schedule(
+def configuration_measurement_schedule(
     campaign: ConfigurationCampaign, campaign_hash: str
 ) -> Dict[str, Any]:
     base = [point.point_id for point in campaign.candidates]

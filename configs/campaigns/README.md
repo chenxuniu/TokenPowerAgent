@@ -58,3 +58,24 @@ tokenpoweragent freeze-config-campaign \
   --summary experiments/results/config-search-v1-freeze-summary.json \
   --manifest experiments/results/config-search-v1-freeze.sha256
 ```
+
+After independently archiving that freeze, run the first L1/L4 pair as a
+foreground launch check. `--max-actions` partitions the immutable schedule; it
+does not regenerate or reorder it:
+
+```bash
+tokenpoweragent run-config-campaign \
+  --campaign configs/campaigns/qwen2.5-7b-h100-config-search-v1.json \
+  --predictions experiments/results/config-search-v1-l0-predictions.jsonl \
+  --schedule experiments/results/config-search-v1-schedule.json \
+  --summary experiments/results/config-search-v1-freeze-summary.json \
+  --freeze-manifest experiments/results/config-search-v1-freeze.sha256 \
+  --output experiments/results/config-search-v1-measurements.jsonl \
+  --max-actions 2
+```
+
+The runner recreates vLLM on the internal Docker network for every frozen
+candidate-repeat block, verifies the live image and serving knobs before each
+measurement, and atomically checkpoints every action. Continue after a clean
+launch check or an SSH interruption by repeating the command with `--resume`;
+omit `--max-actions` to execute every remaining action.
