@@ -21,6 +21,9 @@ paper experiments.
 - Pre-registered workload-transfer campaigns with frozen predictions,
   resumable balanced measurement, raw-artifact sealing, and ranking/error
   validation reports.
+- A scope-gated workload residual fitter with leave-one-workload-out model
+  selection, physically consistent energy reconstruction, and a disjoint final
+  holdout protocol.
 - Deterministic TP/PP/batching grid generation with geometry and memory guards.
 - Fidelity routing and a topology-backed Energy Twin that can start without
   hand-written prior metrics.
@@ -144,7 +147,8 @@ they are replaced by measured data.
 4. Live Slurm runner and telemetry verifier: boundary defined, cluster-specific
    integration pending.
 5. Topology-aware L0/L2 projection and candidate compiler: implemented.
-6. H100/H200/B200 multi-GPU and multi-node validation: pending measured experiments.
+6. Single-H100 workload-transfer v2: implemented; final frozen holdout pending.
+7. H100/H200/B200 multi-GPU and multi-node validation: pending measured experiments.
 
 See [`docs/TokenPowerAgent-Complete-Workflow.md`](docs/TokenPowerAgent-Complete-Workflow.md)
 for the full method and [`experiments/README.md`](experiments/README.md) for the

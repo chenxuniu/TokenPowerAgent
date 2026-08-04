@@ -26,6 +26,10 @@ CAMPAIGN_PATH = (
     ROOT
     / "configs/campaigns/qwen2.5-7b-h100-workload-transfer-validation-v1.json"
 )
+HOLDOUT_CAMPAIGN_PATH = (
+    ROOT
+    / "configs/campaigns/qwen2.5-7b-h100-workload-transfer-holdout-v2.json"
+)
 PROFILE_PATH = (
     ROOT / "configs/calibration/qwen2.5-7b-h100-synthetic-example.json"
 )
@@ -38,25 +42,25 @@ def _write_manifest(path: Path, files) -> None:
     )
 
 
-def _fixture_files(tmp_path: Path):
+def _fixture_files(tmp_path: Path, campaign_path: Path = CAMPAIGN_PATH):
     predictions_path = tmp_path / "predictions.jsonl"
     prediction_summary_path = tmp_path / "predictions.summary.json"
     freeze_manifest_path = tmp_path / "freeze.sha256"
     measurements_path = tmp_path / "measurements.jsonl"
     artifact_manifest_path = tmp_path / "artifacts.sha256"
     freeze_workload_campaign(
-        campaign_path=CAMPAIGN_PATH,
+        campaign_path=campaign_path,
         calibration_path=PROFILE_PATH,
         output_path=predictions_path,
         summary_path=prediction_summary_path,
         manifest_path=freeze_manifest_path,
     )
 
-    campaign = WorkloadCampaign.load(CAMPAIGN_PATH)
+    campaign = WorkloadCampaign.load(campaign_path)
     predictions = EvidenceStore.read_jsonl(predictions_path).records
     prediction_map = {record.candidate_id: record for record in predictions}
     prediction_hash = sha256_file(predictions_path)
-    campaign_hash = sha256_file(CAMPAIGN_PATH)
+    campaign_hash = sha256_file(campaign_path)
     latest_prediction = max(
         datetime.fromisoformat(record.created_at) for record in predictions
     )
@@ -155,7 +159,7 @@ def _fixture_files(tmp_path: Path):
         )
     EvidenceStore(records).write_jsonl(measurements_path)
     artifact_files = [
-        CAMPAIGN_PATH,
+        campaign_path,
         predictions_path,
         freeze_manifest_path,
         measurements_path,
@@ -163,6 +167,7 @@ def _fixture_files(tmp_path: Path):
     ]
     _write_manifest(artifact_manifest_path, artifact_files)
     return {
+        "campaign": campaign_path,
         "predictions": predictions_path,
         "measurements": measurements_path,
         "freeze_manifest": freeze_manifest_path,
@@ -172,7 +177,7 @@ def _fixture_files(tmp_path: Path):
 
 def _report(paths):
     return build_workload_campaign_validation_report(
-        campaign_path=CAMPAIGN_PATH,
+        campaign_path=paths["campaign"],
         predictions_path=paths["predictions"],
         measurements_path=paths["measurements"],
         freeze_manifest_path=paths["freeze_manifest"],
@@ -234,3 +239,16 @@ def test_campaign_validation_rejects_incomplete_artifact_manifest(tmp_path) -> N
         WorkloadCampaignValidationError, match="omits required evidence"
     ):
         _report(paths)
+
+
+def test_campaign_validation_accepts_preregistered_final_holdout(tmp_path) -> None:
+    paths = _fixture_files(tmp_path, HOLDOUT_CAMPAIGN_PATH)
+
+    report = _report(paths)
+
+    assert report["protocol"]["dataset_split"] == "holdout"
+    assert report["protocol"]["preregistered_campaign_valid"] is True
+    assert report["protocol"]["preregistered_holdout_valid"] is True
+    assert report["protocol"]["preregistered_validation_valid"] is False
+    assert report["summary"]["final_holdout_completed"] is True
+    assert report["summary"]["final_holdout_required"] is False

@@ -290,3 +290,57 @@ MAPE, interval coverage, Spearman workload-ranking correlation, pairwise order
 accuracy, and average-power/runtime diagnostics. These six workloads may be
 used to revise the model or calibrate uncertainty, so the report always marks a
 separate frozen final holdout as required.
+
+## Fit v2 and Freeze the Final Holdout
+
+Fit the fixed four-feature log-residual model only after the six-point report
+and its raw artifact manifest have passed verification. The fitter uses
+leave-one-workload-out MAPE to choose ridge strength for throughput, active
+power, TTFT, and TPOT. It derives energy from corrected power and duration; it
+does not fit energy independently. The resulting profile remains explicitly
+development-only until a disjoint final holdout has been completed:
+
+```bash
+tokenpoweragent fit-workload-residuals \
+  --profile experiments/results/qwen2.5-7b-h100-l1-v1.json \
+  --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-validation-v1.json \
+  --report experiments/results/workload-transfer-validation-v1-report.json \
+  --profile-id qwen2.5-7b-h100-workload-v2 \
+  --output experiments/results/qwen2.5-7b-h100-workload-v2.json \
+  --diagnostics experiments/results/qwen2.5-7b-h100-workload-v2-fit.json
+```
+
+The residual layer is scope-gated. It applies only to the unchanged
+single-H100 serving configuration, 128 output tokens, infinite request rate,
+and context/concurrency values inside the measured validation envelope. TP/PP,
+multi-node, finite-rate, and out-of-envelope predictions retain the original
+transparent projector.
+
+Freeze all eight unseen context-by-concurrency combinations before measuring
+any of them:
+
+```bash
+tokenpoweragent freeze-workload-campaign \
+  --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-holdout-v2.json \
+  --calibration experiments/results/qwen2.5-7b-h100-workload-v2.json \
+  --level L0 \
+  --output experiments/results/workload-transfer-holdout-v2-predictions.jsonl \
+  --summary experiments/results/workload-transfer-holdout-v2-predictions.summary.json \
+  --manifest experiments/results/workload-transfer-holdout-v2-freeze.sha256
+```
+
+Archive and inspect the profile, fit diagnostics, predictions, summary, and
+freeze manifest. Only then run the 24 measurements:
+
+```bash
+tokenpoweragent run-serving-campaign \
+  --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-holdout-v2.json \
+  --predictions experiments/results/workload-transfer-holdout-v2-predictions.jsonl \
+  --freeze-manifest experiments/results/workload-transfer-holdout-v2-freeze.sha256 \
+  --output experiments/results/workload-transfer-holdout-v2-measurements.jsonl
+```
+
+Seal the measurement JSONL and all referenced client/DCGM traces before
+generating the final report with `validate-workload-campaign`. A holdout report
+sets `final_holdout_completed=true`; using any of those points to refit v2
+invalidates that claim and requires a newly frozen disjoint campaign.

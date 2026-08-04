@@ -679,10 +679,15 @@ def build_workload_campaign_validation_report(
         )
     except WorkloadCampaignError as exc:
         raise WorkloadCampaignValidationError(str(exc)) from exc
-    if {point.dataset_split for point in campaign.workloads} != {"validation"}:
+    dataset_splits = {point.dataset_split for point in campaign.workloads}
+    if len(dataset_splits) != 1 or next(iter(dataset_splits)) not in {
+        "validation",
+        "holdout",
+    }:
         raise WorkloadCampaignValidationError(
-            "workload-transfer analysis requires dataset_split=validation"
+            "workload-transfer analysis requires one validation or holdout split"
         )
+    dataset_split = next(iter(dataset_splits))
 
     predictions = EvidenceStore.read_jsonl(predictions_path).records
     measurements = EvidenceStore.read_jsonl(measurements_path).records
@@ -803,10 +808,17 @@ def build_workload_campaign_validation_report(
         bool(record.provenance.get("uncertainty_calibrated", False))
         for record in predictions
     )
-    warnings = [
-        "Validation workloads may calibrate the sandbox and cannot be reused as final holdout evidence.",
-        "A separate frozen final holdout campaign is required for publication claims.",
-    ]
+    if dataset_split == "validation":
+        warnings = [
+            "Validation workloads may calibrate the sandbox and cannot be reused "
+            "as final holdout evidence.",
+            "A separate frozen final holdout campaign is required for publication claims.",
+        ]
+    else:
+        warnings = [
+            "Final holdout workloads must not be used to refit the reported model.",
+            "Any post-holdout model change requires a newly frozen disjoint holdout.",
+        ]
     if artifact_manifest_path is None:
         warnings.append("A sealed raw-artifact manifest was not supplied.")
     if not profile_publication_eligible:
@@ -820,8 +832,10 @@ def build_workload_campaign_validation_report(
     return {
         "schema_version": "1.0",
         "protocol": {
-            "preregistered_validation_valid": True,
-            "dataset_split": "validation",
+            "preregistered_campaign_valid": True,
+            "preregistered_validation_valid": dataset_split == "validation",
+            "preregistered_holdout_valid": dataset_split == "holdout",
+            "dataset_split": dataset_split,
             "campaign_id": campaign.campaign_id,
             "campaign_sha256": campaign_hash,
             "prediction_sha256": prediction_hash,
@@ -876,7 +890,8 @@ def build_workload_campaign_validation_report(
             ),
             "analysis_ready": True,
             "publication_ready": False,
-            "final_holdout_required": True,
+            "final_holdout_required": dataset_split != "holdout",
+            "final_holdout_completed": dataset_split == "holdout",
             "warnings": warnings,
         },
     }

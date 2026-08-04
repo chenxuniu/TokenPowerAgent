@@ -12,6 +12,12 @@ uses 128 output tokens and eight request waves. These records may later tune an
 uncertainty model, but they must not be relabeled as calibration or final
 holdout evidence.
 
+`qwen2.5-7b-h100-workload-transfer-holdout-v2.json` contains eight disjoint
+context-by-concurrency combinations inside the measured validation envelope.
+It is reserved for the final evaluation of a profile fitted on validation-v1.
+Do not run it until the v2 profile, all eight predictions, and their manifest
+have been frozen and archived.
+
 The required order is:
 
 1. Freeze every campaign prediction and its SHA-256 manifest.

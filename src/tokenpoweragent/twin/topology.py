@@ -82,6 +82,16 @@ def _clamp(value: float, lower: float, upper: float) -> float:
     return max(lower, min(upper, value))
 
 
+def _finite_pair(raw: Mapping[str, Any], key: str) -> Tuple[float, float]:
+    value = raw.get(key, ())
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        raise CalibrationError("%s must be a two-value array" % key)
+    parsed = tuple(float(item) for item in value)
+    if len(parsed) != 2 or not all(math.isfinite(item) for item in parsed):
+        raise CalibrationError("%s must contain two finite numbers" % key)
+    return parsed[0], parsed[1]
+
+
 @dataclass(frozen=True)
 class InferenceWorkload:
     """Workload dimensions held fixed while the agent tunes serving knobs."""
@@ -384,6 +394,237 @@ _REQUIRED_CALIBRATION_METRICS = (
     "avg_power_w",
 )
 
+WORKLOAD_RESIDUAL_METRICS = (
+    "throughput_tok_s",
+    "avg_power_w",
+    "ttft_ms",
+    "tpot_ms",
+)
+
+WORKLOAD_RESIDUAL_FEATURES = (
+    "log2_context_ratio",
+    "log2_concurrency_ratio",
+    "context_concurrency_interaction",
+    "log2_concurrency_ratio_squared",
+)
+
+
+@dataclass(frozen=True)
+class ResidualMetricModel:
+    coefficients: Tuple[float, ...]
+    ridge_lambda: float
+    development_loo_mape_pct: float
+    development_loo_max_ape_pct: float
+
+    @classmethod
+    def from_mapping(cls, raw: Mapping[str, Any]) -> "ResidualMetricModel":
+        coefficients_raw = raw.get("coefficients", ())
+        if not isinstance(coefficients_raw, Sequence) or isinstance(
+            coefficients_raw, (str, bytes)
+        ):
+            raise CalibrationError("residual coefficients must be an array")
+        coefficients = tuple(float(value) for value in coefficients_raw)
+        if len(coefficients) != len(WORKLOAD_RESIDUAL_FEATURES) or not all(
+            math.isfinite(value) for value in coefficients
+        ):
+            raise CalibrationError(
+                "residual model requires %d finite coefficients"
+                % len(WORKLOAD_RESIDUAL_FEATURES)
+            )
+        ridge_lambda = float(raw.get("ridge_lambda", -1))
+        loo_mape = float(raw.get("development_loo_mape_pct", -1))
+        loo_max = float(raw.get("development_loo_max_ape_pct", -1))
+        if (
+            not math.isfinite(ridge_lambda)
+            or ridge_lambda <= 0
+            or not math.isfinite(loo_mape)
+            or loo_mape < 0
+            or not math.isfinite(loo_max)
+            or loo_max < 0
+        ):
+            raise CalibrationError("residual diagnostics must be finite and non-negative")
+        return cls(coefficients, ridge_lambda, loo_mape, loo_max)
+
+
+@dataclass(frozen=True)
+class WorkloadResidualModel:
+    """Sparse correction for workload transfer within a measured L1 envelope."""
+
+    model_id: str
+    reference_workload: InferenceWorkload
+    feature_scales: Tuple[float, ...]
+    serving_configuration: Mapping[str, Any]
+    context_log2_range: Tuple[float, float]
+    concurrency_log2_range: Tuple[float, float]
+    fixed_output_tokens: int
+    request_rate: str
+    metrics: Mapping[str, ResidualMetricModel]
+    source_report_sha256: str
+    training_workload_ids: Tuple[str, ...]
+
+    @classmethod
+    def from_mapping(cls, raw: Mapping[str, Any]) -> "WorkloadResidualModel":
+        model_id = str(raw.get("model_id", "")).strip()
+        if not model_id:
+            raise CalibrationError("workload_residual_model.model_id is required")
+        if tuple(raw.get("feature_names", ())) != WORKLOAD_RESIDUAL_FEATURES:
+            raise CalibrationError("unsupported workload residual feature schema")
+        scales_raw = raw.get("feature_scales", ())
+        if not isinstance(scales_raw, Sequence) or isinstance(
+            scales_raw, (str, bytes)
+        ):
+            raise CalibrationError("workload residual feature_scales must be an array")
+        scales = tuple(float(value) for value in scales_raw)
+        if len(scales) != len(WORKLOAD_RESIDUAL_FEATURES) or not all(
+            math.isfinite(value) and value > 0 for value in scales
+        ):
+            raise CalibrationError("workload residual feature scales must be positive")
+
+        reference_raw = raw.get("reference_workload", {})
+        scope = raw.get("scope", {})
+        metrics_raw = raw.get("metrics", {})
+        training = raw.get("training", {})
+        if not all(
+            isinstance(item, Mapping)
+            for item in (reference_raw, scope, metrics_raw, training)
+        ):
+            raise CalibrationError("workload residual sections must be objects")
+        configuration = scope.get("serving_configuration", {})
+        if not isinstance(configuration, Mapping):
+            raise CalibrationError("workload residual serving configuration is invalid")
+        context_range = _finite_pair(scope, "context_log2_range")
+        concurrency_range = _finite_pair(scope, "concurrency_log2_range")
+        if context_range[0] > context_range[1] or concurrency_range[0] > concurrency_range[1]:
+            raise CalibrationError("workload residual scope ranges are reversed")
+        fixed_output_tokens = _positive_int(scope, "fixed_output_tokens")
+        request_rate = str(scope.get("request_rate", "")).strip().lower()
+        if request_rate != "inf":
+            raise CalibrationError("workload residual model currently requires request_rate=inf")
+
+        metric_models = {
+            name: ResidualMetricModel.from_mapping(metrics_raw.get(name, {}))
+            for name in WORKLOAD_RESIDUAL_METRICS
+        }
+        workload_ids_raw = training.get("workload_ids", ())
+        if not isinstance(workload_ids_raw, Sequence) or isinstance(
+            workload_ids_raw, (str, bytes)
+        ):
+            raise CalibrationError("residual training workload_ids must be an array")
+        workload_ids = tuple(str(value) for value in workload_ids_raw)
+        if len(workload_ids) < 6 or len(workload_ids) != len(set(workload_ids)):
+            raise CalibrationError(
+                "workload residual model requires at least six unique training workloads"
+            )
+        report_hash = str(training.get("source_report_sha256", "")).strip().lower()
+        if len(report_hash) != 64 or any(
+            character not in "0123456789abcdef" for character in report_hash
+        ):
+            raise CalibrationError("residual source report SHA-256 is invalid")
+        return cls(
+            model_id=model_id,
+            reference_workload=InferenceWorkload.from_mapping(reference_raw),
+            feature_scales=scales,
+            serving_configuration=dict(configuration),
+            context_log2_range=context_range,
+            concurrency_log2_range=concurrency_range,
+            fixed_output_tokens=fixed_output_tokens,
+            request_rate=request_rate,
+            metrics=metric_models,
+            source_report_sha256=report_hash,
+            training_workload_ids=workload_ids,
+        )
+
+    def corrections(
+        self,
+        candidate: Candidate,
+        workload: InferenceWorkload,
+        configuration: ServingConfiguration,
+    ) -> Tuple[Optional[Mapping[str, float]], Mapping[str, Any]]:
+        reason = self._scope_failure(candidate, workload, configuration)
+        features = self._features(workload)
+        details: Dict[str, Any] = {
+            "model_id": self.model_id,
+            "source_report_sha256": self.source_report_sha256,
+            "feature_names": list(WORKLOAD_RESIDUAL_FEATURES),
+            "features": list(features),
+            "applied": reason is None,
+        }
+        if reason is not None:
+            details["reason"] = reason
+            return None, details
+        scaled = tuple(
+            value / scale for value, scale in zip(features, self.feature_scales)
+        )
+        factors = {
+            name: math.exp(
+                sum(
+                    coefficient * value
+                    for coefficient, value in zip(model.coefficients, scaled)
+                )
+            )
+            for name, model in self.metrics.items()
+        }
+        details["scaled_features"] = list(scaled)
+        details["correction_factors"] = dict(factors)
+        return factors, details
+
+    def _features(self, workload: InferenceWorkload) -> Tuple[float, ...]:
+        target_context = workload.input_tokens + 0.5 * workload.output_tokens
+        reference_context = (
+            self.reference_workload.input_tokens
+            + 0.5 * self.reference_workload.output_tokens
+        )
+        context = math.log(target_context / reference_context, 2.0)
+        concurrency = math.log(
+            workload.concurrency / self.reference_workload.concurrency, 2.0
+        )
+        return (
+            context,
+            concurrency,
+            context * concurrency,
+            concurrency * concurrency,
+        )
+
+    def _scope_failure(
+        self,
+        candidate: Candidate,
+        workload: InferenceWorkload,
+        configuration: ServingConfiguration,
+    ) -> Optional[str]:
+        if candidate.required_gpus != 1 or candidate.target_nodes != 1:
+            return "residual model is validated only for one GPU on one node"
+        if workload.output_tokens != self.fixed_output_tokens:
+            return "output-token length is outside the residual model scope"
+        if workload.request_rate_req_s is not None:
+            return "finite request rate is outside the residual model scope"
+        actual = configuration.to_dict()
+        if "prefix_caching" in self.serving_configuration:
+            try:
+                actual["prefix_caching"] = _as_bool(
+                    candidate.config.get("prefix_caching", True),
+                    "prefix_caching",
+                )
+            except CalibrationError:
+                return "prefix-caching setting is invalid"
+        for key, expected in self.serving_configuration.items():
+            if actual.get(key) != expected:
+                return "serving configuration differs at %s" % key
+        context, concurrency, _, _ = self._features(workload)
+        tolerance = 1e-9
+        if not (
+            self.context_log2_range[0] - tolerance
+            <= context
+            <= self.context_log2_range[1] + tolerance
+        ):
+            return "context length is outside the measured residual envelope"
+        if not (
+            self.concurrency_log2_range[0] - tolerance
+            <= concurrency
+            <= self.concurrency_log2_range[1] + tolerance
+        ):
+            return "concurrency is outside the measured residual envelope"
+        return None
+
 
 @dataclass(frozen=True)
 class CalibrationPoint:
@@ -447,6 +688,7 @@ class CalibrationProfile:
     assumptions: ProjectionAssumptions
     points: Tuple[CalibrationPoint, ...]
     metadata: Mapping[str, Any] = field(default_factory=dict)
+    workload_residual_model: Optional[WorkloadResidualModel] = None
 
     def __post_init__(self) -> None:
         if not self.publication_eligible:
@@ -488,6 +730,9 @@ class CalibrationProfile:
         metadata = raw.get("metadata", {})
         if not isinstance(metadata, Mapping):
             raise CalibrationError("metadata must be an object")
+        residual_raw = raw.get("workload_residual_model")
+        if residual_raw is not None and not isinstance(residual_raw, Mapping):
+            raise CalibrationError("workload_residual_model must be an object")
         return cls(
             schema_version=str(raw.get("schema_version", "1.0")),
             profile_id=profile_id,
@@ -503,6 +748,11 @@ class CalibrationProfile:
             assumptions=ProjectionAssumptions.from_mapping(assumptions_raw),
             points=points,
             metadata=dict(metadata),
+            workload_residual_model=(
+                WorkloadResidualModel.from_mapping(residual_raw)
+                if residual_raw is not None
+                else None
+            ),
         )
 
     @classmethod
@@ -804,6 +1054,14 @@ class TopologyProjector:
             "duration_s": duration_s,
             "estimated_memory_gib": float(memory["memory_required_gib"]),
         }
+        residual_terms = self._apply_workload_residual(
+            candidate,
+            workload,
+            config,
+            metrics,
+            output_tokens,
+            total_tokens,
+        )
         uncertainty = self._uncertainty(
             level,
             calibration_distance,
@@ -846,11 +1104,96 @@ class TopologyProjector:
                 "active_gpu_power_w": active_gpu_power_w,
                 "active_gpus": active_gpus,
                 "inactive_gpus": inactive_gpus,
+                "workload_residual": residual_terms,
                 **memory,
                 **prefill_terms,
                 **queue_terms,
             },
         )
+
+    def _apply_workload_residual(
+        self,
+        candidate: Candidate,
+        workload: InferenceWorkload,
+        config: ServingConfiguration,
+        metrics: Dict[str, float],
+        output_tokens: int,
+        total_tokens: int,
+    ) -> Mapping[str, Any]:
+        model = self.profile.workload_residual_model
+        if model is None:
+            return {"applied": False, "reason": "profile has no workload residual model"}
+        factors, details = model.corrections(candidate, workload, config)
+        if factors is None:
+            return details
+
+        base = {
+            name: metrics[name]
+            for name in (
+                "throughput_tok_s",
+                "avg_power_w",
+                "ttft_ms",
+                "tpot_ms",
+                "duration_s",
+                "energy_j_per_1k_output_tokens",
+            )
+        }
+        throughput_factor = factors["throughput_tok_s"]
+        raw_power_w = metrics["avg_power_w"] * factors["avg_power_w"]
+        minimum_power_w = self.profile.hardware.idle_power_w * config.required_gpus
+        maximum_power_w = self.profile.hardware.active_power_w * config.required_gpus
+        corrected_power_w = _clamp(raw_power_w, minimum_power_w, maximum_power_w)
+
+        metrics["throughput_tok_s"] *= throughput_factor
+        metrics["capacity_tok_s"] *= throughput_factor
+        metrics["request_throughput_req_s"] = (
+            metrics["throughput_tok_s"] / workload.output_tokens
+        )
+        metrics["ttft_ms"] *= factors["ttft_ms"]
+        metrics["tpot_ms"] *= factors["tpot_ms"]
+        metrics["avg_power_w"] = corrected_power_w
+        metrics["total_gpu_power_w"] = corrected_power_w
+        metrics["avg_power_per_gpu_w"] = corrected_power_w / config.required_gpus
+        metrics["duration_s"] = (
+            workload.num_requests / max(metrics["request_throughput_req_s"], 1e-12)
+        )
+        energy_j = corrected_power_w * metrics["duration_s"]
+        metrics["energy_j"] = energy_j
+        metrics["gpu_energy_j"] = energy_j
+        metrics["energy_j_per_1k_tokens"] = 1000.0 * energy_j / output_tokens
+        metrics["energy_j_per_1k_output_tokens"] = (
+            1000.0 * energy_j / output_tokens
+        )
+        metrics["energy_j_per_1k_total_tokens"] = 1000.0 * energy_j / total_tokens
+        metrics["j_per_output_token"] = energy_j / output_tokens
+        metrics["j_per_total_token"] = energy_j / total_tokens
+
+        rendered = dict(details)
+        rendered.update(
+            {
+                "base_metrics": base,
+                "corrected_metrics": {
+                    name: metrics[name]
+                    for name in (
+                        "throughput_tok_s",
+                        "avg_power_w",
+                        "ttft_ms",
+                        "tpot_ms",
+                        "duration_s",
+                        "energy_j_per_1k_output_tokens",
+                    )
+                },
+                "raw_corrected_power_w": raw_power_w,
+                "power_clamped_to_hardware_range": abs(
+                    raw_power_w - corrected_power_w
+                )
+                > 1e-9,
+                "effective_power_factor": corrected_power_w
+                / max(base["avg_power_w"], 1e-12),
+                "energy_recomputed_from_power_and_duration": True,
+            }
+        )
+        return rendered
 
     def _geometry_failure(
         self, candidate: Candidate, config: ServingConfiguration

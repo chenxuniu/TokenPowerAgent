@@ -23,6 +23,10 @@ from tokenpoweragent.executors.topology import (
     TopologySandboxExecutor,
 )
 from tokenpoweragent.pareto import pareto_front
+from tokenpoweragent.residual_calibration import (
+    ResidualCalibrationError,
+    build_workload_residual_profile,
+)
 from tokenpoweragent.search_space import CandidateGrid
 from tokenpoweragent.schema import Candidate, EvidenceLevel, Scenario
 from tokenpoweragent.twin.topology import (
@@ -218,6 +222,17 @@ def build_parser() -> argparse.ArgumentParser:
     calibration.add_argument("--min-repeats", type=int, default=3)
     calibration.add_argument("--publication-eligible", action="store_true")
     calibration.add_argument("--output", type=Path, required=True)
+
+    residual = subparsers.add_parser(
+        "fit-workload-residuals",
+        help="fit a development-only workload correction from a sealed report",
+    )
+    residual.add_argument("--profile", type=Path, required=True)
+    residual.add_argument("--campaign", type=Path, required=True)
+    residual.add_argument("--report", type=Path, required=True)
+    residual.add_argument("--profile-id", required=True)
+    residual.add_argument("--output", type=Path, required=True)
+    residual.add_argument("--diagnostics", type=Path, required=True)
 
     validation = subparsers.add_parser(
         "validate-holdout",
@@ -599,6 +614,43 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 len(profile["calibration_points"]),
                 profile["metadata"]["matching_records"],
                 args.output,
+            )
+        )
+        return 0
+
+    if args.command == "fit-workload-residuals":
+        for path in (args.output, args.diagnostics):
+            if path.exists():
+                raise SystemExit("refusing to overwrite fitted artifact: %s" % path)
+        try:
+            profile, diagnostics = build_workload_residual_profile(
+                profile_path=args.profile,
+                campaign_path=args.campaign,
+                report_path=args.report,
+                profile_id=args.profile_id,
+            )
+        except (ResidualCalibrationError, OSError, KeyError) as exc:
+            raise SystemExit("cannot fit workload residuals: %s" % exc) from exc
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.diagnostics.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(profile, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        args.diagnostics.write_text(
+            json.dumps(diagnostics, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        energy = diagnostics["derived_energy_j_per_1k_output_tokens"]
+        print(
+            "fitted %d workload residual points: development LOO energy MAPE "
+            "%.2f%% (max %.2f%%); wrote %s and %s"
+            % (
+                len(diagnostics["training_rows"]),
+                energy["mean_absolute_percentage_error_pct"],
+                energy["maximum_absolute_percentage_error_pct"],
+                args.output,
+                args.diagnostics,
             )
         )
         return 0
