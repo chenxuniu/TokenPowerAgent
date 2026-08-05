@@ -86,6 +86,12 @@ hierarchical set of evidence levels by the new effects they expose.
     as measured evidence.
 \end{itemize}
 
+Levels are scenario-relative.  In the present single-H100 search, L1 is a
+64-request probe and L4 is the full 256-request target workload on the same GPU;
+L2 and L3 are skipped because the scenario contains no intra- or inter-node
+scale transition.  A future multi-node scenario would activate those levels
+without changing the controller or evidence schema.
+
 A result carries its highest supporting level.  L0 outputs are
 \emph{simulated}; predictions between observed settings are \emph{interpolated};
 cross-topology predictions are \emph{extrapolated}; and only L1--L4 telemetry

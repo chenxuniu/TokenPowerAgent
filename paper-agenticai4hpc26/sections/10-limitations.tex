@@ -1,27 +1,21 @@
 \section{Limitations and Threats to Validity}
 
-\textbf{Current empirical scope.}  Evidence validation covers one H100, one 7B
-model, one vLLM version, one serving configuration, fixed output length, and a
-bounded context/concurrency envelope.  It supports workload-transfer and scope
-gating, not TP/PP, cross-hardware, or multi-node accuracy.  The configuration
-corpus needed for RQ3 is kept visibly unresolved; synthetic replay cannot
-support a search-superiority claim.
+\textbf{Empirical scope.}  The study covers one H100, one 7B model, one vLLM
+version, BF16, fixed output length, and bounded workload/configuration grids.
+The measured knob search varies sequence and token limits plus chunked prefill;
+it does not establish TP/PP, cross-hardware, MoE, or multi-node accuracy.
 
 \textbf{Fidelity and telemetry.}  A single GPU cannot reveal communication,
 placement, fabric contention, or scheduler effects.  DCGM cumulative energy
-captures GPU-device energy rather than host, network, or facility energy.  It
-can also miss short power transients even when total energy remains monotonic.
-Every result therefore states its measurement boundary, and multi-node
-recommendations require new L2/L3 calibration and independent L4 verification.
+captures GPU-device rather than host, network, or facility energy.  Multi-node
+recommendations therefore require L2/L3 calibration and independent L4
+verification.  The L0 TTFT inversion observed here further shows that good
+energy ranking must not be generalized to every metric.
 
-\textbf{Uncertainty.}  The frozen intervals are useful release diagnostics but
-are not yet calibrated across hardware generations.  New kernels, engines,
-GPUs, request processes, or MoE routing may invalidate residual corrections.
-The agent can expose distance, uncertainty, and abstention; it cannot make an
-unsupported distribution shift disappear.
-
-\textbf{Agent value.}  The implemented planner boundary and safety mechanisms
-are tested, but a language model may still choose an unhelpful subgoal.  The
-current IPIG estimator is an auditable proxy rather than exact Pareto mutual
-information.  Neither mechanism should be called superior until the frozen
-configuration corpus shows gains over optimizer-only and non-agent baselines.
+\textbf{Uncertainty and policy value.}  Prediction intervals are not calibrated
+across hardware generations; new kernels, engines, GPUs, arrival processes, or
+MoE routing may invalidate residual corrections.  The current \ipig{} estimator
+is an auditable proxy rather than exact Pareto mutual information.  The exhaustive
+\ConfigurationTotalGPUHours{}-GPU-h corpus validates fidelity and supplies an
+oracle; only the sealed policy replay can attribute GPU-hour savings to the
+agent rather than to the surrogate itself.

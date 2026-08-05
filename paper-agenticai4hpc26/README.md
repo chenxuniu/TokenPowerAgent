@@ -2,7 +2,7 @@
 
 This directory contains the IEEE-format Workshop paper:
 
-> **TokenPowerAgent: Evidence-Gated Experiment Planning for Energy-Efficient
+> **TokenPowerAgent: Evidence-Gated Multi-Fidelity Search for Energy-Efficient
 > LLM Inference on HPC Clusters**
 
 The target is the [AgenticAI4HPC 2026
@@ -12,8 +12,9 @@ including references, in IEEE conference format.
 
 This paper is intentionally distinct from `../paper-draft/`, the longer-term
 MLSys manuscript. The Workshop paper contributes the implemented bounded agent
-runtime and its evidence-gating protocol. It does not claim multi-node accuracy
-or search superiority before those experiments exist.
+runtime, its evidence-gating protocol, and a sealed single-H100 configuration
+corpus. It does not claim multi-node accuracy or policy superiority before the
+separate replay comparison is sealed.
 
 ## Build
 
@@ -30,7 +31,7 @@ under `build/` and `output/` are ignored by Git.
 ## Evidence Status
 
 The current draft contains two completed, preregistered H100/Qwen2.5-7B
-holdouts:
+workload-transfer holdouts:
 
 - 8 workloads and 24 blind measurements: 6.23% energy MAPE and 0.976
   Spearman rank correlation;
@@ -39,10 +40,13 @@ holdouts:
 - a preregistered latency release gate that supports TTFT at concurrency 4
   (9.27% MAPE) and abstains below concurrency 4 (64.80% MAPE).
 
-These 51 runs validate the CPU-first evidence substrate and release gate. They
-do not compare acquisition policies. The only unresolved paper values are the
-RQ3 configuration-search results in `results/metrics.tex` and
-`tables/agent-results.tex`.
+These 51 runs validate the CPU-first workload model and release gate. A separate
+12-candidate configuration corpus contains 72 balanced L1/L4 measurements and
+190 hash-verified raw artifacts. L0 preserves energy rank (0.884 Spearman) but
+misses the L4 frontier; L1 obtains 1.15% energy MAPE and 100% frontier recall;
+L4 verifies `seq32-bt2048-chunk` as the unique SLO-feasible Pareto point. The
+only unresolved paper result is the preregistered 500-episode acquisition-policy
+comparison running over the sealed 84-row replay corpus.
 
 ## Directory Layout
 

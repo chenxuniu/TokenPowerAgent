@@ -2,20 +2,22 @@
 
 The artifact contains versioned scenarios, candidate grids, evidence schemas,
 topology and serving executors, the bounded planner/controller, four replay
-policies, calibration and validation tools, and 58 automated tests.  Each agent
-event records its semantic subgoal, planner source, candidate and fidelity,
-expected and realized cost, uncertainty and Pareto state before and after the
-observation, remaining budget, evidence kind, metrics, and fallback reason.
+policies, calibration and validation tools, and \AutomatedTests{} automated
+tests.  Each agent event records subgoal, planner source, candidate and fidelity,
+expected and realized cost, uncertainty and Pareto state, remaining budget,
+evidence kind, metrics, and fallback reason.
 
-The two H100 holdouts are preserved as compressed archives with raw 100-ms
-telemetry, benchmark output, prediction and campaign files, manifests,
-validation reports, preregistered scope decisions, analysis provenance, and
-nested SHA-256 lists.  The repository-level checksum manifest verifies both
-archives.  Predictions precede measurements, raw artifacts precede analysis,
-and the second confirmation uses the same frozen model without refitting.
+Three H100 bundles preserve the workload holdout, scope confirmation, and
+configuration corpus.  They contain raw 100-ms telemetry, benchmark output,
+frozen predictions, campaign files, manifests, validation reports, decisions,
+analysis provenance, and nested SHA-256 lists.  The configuration bundle verifies
+\ConfigurationRawArtifacts{} raw entries and includes an
+\ConfigurationReplayRows{}-row replay corpus.  Predictions precede measurements,
+raw artifacts precede analysis, and the second workload confirmation uses the
+same frozen model without refitting.
 
-Replay uses sealed rows only after the policy requests their
+Replay exposes a sealed row only after a policy requests its
 candidate--fidelity key.  Its oracle is formed from median successful L4
-metrics, never from simulated predictions.  The report embeds scenario and
-corpus hashes and retains failed episodes.  Simulated, extrapolated, measured,
-and verified evidence remain distinct machine-readable labels in every path.
+metrics, never from simulated predictions.  Reports embed scenario and corpus
+hashes and retain failed episodes.  Simulated, extrapolated, measured, and
+verified evidence remain distinct machine-readable labels in every path.

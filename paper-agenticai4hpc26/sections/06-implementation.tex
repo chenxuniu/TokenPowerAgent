@@ -13,9 +13,11 @@ read-only; new jobs use the same configuration vocabulary.
 
 \subsection{Implemented Evidence Path}
 
-The L1 path uses a persistent, digest-pinned vLLM server and a read-only client
-on an internal Docker network.  It disables prefix caching, fixes temperature
-at zero, and ignores EOS.  A two-FIFO \texttt{READY/GO/DONE/ACK} handshake
+The L1/L4 path uses a digest-pinned vLLM server and a read-only client on an
+internal Docker network.  Workload-transfer trials keep the server persistent;
+configuration campaigns restart it from the pinned template when knobs change.
+The path disables prefix caching, fixes temperature at zero, and ignores EOS.
+A two-FIFO \texttt{READY/GO/DONE/ACK} handshake
 places host-side reads of DCGM's cumulative device-energy counter around the
 main benchmark interval, excluding loading, health checks, warmups, and result
 formatting.  The calibration builder aggregates compatible L1 repeats by their
@@ -28,20 +30,21 @@ leakage.
 
 Five typed boundaries expose the \textbf{scenario compiler}, \textbf{history
 retrieval}, \textbf{Energy Twin}, \textbf{executor}, and
-\textbf{planner/policy}.  Replay, topology prediction, L1 execution, evidence
-freezing, blind validation, and Slurm rendering are implemented.  Live
-scheduler monitoring, direct \bench{} ingestion, and nested-posterior \ipig{}
-remain for the L2--L4 study.  The implemented constrained planner calls an
+\textbf{planner/policy}.  Replay, topology prediction, L1/L4 serving execution,
+balanced configuration campaigns, evidence freezing, blind validation, corpus
+construction, and Slurm rendering are implemented.  Live multi-node scheduler
+monitoring, direct \bench{} ingestion, and nested-posterior \ipig{} remain for
+the L2/L3 extension.  The constrained planner calls an
 OpenAI-compatible endpoint, accepts only a JSON subgoal and rationale, and
 falls back to the deterministic planner on malformed output or endpoint
 failure.  Candidate selection and all safety-critical state transitions remain
 outside the language model.
 
-All executors implement \texttt{execute(candidate, level, seed)}.  Replay
-returns hidden sweep rows and costs, the serving sandbox performs L1 trials,
-and the current cluster backend renders resource-bounded templates.  Live
-cluster completion will return the same evidence object, leaving the planner,
-guard, policy, and belief update backend-independent.
+All executors share a typed interface keyed by candidate, level, and seed.
+Replay returns hidden sweep rows and costs; the serving sandbox performs short
+L1 and target-workload L4 trials; and the cluster backend renders
+resource-bounded templates.  A multi-node completion returns the same evidence
+object, leaving the planner, guard, policy, and belief update backend-independent.
 
 \subsection{Closed-Loop Search}
 
@@ -84,9 +87,9 @@ GPU-hours, evidence kind, planner source, and any fallback reason.
 
 \subsection{Multi-Node Execution and Failure Handling}
 
-The planned L2 jobs reserve a full node so topology is stable.  L3/L4 jobs will
-record rank-to-
-GPU placement, link/fabric counters where available, NCCL collective timing,
+Planned L2 jobs reserve a full node so topology is stable.  Multi-node L3/L4
+jobs will record rank-to-GPU placement, link/fabric counters where available,
+NCCL collective timing,
 node power, and synchronization gaps.  The executor distinguishes application
 failure, scheduler preemption, out-of-memory, telemetry loss, and SLO failure.
 Recoverable failures can be retried from a deterministic template; configuration

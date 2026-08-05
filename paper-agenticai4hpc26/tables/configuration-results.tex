@@ -1,0 +1,35 @@
+\begin{table*}[t]
+\centering
+\caption{Frozen configuration-corpus results.  Panel A compares each cheaper
+level with the median L4 outcome for all 12 candidates; P/R denotes precision
+and recall of the L4 SLO-feasible Pareto set.  Panel B compares the verified
+frontier point with the preregistered expert default.}
+\label{tab:configuration-results}
+\small
+\setlength{\tabcolsep}{3.7pt}
+\begin{tabular}{lrrrrrr}
+\toprule
+\multicolumn{7}{l}{\textbf{A. Fidelity against L4}} \\
+Evidence & Energy MAPE & Energy $\rho$ & Throughput MAPE & TPOT MAPE &
+TTFT MAPE / $\rho$ & Pareto P/R \\
+\midrule
+L0 CPU model & \LzeroEnergyMAPE{} & \LzeroEnergySpearman{} &
+\LzeroThroughputMAPE{} & \LzeroTPOTMAPE{} &
+\LzeroTTFTMAPE{} / $\LzeroTTFTSpearman{}$ &
+\LzeroParetoPrecision{} / \LzeroParetoRecall{} \\
+L1 short probe & \LoneEnergyMAPE{} & \LoneEnergySpearman{} &
+\LoneThroughputMAPE{} & \LoneTPOTMAPE{} &
+\LoneTTFTMAPE{} / \LoneTTFTSpearman{} &
+\LoneParetoPrecision{} / \LoneParetoRecall{} \\
+\addlinespace[3pt]
+\multicolumn{7}{l}{\textbf{B. Median L4 outcome}} \\
+Configuration & Energy (J/1k out) & Power (W) & Throughput (tok/s) &
+TTFT (ms) & TPOT (ms) & Decision \\
+\midrule
+Expert default & \ExpertEnergy{} & \ExpertPower{} & \ExpertThroughput{} &
+\ExpertTTFT{} & \ExpertTPOT{} & feasible, dominated \\
+\texttt{seq32-bt2048-chunk} & \ParetoEnergy{} & \ParetoPower{} &
+\ParetoThroughput{} & \ParetoTTFT{} & \ParetoTPOT{} & verified Pareto \\
+\bottomrule
+\end{tabular}
+\end{table*}

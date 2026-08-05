@@ -3,32 +3,53 @@
 \begin{tikzpicture}[
   x=1cm,y=1cm,
   every node/.style={font=\sffamily},
-  level/.style={draw=tpGray,rounded corners=2pt,minimum height=2.25cm,
-    text width=2.55cm,align=center,inner sep=3pt,font=\scriptsize},
+  level/.style={draw=tpGray,rounded corners=2pt,minimum height=2.55cm,
+    text width=2.62cm,align=center,inner sep=3pt,font=\scriptsize},
   flow/.style={-{Stealth[length=2.3mm]},line width=0.9pt,draw=tpGray}
 ]
-  \node[level,fill=tpGrayLight] (l0) at (1.45,0.05)
-    {\textbf{L0: Replay}\\[2pt]\textbf{0 GPUs}\\history retrieval\\analytic / event simulation\\\emph{simulated}};
-  \node[level,fill=tpBlueLight] (l1) at (4.85,0.25)
-    {\textbf{L1: Phase Probe}\\[2pt]\textbf{1 GPU}\\idle + warmup\\prefill / decode buckets\\\emph{device measured}};
-  \node[level,fill=tpTealLight] (l2) at (8.25,0.45)
-    {\textbf{L2: Node Probe}\\[2pt]\textbf{2--8 GPUs}\\TP / PP collectives\\NVLink / PCIe + KV\\\emph{node measured}};
-  \node[level,fill=tpGoldLight] (l3) at (11.65,0.65)
-    {\textbf{L3: Scale Probe}\\[2pt]\textbf{2+ nodes}\\fabric + placement\\sync / pipeline gaps\\\emph{sparse measured}};
-  \node[level,fill=tpRoseLight] (l4) at (15.05,0.85)
-    {\textbf{L4: Verification}\\[2pt]\textbf{target scale}\\arrival-trace replay\\queue + SLO behavior\\\emph{verified measured}};
+  \node[level,fill=tpGrayLight] (l0) at (1.55,0.35)
+    {\textbf{L0: CPU Sandbox}\\[2pt]
+     0 GPUs; 12 frozen predictions\\[2pt]
+     energy $\rho=\LzeroEnergySpearman{}$\\
+     TTFT $\rho=\LzeroTTFTSpearman{}$\\
+     \textcolor{tpRoseDark}{Pareto recall: \LzeroParetoRecall{}}};
+  \node[level,fill=tpBlueLight] (l1) at (4.90,0.35)
+    {\textbf{L1: Short Probe}\\[2pt]
+     1 GPU; 64 requests\\
+     \ConfigurationLoneRuns{} measured runs\\[2pt]
+     energy MAPE \LoneEnergyMAPE{}\\
+     \textcolor{tpTealDark}{Pareto recall: \LoneParetoRecall{}}};
+  \node[level,fill=tpTealLight] (l2) at (8.25,0.35)
+    {\textbf{L2: Node Probe}\\[2pt]
+     2--8 GPUs\\
+     TP / PP collectives\\
+     NVLink / PCIe + KV\\[2pt]
+     \emph{not exercised here}};
+  \node[level,fill=tpGoldLight] (l3) at (11.60,0.35)
+    {\textbf{L3: Scale Probe}\\[2pt]
+     2+ nodes\\
+     fabric + placement\\
+     synchronization gaps\\[2pt]
+     \emph{not exercised here}};
+  \node[level,fill=tpRoseLight] (l4) at (14.95,0.35)
+    {\textbf{L4: Verification}\\[2pt]
+     target 256-request trace\\
+     \ConfigurationLfourRuns{} measured runs\\[2pt]
+     \textcolor{tpRoseDark}{one verified Pareto point}\\
+     energy $-\ParetoEnergyReduction{}$ vs. expert};
 
-  \draw[flow] (l0.east) -- (l1.west);
+  \draw[flow] (l0.east) -- node[above,font=\scriptsize] {screen} (l1.west);
   \draw[flow] (l1.east) -- (l2.west);
   \draw[flow] (l2.east) -- (l3.west);
-  \draw[flow] (l3.east) -- (l4.west);
+  \draw[flow] (l3.east) -- node[above,font=\scriptsize] {verify} (l4.west);
   \draw[-{Stealth[length=2.5mm]},very thick,tpRose]
-    (0.0,-1.55) -- node[below,font=\scriptsize\bfseries,text=tpRoseDark]
-    {increasing fidelity, topology coverage, and GPU-hour cost} (16.65,-1.55);
+    (0.05,-1.35) -- node[below,font=\scriptsize\bfseries,text=tpRoseDark]
+    {increasing topology coverage, fidelity, and GPU-hour cost} (16.45,-1.35);
 \end{tikzpicture}
-\caption{Multi-fidelity sandbox calibration.  Each hierarchical level exposes
-effects that cannot be inferred reliably below it.  The agent escalates only
-candidates whose uncertainty can change SLO feasibility or the Pareto frontier;
-a final deployment recommendation requires target-scale trace verification.}
+\caption{The \sandbox{} evidence contract and its single-H100 instantiation.
+The current study exercises L0, L1, and L4; L2/L3 remain explicit escalation
+levels for future multi-GPU and multi-node campaigns.  L0 ranks energy but
+misses the Pareto decision, L1 recovers the true candidate without false
+negatives, and L4 removes false positives before release.}
 \label{fig:calibration}
 \end{figure*}

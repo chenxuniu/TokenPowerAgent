@@ -73,12 +73,52 @@
 \newcommand{\SupportedTTFTMaxAPE}{14.55\%}
 \newcommand{\SparseTTFTMAPE}{64.80\%}
 
-% Agent-search results must be populated only from the frozen configuration
-% corpus and benchmark-replay report.
-\newcommand{\AgentEpisodes}{\draftvalue{TBD}}
-\newcommand{\AgentParetoRecall}{\draftvalue{TBD}}
-\newcommand{\RandomParetoRecall}{\draftvalue{TBD}}
-\newcommand{\AgentGPUHours}{\draftvalue{TBD}}
-\newcommand{\RandomGPUHours}{\draftvalue{TBD}}
-\newcommand{\AgentUnnecessaryEscalations}{\draftvalue{TBD}}
-\newcommand{\RandomUnnecessaryEscalations}{\draftvalue{TBD}}
+% Frozen H100 serving-configuration corpus generated on 2026-08-04/05.
+% L0 predictions preceded all measurements; every value below comes from the
+% sealed validation report rather than the policy-replay benchmark.
+\newcommand{\ConfigurationCandidates}{12}
+\newcommand{\ConfigurationMeasuredRuns}{72}
+\newcommand{\ConfigurationLoneRuns}{36}
+\newcommand{\ConfigurationLfourRuns}{36}
+\newcommand{\ConfigurationRawArtifacts}{190}
+\newcommand{\ConfigurationReplayRows}{84}
+\newcommand{\ConfigurationLoneGPUHours}{0.200}
+\newcommand{\ConfigurationLfourGPUHours}{0.417}
+\newcommand{\ConfigurationTotalGPUHours}{0.617}
+
+\newcommand{\LzeroEnergyMAPE}{19.45\%}
+\newcommand{\LzeroEnergySpearman}{0.884}
+\newcommand{\LzeroEnergyPairwise}{92.2\%}
+\newcommand{\LzeroThroughputMAPE}{9.57\%}
+\newcommand{\LzeroTPOTMAPE}{12.01\%}
+\newcommand{\LzeroTTFTMAPE}{59.74\%}
+\newcommand{\LzeroTTFTSpearman}{-0.968}
+\newcommand{\LzeroParetoPrecision}{0\%}
+\newcommand{\LzeroParetoRecall}{0\%}
+
+\newcommand{\LoneEnergyMAPE}{1.15\%}
+\newcommand{\LoneEnergySpearman}{0.874}
+\newcommand{\LoneThroughputMAPE}{2.39\%}
+\newcommand{\LoneTPOTMAPE}{0.51\%}
+\newcommand{\LoneTTFTMAPE}{17.20\%}
+\newcommand{\LoneTTFTSpearman}{0.916}
+\newcommand{\LoneParetoPrecision}{33.3\%}
+\newcommand{\LoneParetoRecall}{100\%}
+
+\newcommand{\ConfigurationSLOFeasible}{5}
+\newcommand{\VerifiedParetoConfig}{\texttt{seq32-bt2048-chunk}}
+\newcommand{\ExpertEnergy}{371.13}
+\newcommand{\ParetoEnergy}{367.27}
+\newcommand{\ExpertThroughput}{1732.60}
+\newcommand{\ParetoThroughput}{1785.63}
+\newcommand{\ExpertTTFT}{1343.60}
+\newcommand{\ParetoTTFT}{1053.56}
+\newcommand{\ExpertTPOT}{17.25}
+\newcommand{\ParetoTPOT}{16.76}
+\newcommand{\ExpertPower}{641.58}
+\newcommand{\ParetoPower}{652.35}
+\newcommand{\ParetoEnergyReduction}{1.04\%}
+\newcommand{\ParetoThroughputGain}{3.06\%}
+\newcommand{\ParetoTTFTReduction}{21.59\%}
+\newcommand{\ParetoTPOTReduction}{2.84\%}
+\newcommand{\AutomatedTests}{69}

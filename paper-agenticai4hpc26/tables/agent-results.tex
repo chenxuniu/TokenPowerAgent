@@ -1,20 +1,3 @@
-\begin{table}[t]
-\centering
-\caption{Frozen-corpus agent-search comparison.  Values are populated only
-from the hashed \texttt{benchmark-replay} report.}
-\label{tab:agent-results}
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{lrrr}
-\toprule
-Policy & Pareto recall & GPU-hours & Unneeded L4 \\
-\midrule
-IPIG proxy & \AgentParetoRecall{} & \AgentGPUHours{} &
-\AgentUnnecessaryEscalations{} \\
-Random & \RandomParetoRecall{} & \RandomGPUHours{} &
-\RandomUnnecessaryEscalations{} \\
-Cost-blind & \draftvalue{TBD} & \draftvalue{TBD} & \draftvalue{TBD} \\
-Cheapest-first & \draftvalue{TBD} & \draftvalue{TBD} & \draftvalue{TBD} \\
-\bottomrule
-\end{tabular}
-\end{table}
+% Populated from the sealed benchmark-replay report after the preregistered
+% 500-episode CPU replay completes.  This file is intentionally not included
+% until every policy metric has been validated against the frozen corpus hash.

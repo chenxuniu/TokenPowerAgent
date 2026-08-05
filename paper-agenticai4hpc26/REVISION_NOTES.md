@@ -26,22 +26,25 @@ after target-scale verification.
 
 ## Measured Foundation
 
-The paper reports 51 blind H100 runs across two disjoint holdouts. Energy MAPE
-is 6.23% and 7.35%, with rank correlations of 0.976 and 0.933. A preregistered
-scope gate correctly separates supported TTFT transfer at concurrency four
-from an unsupported sparse-concurrency region. These results validate the
-agent's cheap-evidence substrate and abstention mechanism, not search
-superiority.
+The paper reports 51 blind H100 workload-transfer runs across two disjoint
+holdouts. Energy MAPE is 6.23% and 7.35%, with rank correlations of 0.976 and
+0.933. A preregistered scope gate separates supported TTFT transfer at
+concurrency four from an unsupported sparse-concurrency region.
 
-## Remaining Workshop Experiment
+A separate 12-candidate corpus contains 72 successful L1/L4 runs. L0 preserves
+energy rank (0.884 Spearman) but reverses TTFT rank (-0.968) and has zero L4
+Pareto recall. L1 reaches 1.15% energy MAPE and recovers the true frontier with
+100% recall and 33.3% precision. L4 verifies `seq32-bt2048-chunk` as the unique
+Pareto point; relative to the expert default it uses 1.04% less energy, delivers
+3.06% higher throughput, and reduces TTFT by 21.59%.
 
-RQ3 needs one frozen single-H100 configuration corpus. Hold workload fixed and
-vary serving knobs that can be changed on the available node: maximum sequences,
-maximum batched tokens, and chunked prefill. Measure each feasible candidate
-three times in randomized order, then replay every acquisition policy on the
-same sealed rows. The headline result is Pareto recall per GPU-hour, supported
-by primary-objective regret, time to first oracle hit, and unnecessary L4
-actions.
+## Remaining Workshop Analysis
+
+The frozen 84-row replay corpus is complete. Run IPIG, random, cost-blind, and
+cheapest-first for 500 seeded 20-step episodes under the same 0.12-GPU-h budget.
+The remaining headline is verified Pareto recall per GPU-hour, supported by
+regret, time to first oracle hit, and unnecessary L4 actions. Do not change the
+measured corpus after seeing policy results.
 
 This experiment is intentionally narrower than the eventual MLSys study. TP,
 PP, placement, H200/B200 transfer, multi-node fidelity, nested-posterior IPIG,

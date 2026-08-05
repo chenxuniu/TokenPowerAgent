@@ -1,83 +1,88 @@
 \section{Evaluation Methodology}
 
-The Workshop evaluation separates two questions that are often conflated.
-First, is the cheap evidence consumed by the agent accurate and calibrated
-enough to support a decision?  Second, given a sealed candidate corpus, does
-the acquisition policy spend fewer GPU-hours reaching a verified decision?
-Simulation never defines its own ground truth.
+The evaluation separates evidence fidelity from acquisition-policy quality.
+The first asks whether cheap evidence preserves the decision eventually observed
+at L4.  The second asks whether a controller reaches that verified decision
+with fewer GPU-hours.  Simulation never defines its own ground truth.
 
 \subsection{Research Questions}
 
 \textbf{RQ1 -- Evidence validity.}  How accurately does the CPU-first model
-rank and predict unseen H100 energy, throughput, TTFT, and TPOT as context
-length and concurrency change?
+rank and predict unseen H100 energy, throughput, TTFT, and TPOT as context length
+and concurrency change?
 
-\textbf{RQ2 -- Scope reliability.}  Can a preregistered release rule identify
-where predictions are reliable and abstain where performance fidelity does not
-transfer?
+\textbf{RQ2 -- Scope reliability.}  Can a preregistered release rule support
+predictions where they transfer and abstain where performance fidelity fails?
 
-\textbf{RQ3 -- Search efficiency.}  On a frozen serving-configuration corpus,
-how much Pareto quality does the IPIG proxy recover per GPU-hour relative to
-random, cost-blind information gain, and a fixed cheapest-first ladder?
+\textbf{RQ3 -- Frontier recovery.}  Across serving configurations, what does
+each evidence level preserve about the L4 SLO-feasible Pareto set, and what
+quality can acquisition policies recover per GPU-hour?
 
 \textbf{RQ4 -- Bounded autonomy.}  Does the runtime enforce budgets, preserve
-evidence labels, recover from tool failures, reject malformed planner output,
-and withhold every recommendation lacking L4 verification?
+evidence labels, recover from failures, reject malformed planner output, and
+withhold recommendations lacking L4 verification?
 
-\subsection{H100 Evidence Study}
+\subsection{Workload-Transfer Study}
 
-Experiments use one H100 80GB at a 700-W power limit and
-Qwen2.5-7B-Instruct with a digest-pinned vLLM 0.23.0 image.  The fixed serving
-configuration is BF16, TP$=$PP$=$DP$=$1, 256 maximum sequences, 8192 batched
-tokens, chunked prefill, and no prefix caching.  Requests use fixed output
-length, temperature zero, and ignore EOS.  A cumulative DCGM device-energy
-counter brackets only the active benchmark window; loading, health checks,
-graph capture, and warmup are excluded.  Every point has three repeats and is
-summarized by median and MAD.
+Experiments use one H100 80GB at 700 W and Qwen2.5-7B-Instruct with a
+digest-pinned vLLM 0.23.0 image.  The transfer study fixes BF16,
+TP$=$PP$=$DP$=$1, 256 maximum sequences, 8192 batched tokens, chunked prefill,
+and no prefix caching.  Requests use fixed output length, temperature zero, and
+ignore EOS.  A cumulative DCGM energy counter brackets only the active benchmark
+window; loading, health checks, graph capture, and warmup are excluded.  Every
+point has three repeats summarized by median and MAD.
 
 Three anchor repeats use 512 input and 128 output tokens at concurrency eight.
-A six-workload development split selects the residual correction by
-leave-one-workload-out error.  Predictions and their SHA-256 manifest are then
-frozen before each holdout begins.  The first holdout contains eight workloads
-and \HoldoutMeasurements{} measurements spanning 256--2048 input tokens and
-concurrency 1--32.  Without refitting, a second preregistered confirmation
-contains nine workloads and \ConfirmationMeasurements{} measurements at
-contexts 384, 768, and 1536 and concurrency 1, 2, and 4.  The validator checks
-prediction time, dataset split, workload, configuration, power limit, repeat
-identity, and all raw-artifact hashes.
+A six-workload development split selects residual correction by
+leave-one-workload-out error.  Predictions and a SHA-256 manifest are frozen
+before each holdout.  Holdout v2 contains eight workloads and
+\HoldoutMeasurements{} runs over 256--2048 input tokens and concurrency 1--32.
+Without refitting, scope confirmation v3 contains nine workloads and
+\ConfirmationMeasurements{} runs at contexts 384, 768, and 1536 and concurrency
+1, 2, and 4.  The validator checks chronology, split, workload, configuration,
+power limit, repeat identity, and raw-artifact hashes.  The preregistered primary
+gate is energy MAPE $\leq15\%$; TTFT is supported at concurrency four only if
+MAPE is $\leq20\%$ and otherwise abstains below four.
 
-Primary evidence metrics are energy MAPE, Spearman rank correlation, pairwise
-ordering accuracy, and repeat CV.  Throughput, TTFT, and TPOT are secondary
-endpoints.  Before confirmation, we preregister energy MAPE $\leq15\%$ over
-all nine workloads and TTFT MAPE $\leq20\%$ at concurrency four.  If TTFT MAPE
-exceeds 20\% below concurrency four, the released scope must abstain there.
+\subsection{Frozen Configuration Corpus}
 
-\subsection{Agent Replay Protocol}
+The configuration study fixes the model, GPU, precision, parallelism, 700-W
+limit, and a 2048-input/128-output workload at concurrency 32.  Its
+\ConfigurationCandidates{} candidates vary maximum sequences
+($8,16,32$), maximum batched tokens ($2048,4096,8192$), and chunked prefill;
+two no-chunk controls and the operator default
+($256$ sequences, $8192$ tokens, chunking enabled) complete the grid.  The SLO
+requires P95 TTFT $\leq1600$ ms and P95 TPOT $\leq20$ ms.
 
-The agent study varies serving configurations while holding a workload fixed.
-A bounded H100 grid changes maximum sequences, maximum batched tokens, and
-chunked prefill after deterministic memory guards.  Each feasible candidate is
-measured three times in randomized order, and all L0 predictions are frozen
-before the first L1 run.  Successful highest-fidelity records define the
-SLO-feasible oracle frontier using median metrics.
+All L0 predictions and their manifest are frozen first.  L1 runs 64 requests as
+a short probe, whereas L4 runs the preregistered 256-request target workload.
+Each candidate--level pair has three repeats in a cyclic-balanced schedule, and
+scheduled server restarts isolate configuration changes.  This yields
+\ConfigurationLoneRuns{} L1 and \ConfigurationLfourRuns{} L4 runs.  Median L4
+records define the exhaustive SLO-feasible oracle.  We report MAPE, Spearman
+correlation, pairwise ordering, frontier precision/recall, and realized
+GPU-hours.  The full corpus costs \ConfigurationTotalGPUHours{} GPU-h to build;
+this offline cost establishes an oracle and is not charged as an online-policy
+result.
 
-Each policy starts from identical priors and a reserved L4 verification budget.
-It sees a row only after requesting its candidate--fidelity pair.  We run
-\AgentEpisodes{} seeded episodes for IPIG, random acquisition, cost-blind
-information gain, and a cheapest-first ladder.  Random and cheapest-first do
-not receive the semantic action guard.  Reported metrics are verified Pareto
-precision/recall, primary-objective regret, GPU-hours to the first oracle hit,
-total GPU-hours, failed actions, and unnecessary L4 escalations.  Replay seeds
-bind each candidate--fidelity pair to the same replicate across policies.  The
-runner constructs the oracle only from sealed measured records and embeds the
-scenario and corpus hashes in its report.
+\subsection{Sealed Policy Replay}
+
+The corpus contains \ConfigurationReplayRows{} rows: 12 frozen L0 predictions
+and 72 measured L1/L4 records.  A policy sees a row only after requesting its
+candidate--fidelity key, and all policies share the same corpus, seeds, declared
+level costs, 0.12-GPU-h online budget, and reserved top-two verification rule.
+We preregister 500 seeded, 20-step episodes for the \ipig{} proxy, random,
+cost-blind information gain, and cheapest-first acquisition.  Metrics are
+verified Pareto precision/recall, regret, GPU-hours to first oracle hit, total
+GPU-hours, failed actions, and unnecessary L4 escalations.  The replay runner
+constructs its oracle only from sealed L4 records and embeds scenario and corpus
+hashes in the report.
 
 \subsection{Reliability Tests}
 
 Unit and end-to-end tests inject missing evidence, malformed LLM JSON, launch
-failure, an exhausted budget, and an SLO-violating verification.  A failed job
-is charged its declared upper-bound cost and becomes an immutable failed
-record; it cannot disappear from accounting.  The next planner state exposes
-the failure and enters \textsc{Repair}.  The LLM selects only a semantic
-subgoal, while candidate choice, command routing, budget arithmetic, Pareto
-filtering, and the final L4 gate remain deterministic.
+failure, budget exhaustion, and SLO-violating verification.  A failed job is
+charged its declared upper-bound cost and becomes immutable; it cannot disappear
+from accounting.  The LLM selects only a semantic subgoal, while candidate
+choice, command routing, budget arithmetic, Pareto filtering, and the final L4
+gate remain deterministic.

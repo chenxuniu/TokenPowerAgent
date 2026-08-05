@@ -1,15 +1,16 @@
 \section{Conclusion}
 
-\system{} turns energy-aware LLM inference tuning into a bounded
-evidence-allocation loop: interpret intent, choose a configuration and
-fidelity, observe immutable evidence, update an SLO-feasible Pareto belief, and
-verify before recommending.  Its deterministic guard keeps the LLM away from
-commands, budgets, numeric optimization, and release authority.  On
-\BlindMeasurements{} blind H100 measurements, the underlying CPU-first model
-achieves \CalibratedEnergyMAPE{} and \ConfirmationEnergyMAPE{} energy MAPE in
-two disjoint holdouts.  The preregistered gate also exposes a meaningful
-boundary: TTFT transfers at concurrency four but requires abstention below
-four.  These results establish a trustworthy evidence substrate and an
-implemented agent runtime.  The immediate remaining experiment is to quantify
-Pareto quality per GPU-hour on a frozen serving-configuration corpus; broader
-H100/H200/B200 and multi-node optimization is reserved for the MLSys study.
+\system{} turns energy-aware inference tuning into a bounded evidence-allocation
+loop: interpret intent, choose a configuration and fidelity, observe immutable
+evidence, update an SLO-feasible Pareto belief, and verify before recommending.
+Across \BlindMeasurements{} blind H100 workload-transfer runs, its CPU-first
+model obtains \CalibratedEnergyMAPE{} and \ConfirmationEnergyMAPE{} energy MAPE,
+while the release gate exposes a low-concurrency TTFT boundary.  More
+importantly, the \ConfigurationMeasuredRuns{}-run configuration corpus shows
+why multiple fidelities are necessary: L0 preserves energy ranking but misses
+the frontier, L1 recovers the true candidate with \LoneParetoRecall{} recall,
+and L4 removes false positives.  The verified configuration improves energy by
+\ParetoEnergyReduction{}, throughput by \ParetoThroughputGain{}, and TTFT by
+\ParetoTTFTReduction{} over the expert default.  These results establish an
+auditable CPU-first path from scarce HPC resources to measured configuration
+decisions; H100/H200/B200 and multi-node search remain the larger MLSys study.

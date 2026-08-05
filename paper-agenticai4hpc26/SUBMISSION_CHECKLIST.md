@@ -15,23 +15,22 @@ Last checked against the official Workshop page: August 4, 2026.
 - [ ] Decide whether to include an optional SC-style AD/AE appendix; it must not
       push the main manuscript beyond the permitted format.
 
-## Required Experiment Before Submission
+## Final Experiment Before Submission
 
-- [ ] Freeze a single-H100 serving-configuration corpus with 12--16 feasible
+- [x] Freeze a single-H100 serving-configuration corpus with 12 feasible
       candidates and three randomized repeats per candidate.
-- [ ] Hold workload, model revision, vLLM image, power limit, prefix caching,
+- [x] Hold workload, model revision, vLLM image, power limit, prefix caching,
       precision, TP, and PP fixed while varying serving knobs.
-- [ ] Preserve every raw measurement, failed run, telemetry path, seed, and
+- [x] Preserve every raw measurement, failed run, telemetry path, seed, and
       artifact hash.
 - [ ] Run IPIG, random, cost-blind information gain, and cheapest-first replay
       with identical priors, candidate corpus, seeds, and GPU-hour budgets.
-- [ ] Populate only the seven agent-result macros in `results/metrics.tex`.
-- [ ] Replace every visible `TBD` and re-read the abstract, RQ3 results,
+- [ ] Populate policy metrics only from the sealed `benchmark-replay` report.
+- [x] Replace every visible result placeholder and re-read the abstract, RQ3 results,
       limitations, and conclusion for claim consistency.
 
-The Workshop submission remains scientifically honest without an RQ3
-superiority claim, but the agent contribution will be substantially stronger
-once this corpus is complete.
+The 72-run corpus now establishes the L0/L1/L4 fidelity result and the verified
+frontier. The running CPU replay is the remaining policy-comparison step.
 
 ## Reproducibility Gates
 
@@ -41,7 +40,7 @@ once this corpus is complete.
       expected and realized cost, uncertainty/frontier snapshots, failure
       reason, and fallback behavior.
 - [x] L4 verification is deterministic and cannot be bypassed by the LLM.
-- [x] All 58 automated tests pass.
+- [x] All 69 automated tests pass.
 - [ ] Archive the final configuration corpus and benchmark report locally and
       download a checksum-matched copy from the cluster.
 - [ ] Pin the final Git commit and container/model digests in the artifact text.
