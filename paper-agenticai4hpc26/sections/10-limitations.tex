@@ -1,23 +1,25 @@
 \section{Limitations and Threats to Validity}
 
-\textbf{Empirical scope.}  The study covers one H100, one 7B model, one vLLM
-version, BF16, fixed output length, and bounded workload/configuration grids.
-The measured knob search varies sequence and token limits plus chunked prefill;
-it does not establish TP/PP, cross-hardware, MoE, or multi-node accuracy.
+\textbf{Empirical scope.}  The study deliberately covers one H100, one 7B
+model, one vLLM version, BF16, fixed output length, and bounded
+workload/configuration grids.  The measured knob search varies sequence and
+token limits plus chunked prefill.  The claims are therefore about evidence
+allocation on one target GPU, not parallel or distributed serving.
 
-\textbf{Fidelity and telemetry.}  A single GPU cannot reveal communication,
-placement, fabric contention, or scheduler effects.  DCGM cumulative energy
-captures GPU-device rather than host, network, or facility energy.  Multi-node
-recommendations therefore require L2/L3 calibration and independent L4
-verification.  The L0 TTFT inversion observed here further shows that good
-energy ranking must not be generalized to every metric.
+\textbf{Fidelity and telemetry.}  DCGM cumulative energy captures GPU-device
+rather than host or facility energy.  The CPU Sandbox and short Probe may both
+miss behavior outside the frozen model, software, workload, and hardware scope;
+the Sandbox TTFT inversion observed here further shows that good energy ranking
+must not be generalized to every metric.  TP/PP, cross-hardware, MoE, and
+multi-node communication require new measured calibration and verification and
+are reserved for a broader follow-on study.
 
 \textbf{Uncertainty and policy value.}  Prediction intervals are not calibrated
 across hardware generations; new kernels, engines, GPUs, arrival processes, or
 MoE routing may invalidate residual corrections.  The current \ipig{} estimator
 is an auditable proxy rather than exact Pareto mutual information.  Its
 \PolicyEpisodes{} episodes per policy bootstrap only \PolicyHardwareRepeats{}
-real repeats per candidate--level key, so they measure sensitivity to observed
+real repeats per candidate--stage key, so they measure sensitivity to observed
 run-to-run variation rather than independent production deployments.  \ipig{}
 beats random and cost-blind acquisition on the declared cost--success metrics
 but not cheapest-first in this small grid.  The exhaustive

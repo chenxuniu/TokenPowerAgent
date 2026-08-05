@@ -18,7 +18,7 @@
     {\textbf{Hybrid Agent}\\[2pt]semantic subgoal\\\ipig{}\ action selection\\
      reflect / repair};
   \node[stage,fill=tpTealLight,text width=3.00cm] (twin) at (11.05,0.55)
-    {\textbf{Energy Twin + Tools}\\[2pt]serving schedule\\phase + communication energy\\uncertainty + Pareto search};
+    {\textbf{Energy Twin + Tools}\\[2pt]CPU prediction\\DCGM + serving probes\\uncertainty + Pareto search};
   \node[stage,fill=tpRoseLight,text width=2.52cm] (output) at (14.62,0.55)
     {\textbf{Verified Output}\\[2pt]Pareto configurations\\confidence + provenance\\runnable scripts};
 
@@ -30,7 +30,7 @@
   \node[memory,fill=tpGrayLight,text width=3.15cm] (history) at (5.15,-1.68)
     {\textbf{Historical \bench{}}\quad measured priors};
   \node[memory,fill=tpBlueLight,text width=3.55cm] (sandbox) at (9.20,-1.68)
-    {\textbf{Multi-Fidelity Sandbox}\quad L0--L4 evidence};
+    {\textbf{Evidence Path}\quad Sandbox $\rightarrow$ Probe $\rightarrow$ Verify};
   \node[memory,fill=tpTealLight,text width=3.30cm] (store) at (13.35,-1.68)
     {\textbf{Evidence Store}\quad telemetry + hashes};
 
@@ -51,7 +51,7 @@
 \caption{\system{}\ overview.  The language model selects a typed experiment
 subgoal, while \ipig{}\ chooses a candidate--fidelity action.  Deterministic tools
 perform feasibility checking, simulation, telemetry integration, surrogate
-fitting, and Pareto analysis; target-scale \bench{}\ evidence gates every
+fitting, and Pareto analysis; full target-workload \bench{}\ evidence gates every
 recommendation.}
 \label{fig:architecture}
 \end{figure*}

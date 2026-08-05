@@ -4,48 +4,54 @@
 \begin{tikzpicture}[
   x=1cm,y=1cm,
   every node/.style={font=\sffamily},
-  cfg/.style={draw=tpGray, rounded corners=1.5pt, minimum height=0.92cm,
-    text width=1.08cm, align=center, inner sep=2pt, font=\scriptsize\bfseries},
-  scalebox/.style={draw=tpGray, rounded corners=1.5pt, minimum height=0.88cm,
-    text width=1.55cm, align=center, inner sep=2pt, font=\scriptsize\bfseries},
-  flow/.style={-{Stealth[length=2.2mm]}, line width=0.8pt, draw=tpGray}
+  fixed/.style={draw=tpGray,rounded corners=2pt,minimum height=1.16cm,
+    text width=2.05cm,align=center,inner sep=3pt,font=\scriptsize},
+  knob/.style={draw=tpGray,rounded corners=2pt,minimum height=1.16cm,
+    text width=1.75cm,align=center,inner sep=3pt,font=\scriptsize},
+  stage/.style={draw=tpGray,rounded corners=2pt,minimum height=1.35cm,
+    text width=1.95cm,align=center,inner sep=3pt,font=\scriptsize},
+  flow/.style={-{Stealth[length=2.2mm]},line width=0.85pt,draw=tpGray}
 ]
-  \node[font=\small\bfseries, text=tpRoseDark] at (4.0,2.32)
-    {(a) Configuration choices multiply};
-  \node[cfg,fill=tpRoseLight] (m) at (0.65,1.18) {Model\\workload};
-  \node[cfg,fill=tpBlueLight] (e) at (2.00,1.18) {Serving\\engine};
-  \node[cfg,fill=tpTealLight] (q) at (3.35,1.18) {Precision\\batch};
-  \node[cfg,fill=tpGoldLight] (p) at (4.70,1.18) {TP / PP\\replicas};
-  \node[cfg,fill=tpBlueLight] (h) at (6.05,1.18) {GPU / node\\placement};
-  \node[cfg,fill=tpRoseLight] (f) at (7.40,1.18) {Power /\\clock};
-  \foreach \x in {1.325,2.675,4.025,5.375,6.725}
-    \node[font=\normalsize\bfseries,text=tpGray] at (\x,1.18) {$\times$};
-  \node[draw=tpRose,dashed,rounded corners=1pt,fill=white,
-    text width=6.9cm,align=center,font=\scriptsize] at (4.02,0.14)
-    {$|\mathcal X|=\prod_j|\mathcal X_j|$; each point may occupy an entire node or several nodes};
+  \node[font=\small\bfseries,text=tpRoseDark] at (4.35,2.38)
+    {(a) One fixed H100 scenario, 12 serving candidates};
+  \node[fixed,fill=tpGrayLight] (fixed) at (1.18,1.05)
+    {\textbf{Fixed}\\Qwen2.5-7B, BF16\\2048 in / 128 out\\concurrency 32};
+  \node[knob,fill=tpBlueLight] (seq) at (3.82,1.05)
+    {\textbf{Max sequences}\\8, 16, 32\\+ expert 256};
+  \node[font=\normalsize\bfseries,text=tpGray] at (5.14,1.05) {$\times$};
+  \node[knob,fill=tpTealLight] (tok) at (6.47,1.05)
+    {\textbf{Batched tokens}\\2048, 4096,\\8192};
+  \node[font=\normalsize\bfseries,text=tpGray] at (7.79,1.05) {$\times$};
+  \node[knob,fill=tpGoldLight] (chunk) at (9.10,1.05)
+    {\textbf{Chunked prefill}\\enabled\\+ controls};
+  \draw[flow] (fixed.east) -- (seq.west);
+  \node[draw=tpRose,dashed,rounded corners=1.5pt,fill=white,
+    text width=7.65cm,align=center,font=\scriptsize] at (5.10,-0.20)
+    {A full sweep spends target-GPU time on every candidate, including configurations cheap evidence can reject.};
 
-  \draw[tpGray!45,dashed] (8.45,-0.35) -- (8.45,2.65);
+  \draw[tpGray!45,dashed] (10.43,-0.65) -- (10.43,2.68);
 
-  \node[font=\small\bfseries, text=tpTealDark] at (13.05,2.32)
-    {(b) New effects appear with scale};
-  \node[scalebox,fill=tpBlueLight] (l1) at (9.65,0.42) {L1: 1 GPU\\prefill / decode};
-  \node[scalebox,fill=tpTealLight] (l2) at (11.88,0.88) {L2: 1 node\\NVLink / TP};
-  \node[scalebox,fill=tpGoldLight] (l3) at (14.12,1.34) {L3: 2+ nodes\\fabric / sync};
-  \node[scalebox,fill=tpRoseLight] (l4) at (16.35,1.80) {L4: target trace\\queue / SLO};
-  \draw[flow] (l1.east) -- (l2.west);
-  \draw[flow] (l2.east) -- (l3.west);
-  \draw[flow] (l3.east) -- (l4.west);
-  \draw[-{Stealth[length=2.2mm]},very thick,tpRose]
-    (9.05,-0.35) -- node[above,font=\scriptsize\bfseries,text=tpRoseDark]
-    {measurement cost and fidelity} (17.22,-0.35);
-  \node[draw=tpTeal,dashed,rounded corners=1pt,fill=white,
-    text width=7.1cm,align=center,font=\scriptsize] at (13.05,-0.96)
-    {The agent selects the cheapest evidence level that can resolve Pareto or SLO ambiguity.};
+  \node[font=\small\bfseries,text=tpTealDark] at (14.10,2.38)
+    {(b) Evidence cost rises only when the decision requires it};
+  \node[stage,fill=tpGrayLight] (sandbox) at (11.75,1.05)
+    {\textbf{CPU Sandbox}\\0 target GPUs\\screen all 12};
+  \node[stage,fill=tpBlueLight] (probe) at (14.18,1.05)
+    {\textbf{Short Probe}\\1 H100, 64 requests\\calibrate ranking};
+  \node[stage,fill=tpRoseLight] (verify) at (16.62,1.05)
+    {\textbf{Full Verify}\\1 H100, 256 requests\\release gate};
+  \draw[flow] (sandbox.east) -- (probe.west);
+  \draw[flow] (probe.east) -- (verify.west);
+  \draw[-{Stealth[length=2.3mm]},very thick,tpRose]
+    (10.68,-0.34) -- node[above,font=\scriptsize\bfseries,text=tpRoseDark]
+    {increasing evidence fidelity and GPU-hour cost} (17.68,-0.34);
+  \node[draw=tpTeal,dashed,rounded corners=1.5pt,fill=white,
+    text width=6.35cm,align=center,font=\scriptsize] at (14.18,-1.08)
+    {Only full target-workload evidence\\can authorize a recommendation.};
 \end{tikzpicture}
 }
-\caption{Why energy-efficient configuration requires multi-fidelity search.
-The serving design space is combinatorial, while device, intra-node,
-inter-node, and trace-level effects become observable at different scales.
-\system{}\ allocates a bounded measurement budget across these levels.}
+\caption{The single-GPU decision problem studied in this paper.  The serving
+scenario is fixed while sequence capacity, batched-token limits, and chunked
+prefill define a 12-candidate grid.  \system{} screens on CPU, escalates
+ambiguous candidates to a short H100 probe, and verifies before release.}
 \label{fig:motivation}
 \end{figure*}

@@ -6,7 +6,7 @@ TokenPowerAgent does not use an LLM to predict energy or directly choose a
 deployment. It uses a bounded semantic planner to organize an auditable loop in
 which deterministic tools jointly select a serving configuration and the next
 evidence fidelity under a GPU-hour budget. A recommendation is released only
-after target-scale verification.
+after full target-workload verification.
 
 ## Implemented System
 
@@ -14,10 +14,10 @@ after target-scale verification.
   SLOs, available evidence levels, and a real GPU-hour budget.
 - A constrained LLM planner emits one JSON subgoal from a fixed vocabulary and
   falls back to a deterministic planner on malformed output.
-- IPIG selects a candidate--fidelity action using an auditable
-  uncertainty-per-cost proxy conditioned on SLO, frontier, and topology terms.
-- L0 uses replay or the CPU-resident Energy Twin; L1--L4 retain explicit
-  measured-fidelity semantics and immutable provenance.
+- IPIG selects a candidate--stage action using an auditable
+  uncertainty-per-cost proxy conditioned on SLO and frontier terms.
+- The operational path is CPU Sandbox, short H100 Probe, and full H100 Verify;
+  stable artifact identifiers are L0, L1, and L4.
 - Failed executions become charged evidence records and drive a REPAIR state.
 - A reserved verification budget and independent verifier prevent unmeasured
   recommendations.
@@ -31,7 +31,8 @@ holdouts. Energy MAPE is 6.23% and 7.35%, with rank correlations of 0.976 and
 0.933. A preregistered scope gate separates supported TTFT transfer at
 concurrency four from an unsupported sparse-concurrency region.
 
-A separate 12-candidate corpus contains 72 successful L1/L4 runs. L0 preserves
+A separate 12-candidate corpus contains 72 successful Probe/Verify runs. The
+Sandbox preserves
 energy rank (0.884 Spearman) but reverses TTFT rank (-0.968) and has zero L4
 Pareto recall. L1 reaches 1.15% energy MAPE and recovers the true frontier with
 100% recall and 33.3% precision. L4 verifies `seq32-bt2048-chunk` as the unique
@@ -55,16 +56,17 @@ episodes resample three hardware repeats per candidate--level key; they are not
 500 new hardware experiments.
 
 This experiment is intentionally narrower than the eventual MLSys study. TP,
-PP, placement, H200/B200 transfer, multi-node fidelity, nested-posterior IPIG,
-and live scheduler integration remain MLSys extensions.
+PP, placement, H200/B200 transfer, multi-node fidelity, posterior Pareto
+information, and live scheduler integration remain MLSys extensions.
 
 ## Claim Guardrails
 
 - Do not call the Docker container itself a simulator; it is the isolated
   execution substrate.
-- Do not call L0 output measured or present a single H100 as a cluster model.
+- Do not call Sandbox/L0 output measured or present a single H100 as a cluster
+  model.
 - Report the mixed policy result: IPIG improves on random and cost-blind but
   does not beat cheapest-first in the measured search space.
-- Do not infer multi-node energy, communication, or scheduler behavior from
-  the current single-GPU measurements.
+- Keep multi-GPU and multi-node mechanisms out of the Workshop paper's central
+  design, algorithm, figures, and contributions.
 - Do not attribute causal benefit to the LLM without a planner ablation.

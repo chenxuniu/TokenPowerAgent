@@ -7,13 +7,15 @@ Across \BlindMeasurements{} blind H100 workload-transfer runs, its CPU-first
 model obtains \CalibratedEnergyMAPE{} and \ConfirmationEnergyMAPE{} energy MAPE,
 while the release gate exposes a low-concurrency TTFT boundary.  More
 importantly, the \ConfigurationMeasuredRuns{}-run configuration corpus shows
-why multiple fidelities are necessary: L0 preserves energy ranking but misses
-the frontier, L1 recovers the true candidate with \LoneParetoRecall{} recall,
-and L4 removes false positives.  The verified configuration improves energy by
+why the three stages are necessary: the CPU Sandbox preserves energy ranking
+but misses the frontier, the short Probe recovers the true candidate with
+\LoneParetoRecall{} recall, and full verification removes false positives.  The
+verified configuration improves energy by
 \ParetoEnergyReduction{}, throughput by \ParetoThroughputGain{}, and TTFT by
 \ParetoTTFTReduction{} over the expert default.  Corrected empirical replay
 also places the policy claim precisely: \ipig{} improves oracle-hit rate and
 GPU-hour cost over random and cost-blind acquisition, while cheapest-first
-remains slightly cheaper in this narrow search space.  These results establish an
-auditable CPU-first path from scarce HPC resources to measured configuration
-decisions; H100/H200/B200 and multi-node search remain the larger MLSys study.
+remains slightly cheaper in this narrow search space.  These results establish
+an auditable CPU-first path from scarce HPC resources to measured,
+single-GPU configuration decisions.  Cross-hardware and distributed search are
+separate extension questions rather than claims of this paper.

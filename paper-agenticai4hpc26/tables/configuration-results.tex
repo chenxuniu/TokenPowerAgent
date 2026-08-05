@@ -1,28 +1,28 @@
 \begin{table*}[t]
 \centering
 \caption{Frozen configuration-corpus results.  Panel A compares each cheaper
-level with the median L4 outcome for all 12 candidates; P/R denotes precision
-and recall of the L4 SLO-feasible Pareto set.  Panel B compares the verified
+stage with the median Verify outcome for all 12 candidates; P/R denotes precision
+and recall of the verified SLO-feasible Pareto set.  Panel B compares the verified
 frontier point with the preregistered expert default.}
 \label{tab:configuration-results}
 \small
 \setlength{\tabcolsep}{3.7pt}
 \begin{tabular}{lrrrrrr}
 \toprule
-\multicolumn{7}{l}{\textbf{A. Fidelity against L4}} \\
+\multicolumn{7}{l}{\textbf{A. Fidelity against full verification}} \\
 Evidence & Energy MAPE & Energy $\rho$ & Throughput MAPE & TPOT MAPE &
 TTFT MAPE / $\rho$ & Pareto P/R \\
 \midrule
-L0 CPU model & \LzeroEnergyMAPE{} & \LzeroEnergySpearman{} &
+Sandbox (L0) & \LzeroEnergyMAPE{} & \LzeroEnergySpearman{} &
 \LzeroThroughputMAPE{} & \LzeroTPOTMAPE{} &
 \LzeroTTFTMAPE{} / $\LzeroTTFTSpearman{}$ &
 \LzeroParetoPrecision{} / \LzeroParetoRecall{} \\
-L1 short probe & \LoneEnergyMAPE{} & \LoneEnergySpearman{} &
+Probe (L1) & \LoneEnergyMAPE{} & \LoneEnergySpearman{} &
 \LoneThroughputMAPE{} & \LoneTPOTMAPE{} &
 \LoneTTFTMAPE{} / \LoneTTFTSpearman{} &
 \LoneParetoPrecision{} / \LoneParetoRecall{} \\
 \addlinespace[3pt]
-\multicolumn{7}{l}{\textbf{B. Median L4 outcome}} \\
+\multicolumn{7}{l}{\textbf{B. Median Verify outcome}} \\
 Configuration & Energy (J/1k out) & Power (W) & Throughput (tok/s) &
 TTFT (ms) & TPOT (ms) & Decision \\
 \midrule

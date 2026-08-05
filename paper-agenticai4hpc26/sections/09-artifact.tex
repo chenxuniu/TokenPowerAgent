@@ -1,7 +1,7 @@
 \section{Artifact and Reproducibility}
 
 The artifact contains versioned scenarios, candidate grids, evidence schemas,
-topology and serving executors, the bounded planner/controller, four replay
+CPU-prediction, replay, and serving executors, the bounded planner/controller, four replay
 policies, calibration and validation tools, and \AutomatedTests{} automated
 tests.  Each agent event records subgoal, planner source, candidate and fidelity,
 expected and realized cost, uncertainty and Pareto state, remaining budget,
@@ -16,13 +16,13 @@ analysis provenance, and nested SHA-256 lists.  The configuration bundle verifie
 raw artifacts precede analysis, and the second workload confirmation uses the
 same frozen model without refitting.
 
-Replay exposes a sealed row only after a policy requests its
-candidate--fidelity key.  Its oracle is formed from median successful L4
-metrics, never from simulated predictions.  Reports embed scenario and corpus
+Replay exposes a sealed row only after a policy requests its candidate--stage
+key.  Its oracle is formed from median successful Verify
+metrics, never from CPU predictions.  Reports embed scenario and corpus
 hashes and retain failed episodes.  Audit detected that the first replay runner
 globally coupled all actions to one of three repeat indices; that summary is
 retained but excluded.  Commit \texttt{c41d8a6} replaces it with an
 action-specific, cross-policy common-random-number bootstrap, and the corrected
-report is identified by SHA-256 in the artifact.  Simulated, extrapolated,
-measured, and verified evidence remain distinct machine-readable labels in
-every path.
+report is identified by SHA-256 in the artifact.  Sandbox, Probe, and Verify
+retain stable machine-readable identifiers L0, L1, and L4; simulated, measured,
+and verified evidence remain distinct labels in every path.

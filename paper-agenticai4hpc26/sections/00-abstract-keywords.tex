@@ -2,26 +2,30 @@
 LLM inference increasingly accounts for a large share of deployed-AI energy,
 and its energy per token changes materially with request shape and serving
 configuration.  Selecting a configuration by exhaustive target-GPU trials is
-therefore both important and expensive on capacity-constrained HPC clusters.
+therefore both important and expensive on capacity-constrained HPC GPU nodes.
 We present \system{}, a bounded hybrid agent that treats tuning as an
 evidence-allocation problem: which configuration should be examined next, at
-what fidelity, and when is target-GPU verification worth its cost?  A
+which of three operational stages, and when is a full target-workload run worth
+its cost?  A
 constrained LLM planner translates operator intent into typed subgoals, while
 deterministic guards select candidate--fidelity actions, enforce GPU-hour and
 SLO constraints, maintain the Pareto state, and release only measured
 recommendations.  Its evidence substrate, \sandbox{}, combines a CPU-resident
-projector, short GPU probes, restricted target execution, immutable provenance,
-and explicit abstention.  On one H100 80GB serving Qwen2.5-7B with vLLM, two
+projector, short probes, full target-workload verification, immutable
+provenance, and explicit abstention.  On one H100 80GB serving Qwen2.5-7B with
+vLLM, two
 preregistered workload-transfer holdouts totaling \BlindMeasurements{} runs
 obtain \CalibratedEnergyMAPE{} and \ConfirmationEnergyMAPE{} energy MAPE.  A
 separate \ConfigurationCandidates{}-configuration corpus contains
-\ConfigurationMeasuredRuns{} balanced L1/L4 measurements.  L0 preserves energy
-ranking (Spearman \LzeroEnergySpearman{}) but reverses TTFT ranking
-(\LzeroTTFTSpearman{}) and misses the L4 Pareto set.  Short L1 probes reduce
+\ConfigurationMeasuredRuns{} balanced short-probe and target-verification
+measurements.  The CPU Sandbox preserves energy ranking (Spearman
+\LzeroEnergySpearman{}) but reverses TTFT ranking (\LzeroTTFTSpearman{}) and
+misses the verified Pareto set.  Short probes reduce
 energy, throughput, TPOT, and TTFT MAPE to \LoneEnergyMAPE{},
 \LoneThroughputMAPE{}, \LoneTPOTMAPE{}, and \LoneTTFTMAPE{}, recovering the
-true frontier with \LoneParetoRecall{} recall before L4 verification.  The
-corrected empirical replay reaches the median-L4 oracle in \IPIGOracleHit{} of
+true frontier with \LoneParetoRecall{} recall before full verification.  The
+corrected empirical replay reaches the median verified oracle in
+\IPIGOracleHit{} of
 \ipig{} episodes versus \RandomOracleHit{} for random while using
 \IPIGRandomGPUSaving{} fewer GPU-hours; a cheapest-first ladder matches
 \ipig{} at \CheapestIPIGGPUSaving{} lower cost, delimiting the policy claim.  The
@@ -34,5 +38,5 @@ how evidence-gated escalation makes agentic inference tuning auditable.
 
 \begin{IEEEkeywords}
 agentic AI, LLM inference, energy efficiency, multi-fidelity optimization,
-Pareto search, HPC clusters
+Pareto search, single-GPU HPC nodes
 \end{IEEEkeywords}

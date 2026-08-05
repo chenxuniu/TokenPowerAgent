@@ -4,27 +4,27 @@ For a long-lived deployed AI service, repeated inference can dominate its
 operational energy, and the cost of each generated token depends strongly on
 the request profile and serving configuration
 \cite{samsi2023words,niu2025engines,fernandez2025energy}.  Batch and token
-limits, chunked prefill, precision, parallelism, placement, and power policy
+limits, chunked prefill, prefix caching, precision, and power policy
 jointly determine throughput, time to first token (TTFT), time per output token
 (TPOT), and energy.  Long prompts emphasize prefill compute, long responses
-emphasize memory-intensive decode, and distributed models add collectives,
-pipeline bubbles, and synchronization.  Choosing the serving configuration is
-therefore an energy decision as well as a performance decision.
+emphasize memory-intensive decode, and request concurrency changes batch
+occupancy and queueing.  Choosing the serving configuration is therefore an
+energy decision as well as a performance decision.
 
 The obvious solution, serving the workload under every candidate and measuring
 the result, is often unavailable.  H100/H200/B200 allocations are scarce,
-multi-node reservations are more expensive, and a dense sweep spends the most
-valuable evidence on configurations that a CPU model or short probe could have
-eliminated.  Yet cheap evidence is not hardware truth.  A single-GPU probe
-cannot reveal unseen NVLink/NVSwitch contention, fabric effects, placement, or
-queueing, while a CPU model can mispredict a latency boundary even when its
-energy ranking is useful.  The central systems question is thus not merely
+a dense sweep spends the most valuable evidence on configurations that a CPU
+model or short probe could have eliminated.  Yet cheap evidence is not hardware
+truth.  A CPU model can mispredict a latency boundary even when its energy
+ranking is useful, while a short run may not reproduce the batching and
+queueing behavior of the full target trace.  The central systems question is
+thus not merely
 \emph{which configuration is best?}, but \emph{which
 configuration--fidelity pair should be evaluated next under a GPU-hour budget?}
 
 The measurement path itself is increasingly mature.  \bench{} provides
-declarative, phase-aligned GPU, node, and system telemetry from one GPU to
-multi-node inference \cite{niu2026tokenpowerbench}.  BEAM jointly controls
+declarative, phase-aligned GPU, node, and system telemetry for inference
+\cite{niu2026tokenpowerbench}.  BEAM jointly controls
 batching and frequency using an offline energy--performance table, BOute applies
 multi-objective Bayesian optimization to deployment choices, and OptiKIT uses
 full hardware trials for serving tuning
@@ -37,13 +37,14 @@ the cost and scale of the next observation while requiring measured evidence
 before releasing an energy--SLO recommendation.
 
 We present \system{}, an evidence-gated, multi-fidelity search framework built
-on \bench{}.  A scenario specifies the model, workload, cluster, serving
+on \bench{}.  A scenario specifies the model, workload, target GPU, serving
 runtime, SLOs, candidate knobs, and measurement budget.  \system{} compiles a
-typed feasible pool and selects actions $a=(x,\ell)$, where $x$ is a serving
-configuration and $\ell$ ranges from CPU replay/simulation (L0), through
-measured probes (L1--L3), to target-workload verification (L4).  Its
+typed feasible pool and selects actions $a=(x,e)$, where $x$ is a serving
+configuration and $e$ is \textsc{Sandbox}, \textsc{Probe}, or
+\textsc{Verify}.  These stages correspond to the artifact identifiers L0, L1,
+and L4; the semantic names describe the three-stage path exercised here.  Its
 \emph{Intent-Conditioned Pareto Information Gain} (\ipig{}) interface scores the
-expected reduction in uncertainty about the L4 SLO-feasible frontier per
+expected reduction in uncertainty about the verified SLO-feasible frontier per
 GPU-hour.  An LLM maps natural-language intent to a typed subgoal and explains
 failures; deterministic tools compile candidates, score actions, account for
 cost, ingest telemetry, compute Pareto sets, and enforce final verification.
@@ -55,9 +56,10 @@ Qwen2.5-7B workload-transfer measurements.  Second, a preregistered
 \ConfigurationCandidates{}-candidate serving grid varies sequence capacity,
 batched-token limits, and chunked prefill.  Its \ConfigurationMeasuredRuns{}
 balanced short-probe and target-workload measurements expose the exact boundary
-the system is designed to manage: L0 ranks energy well but fails for TTFT and
-the Pareto decision, whereas L1 recovers the true L4 frontier with
-\LoneParetoRecall{} recall.  L4 then removes two false positives and verifies a
+the system is designed to manage: the Sandbox ranks energy well but fails for TTFT and
+the Pareto decision, whereas the short Probe recovers the true verified frontier
+with \LoneParetoRecall{} recall.  The full target run then removes two false
+positives and verifies a
 configuration that improves energy, throughput, TTFT, and TPOT over the expert
 default.  In corrected empirical replay, \ipig{} improves oracle-hit rate and
 GPU-hour cost over random and cost-blind acquisition, but not over a static
@@ -70,17 +72,16 @@ This paper makes four contributions:
     configuration--fidelity co-selection}: recover an SLO-feasible
     energy--performance frontier while minimizing real GPU-hours spent acquiring
     and verifying evidence.
-    \item We design \sandbox{}, an L0--L4 evidence contract that combines
-    CPU-first projection, measured correction, uncertainty, immutable provenance,
-    and mandatory target verification without claiming that one GPU emulates a
-    cluster.
+    \item We design \sandbox{}, a three-stage evidence contract that combines
+    CPU-first projection, a short measured probe, uncertainty, immutable
+    provenance, and mandatory full-workload verification on one target GPU.
     \item We implement a bounded hybrid agent with an \ipig{} policy interface,
     typed executors, failure-aware reflection, hard budget and action guards,
     and a deterministic release gate.
     \item We provide \BlindMeasurements{} blind workload-transfer runs and a
     \ConfigurationMeasuredRuns{}-run configuration corpus.  The measurements
-    quantify when L0 is informative, when the agent must escalate to L1, and how
-    L4 verification converts a three-candidate provisional frontier into one
-    verified configuration; sealed replay then compares four acquisition
-    policies without spending additional GPU-hours.
+    quantify when the Sandbox is informative, when the agent must escalate to a
+    short Probe, and how full verification converts a three-candidate
+    provisional frontier into one verified configuration; sealed replay then
+    compares four acquisition policies without spending additional GPU-hours.
 \end{itemize}

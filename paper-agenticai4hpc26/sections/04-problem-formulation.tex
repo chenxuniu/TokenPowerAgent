@@ -5,58 +5,57 @@ An inference scenario is a tuple
 S=\langle M,W,H,R,C,\mathbf o,B_m\rangle,
 \end{equation}
 where $M$ identifies the model and allowable precisions; $W$ is a request
-trace or distribution over arrivals and token lengths; $H$ describes
-accelerators, nodes, topology, and power controls; $R$ is the serving-runtime
-set; $C$ contains memory, administrative, model-quality, and service-level
-constraints;
+trace or distribution over arrivals and token lengths; $H$ describes the
+target GPU node and power controls; $R$ is the serving runtime; $C$ contains
+memory, administrative, model-quality, and service-level constraints;
 $\mathbf o$ specifies the objectives; and $B_m$ is the real-measurement budget
 in GPU-hours.
 
 The candidate space is
 \begin{equation}
-\mathcal X=\mathcal B\!\times\!\mathcal Q\!\times\!\mathcal P\!\times\!
-\mathcal R\!\times\!\mathcal L\!\times\!\mathcal F,
+\mathcal X=\mathcal B\!\times\!\mathcal K\!\times\!\mathcal P\!\times\!
+\mathcal F,
 \end{equation}
-covering batching and token budgets ($\mathcal B$), quantization
-($\mathcal Q$), tensor/pipeline parallelism ($\mathcal P$), runtime policy
-($\mathcal R$), placement ($\mathcal L$), and power/frequency policy
-($\mathcal F$).  A deterministic compiler produces the scenario-feasible pool
-$\mathcal X_S$ by removing candidates that violate capacity, parallelism,
-runtime support, or site policy.
+covering sequence and batched-token budgets ($\mathcal B$), KV-cache policy
+($\mathcal K$), prefill and batching policy ($\mathcal P$), and fixed or
+tunable precision/power controls ($\mathcal F$).  A deterministic compiler
+produces the scenario-feasible pool $\mathcal X_S$ by removing candidates that
+violate memory capacity, runtime support, or site policy.
 
-For $m$ objectives and evidence levels $\ell\in\{0,\ldots,4\}$, let
-$\mathbf f^{(\ell)}(x)\in\mathbb R^m$ denote the noisy response obtained by
-querying candidate $x$ at level $\ell$.  Level 4 executes the target workload
-and allocation and is the reference fidelity.  Our primary minimization vector
-is
+For $m$ objectives and evidence stages
+$e\in\mathcal E=\{\textsc{Sandbox},\textsc{Probe},\textsc{Verify}\}$, let
+$\mathbf f^{(e)}(x)\in\mathbb R^m$ denote the noisy response obtained by
+querying candidate $x$ at stage $e$.  \textsc{Verify} executes the full target
+workload on the target GPU and is the reference fidelity.  Our primary
+minimization vector is
 \begin{equation}
-\mathbf f^{(4)}(x)=
+\mathbf f^{(v)}(x)=
 \langle E_{\rm tok},T_{\rm TTFT},T_{\rm TPOT},-\Theta\rangle,
 \end{equation}
-where latency entries denote the scenario-specified tail statistics and
-$\Theta$ is goodput or throughput.  If precision or model variants are part of
-the search, their quality metric is enforced as a constraint rather than traded
-silently for energy.  Let $q_S(x)=1$ when the L4 response distribution
+where latency entries denote scenario-specified tail statistics and $\Theta$
+is goodput or throughput.  If precision or model variants are part of the
+search, their quality metric is enforced as a constraint rather than traded
+silently for energy.  Let $q_S(x)=1$ when the verified response distribution
 satisfies every service and quality constraint in $C$, and let
-$\mathbf u\prec\mathbf v$
-denote Pareto dominance under minimization.  The unknown target set is
+$\mathbf u\prec\mathbf v$ denote Pareto dominance under minimization.  The
+unknown target set is
 \begin{align}
 \mathcal P_S^*=\{x\in\mathcal X_S:
 &q_S(x)=1,\ \nexists x'\in\mathcal X_S\ \text{s.t.}\nonumber\\[-2pt]
 &q_S(x')=1\land
-\mathbf f^{(4)}(x')\prec\mathbf f^{(4)}(x)\}.
+\mathbf f^{(v)}(x')\prec\mathbf f^{(v)}(x)\}.
 \label{eq:true-frontier}
 \end{align}
 
 At step $t$, the controller has evidence
-$\mathcal D_t=\{(x_i,\ell_i,y_i,c_i,z_i)\}_{i=1}^t$, where $y_i$ is a
+$\mathcal D_t=\{(x_i,e_i,y_i,c_i,z_i)\}_{i=1}^t$, where $y_i$ is a
 measured or simulated outcome, $c_i$ is realized GPU-hour cost, and $z_i$
-records execution status and provenance.  An action $a_t=(x_t,\ell_t)$ yields
-an observation and updates a belief over every L4 response
-$\mathbf f^{(4)}(x)$.  The returned set $\widehat{\mathcal P}_T$ contains only
-L4-verified candidates that satisfy the measured SLO and are nondominated among
-the verified candidates; it is an estimate of, not an assumed subset of,
-$\mathcal P_S^*$.
+records execution status and provenance.  An action $a_t=(x_t,e_t)$ yields an
+observation and updates a belief over every verified response
+$\mathbf f^{(v)}(x)$.  The returned set $\widehat{\mathcal P}_T$ contains only
+fully verified candidates that satisfy the measured SLO and are nondominated
+among the verified candidates; it is an estimate of, not an assumed subset
+of, $\mathcal P_S^*$.
 
 For a search policy $\pi$, we minimize a terminal decision loss
 \begin{equation}
@@ -72,4 +71,4 @@ false SLO feasibility and unverified release.  In bounded replay spaces we
 compute $\mathcal P_S^*$ exhaustively; on live spaces we report verified
 hypervolume, feasible precision/recall over the measured pool, and independent
 holdout verification.  All search curves use cumulative real GPU-hours because
-a replay query and a multi-node trace are not equivalent observations.
+a CPU query, short probe, and full target run are not equivalent observations.

@@ -3,53 +3,52 @@
 \begin{tikzpicture}[
   x=1cm,y=1cm,
   every node/.style={font=\sffamily},
-  level/.style={draw=tpGray,rounded corners=2pt,minimum height=2.55cm,
-    text width=2.62cm,align=center,inner sep=3pt,font=\scriptsize},
-  flow/.style={-{Stealth[length=2.3mm]},line width=0.9pt,draw=tpGray}
+  level/.style={draw=tpGray,rounded corners=2pt,minimum height=2.72cm,
+    text width=4.12cm,align=center,inner sep=4pt,font=\scriptsize},
+  guard/.style={draw=tpGray!65,rounded corners=1.5pt,fill=white,
+    text width=1.24cm,align=center,inner sep=2pt,font=\scriptsize\bfseries},
+  flow/.style={-{Stealth[length=2.4mm]},line width=0.95pt,draw=tpGray}
 ]
-  \node[level,fill=tpGrayLight] (l0) at (1.55,0.35)
-    {\textbf{L0: CPU Sandbox}\\[2pt]
-     0 GPUs; 12 frozen predictions\\[2pt]
-     energy $\rho=\LzeroEnergySpearman{}$\\
+  \node[level,fill=tpGrayLight] (l0) at (2.35,0.50)
+    {\textbf{CPU Sandbox}\quad\textcolor{tpGray}{artifact L0}\\[3pt]
+     \textbf{Cost:} 0 target-GPU hours\\
+     12 frozen predictions\\[2pt]
+     energy $\rho=\LzeroEnergySpearman{}$;
      TTFT $\rho=\LzeroTTFTSpearman{}$\\
-     \textcolor{tpRoseDark}{Pareto recall: \LzeroParetoRecall{}}};
-  \node[level,fill=tpBlueLight] (l1) at (4.90,0.35)
-    {\textbf{L1: Short Probe}\\[2pt]
-     1 GPU; 64 requests\\
+     \textcolor{tpRoseDark}{verified-Pareto recall: \LzeroParetoRecall{}}\\[2pt]
+     \emph{simulated; never releasable}};
+
+  \node[guard] (g1) at (5.25,0.50) {SLO or\\ranking\\uncertain};
+
+  \node[level,fill=tpBlueLight] (l1) at (8.16,0.50)
+    {\textbf{Short H100 Probe}\quad\textcolor{tpBlueDark}{artifact L1}\\[3pt]
+     \textbf{Cost:} 64 requests per run\\
      \ConfigurationLoneRuns{} measured runs\\[2pt]
      energy MAPE \LoneEnergyMAPE{}\\
-     \textcolor{tpTealDark}{Pareto recall: \LoneParetoRecall{}}};
-  \node[level,fill=tpTealLight] (l2) at (8.25,0.35)
-    {\textbf{L2: Node Probe}\\[2pt]
-     2--8 GPUs\\
-     TP / PP collectives\\
-     NVLink / PCIe + KV\\[2pt]
-     \emph{not exercised here}};
-  \node[level,fill=tpGoldLight] (l3) at (11.60,0.35)
-    {\textbf{L3: Scale Probe}\\[2pt]
-     2+ nodes\\
-     fabric + placement\\
-     synchronization gaps\\[2pt]
-     \emph{not exercised here}};
-  \node[level,fill=tpRoseLight] (l4) at (14.95,0.35)
-    {\textbf{L4: Verification}\\[2pt]
-     target 256-request trace\\
-     \ConfigurationLfourRuns{} measured runs\\[2pt]
-     \textcolor{tpRoseDark}{one verified Pareto point}\\
-     energy $-\ParetoEnergyReduction{}$ vs. expert};
+     \textcolor{tpTealDark}{verified-Pareto recall: \LoneParetoRecall{}}\\[2pt]
+     \emph{measured; provisional only}};
 
-  \draw[flow] (l0.east) -- node[above,font=\scriptsize] {screen} (l1.west);
-  \draw[flow] (l1.east) -- (l2.west);
-  \draw[flow] (l2.east) -- (l3.west);
-  \draw[flow] (l3.east) -- node[above,font=\scriptsize] {verify} (l4.west);
+  \node[guard] (g2) at (11.07,0.50) {top-$k$\\within\\budget};
+
+  \node[level,fill=tpRoseLight] (l4) at (13.98,0.50)
+    {\textbf{Full H100 Verify}\quad\textcolor{tpRoseDark}{artifact L4}\\[3pt]
+     \textbf{Cost:} 256-request target run\\
+     \ConfigurationLfourRuns{} measured runs\\[2pt]
+     one verified Pareto configuration\\
+     energy $-\ParetoEnergyReduction{}$ vs. expert\\[2pt]
+     \emph{verified; recommendation releasable}};
+
+  \draw[flow] (l0.east) -- (g1.west);
+  \draw[flow] (g1.east) -- (l1.west);
+  \draw[flow] (l1.east) -- (g2.west);
+  \draw[flow] (g2.east) -- (l4.west);
   \draw[-{Stealth[length=2.5mm]},very thick,tpRose]
-    (0.05,-1.35) -- node[below,font=\scriptsize\bfseries,text=tpRoseDark]
-    {increasing topology coverage, fidelity, and GPU-hour cost} (16.45,-1.35);
+    (0.12,-1.31) -- node[below,font=\scriptsize\bfseries,text=tpRoseDark]
+    {increasing fidelity and GPU-hour cost; decreasing release risk} (16.20,-1.31);
 \end{tikzpicture}
-\caption{The \sandbox{} evidence contract and its single-H100 instantiation.
-The current study exercises L0, L1, and L4; L2/L3 remain explicit escalation
-levels for future multi-GPU and multi-node campaigns.  L0 ranks energy but
-misses the Pareto decision, L1 recovers the true candidate without false
-negatives, and L4 removes false positives before release.}
+\caption{The three operational stages evaluated on one H100.  Stable artifact
+identifiers L0, L1, and L4 preserve provenance, while the paper uses semantic
+stage names.  The Sandbox screens cheaply, the Probe avoids false negatives,
+and full verification removes false positives before release.}
 \label{fig:calibration}
 \end{figure*}

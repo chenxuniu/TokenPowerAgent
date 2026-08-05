@@ -2,7 +2,7 @@
 
 The evaluation separates evidence fidelity from acquisition-policy quality.
 The first asks whether cheap evidence preserves the decision eventually observed
-at L4.  The second asks whether a controller reaches that verified decision
+by full target-workload verification.  The second asks whether a controller reaches that verified decision
 with fewer GPU-hours.  Simulation never defines its own ground truth.
 
 \subsection{Research Questions}
@@ -15,12 +15,12 @@ and concurrency change?
 predictions where they transfer and abstain where performance fidelity fails?
 
 \textbf{RQ3 -- Frontier recovery.}  Across serving configurations, what does
-each evidence level preserve about the L4 SLO-feasible Pareto set, and what
+each exercised evidence stage preserve about the verified SLO-feasible Pareto set, and what
 quality can acquisition policies recover per GPU-hour?
 
 \textbf{RQ4 -- Bounded autonomy.}  Does the runtime enforce budgets, preserve
 evidence labels, recover from failures, reject malformed planner output, and
-withhold recommendations lacking L4 verification?
+withhold recommendations lacking full verification?
 
 \subsection{Workload-Transfer Study}
 
@@ -46,7 +46,7 @@ MAPE is $\leq20\%$ and otherwise abstains below four.
 
 \subsection{Frozen Configuration Corpus}
 
-The configuration study fixes the model, GPU, precision, parallelism, 700-W
+The configuration study fixes the model, GPU, precision, TP$=$PP$=$DP$=$1, 700-W
 limit, and a 2048-input/128-output workload at concurrency 32.  Its
 \ConfigurationCandidates{} candidates vary maximum sequences
 ($8,16,32$), maximum batched tokens ($2048,4096,8192$), and chunked prefill;
@@ -54,12 +54,14 @@ two no-chunk controls and the operator default
 ($256$ sequences, $8192$ tokens, chunking enabled) complete the grid.  The SLO
 requires P95 TTFT $\leq1600$ ms and P95 TPOT $\leq20$ ms.
 
-All L0 predictions and their manifest are frozen first.  L1 runs 64 requests as
-a short probe, whereas L4 runs the preregistered 256-request target workload.
-Each candidate--level pair has three repeats in a cyclic-balanced schedule, and
+All CPU Sandbox predictions and their manifest are frozen first.  Probe runs
+use 64 requests, whereas Verify runs use the preregistered 256-request target
+workload.
+Each candidate--stage pair has three repeats in a cyclic-balanced schedule, and
 scheduled server restarts isolate configuration changes.  This yields
-\ConfigurationLoneRuns{} L1 and \ConfigurationLfourRuns{} L4 runs.  Median L4
-records define the exhaustive SLO-feasible oracle.  We report MAPE, Spearman
+\ConfigurationLoneRuns{} Probe and \ConfigurationLfourRuns{} Verify runs.
+Median Verify records define the exhaustive SLO-feasible oracle.  We report
+MAPE, Spearman
 correlation, pairwise ordering, frontier precision/recall, and realized
 GPU-hours.  The full corpus costs \ConfigurationTotalGPUHours{} GPU-h to build;
 this offline cost establishes an oracle and is not charged as an online-policy
@@ -67,17 +69,18 @@ result.
 
 \subsection{Sealed Policy Replay}
 
-The corpus contains \ConfigurationReplayRows{} rows: 12 frozen L0 predictions
-and 72 measured L1/L4 records.  A policy sees a row only after requesting its
-candidate--fidelity key, and all policies share the same corpus, seeds, declared
-level costs, 0.12-GPU-h online budget, and reserved top-two verification rule.
+The corpus contains \ConfigurationReplayRows{} rows: 12 frozen Sandbox
+predictions and 72 measured Probe/Verify records.  A policy sees a row only
+after requesting its candidate--stage key, and all policies share the same
+corpus, seeds, declared stage costs, 0.12-GPU-h online budget, and reserved
+top-two verification rule.
 We preregister 500 seeded, 20-step episodes for the \ipig{} proxy, random,
 cost-blind information gain, and cheapest-first acquisition.  Metrics are
 verified Pareto precision/recall, regret, GPU-hours to first oracle hit, total
-GPU-hours, failed actions, and unnecessary L4 escalations.  The replay runner
-constructs its oracle only from sealed L4 records and embeds scenario and corpus
+GPU-hours, failed actions, and unnecessary Verify escalations.  The replay runner
+constructs its oracle only from sealed Verify records and embeds scenario and corpus
 hashes in the report.  Each episode independently bootstraps the
-\PolicyHardwareRepeats{} measured repeats for every candidate--fidelity key via
+\PolicyHardwareRepeats{} measured repeats for every candidate--stage key via
 a stable hash of episode seed and action; the mapping is shared across policies
 as common random numbers.  Thus the \PolicyEpisodes{} episodes per policy are a
 sensitivity analysis over empirical repeats, not \PolicyEpisodes{} independent
@@ -89,5 +92,5 @@ Unit and end-to-end tests inject missing evidence, malformed LLM JSON, launch
 failure, budget exhaustion, and SLO-violating verification.  A failed job is
 charged its declared upper-bound cost and becomes immutable; it cannot disappear
 from accounting.  The LLM selects only a semantic subgoal, while candidate
-choice, command routing, budget arithmetic, Pareto filtering, and the final L4
+choice, command routing, budget arithmetic, Pareto filtering, and the final Verify
 gate remain deterministic.

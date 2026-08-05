@@ -30,42 +30,42 @@ energy predictor into an unsupported latency recommendation.
 
 \input{tables/scope-results}
 
-\subsection{RQ3: L1 Recovers What L0 Misses}
+\subsection{RQ3: The Probe Recovers What the Sandbox Misses}
 
 All \ConfigurationMeasuredRuns{} preregistered configuration runs succeed;
 frozen predictions precede measurements and all \ConfigurationRawArtifacts{}
 raw-artifact entries verify.  Table~\ref{tab:configuration-results} shows the
-central result.  L0 is useful but insufficient: its energy rank correlation is
+central result.  The CPU Sandbox is useful but insufficient: its energy rank correlation is
 \LzeroEnergySpearman{} with \LzeroEnergyPairwise{} pairwise accuracy, yet TTFT
 correlation is $\LzeroTTFTSpearman{}$.  That inversion changes SLO feasibility,
-so the L0 frontier selects the expert default and has
-\LzeroParetoRecall{} recall of the L4 Pareto set.  Releasing the L0 answer would
+so the Sandbox frontier selects the expert default and has
+\LzeroParetoRecall{} recall of the verified Pareto set.  Releasing that answer would
 therefore be wrong despite its informative energy ranking.
 
-The 64-request L1 probe sharply improves decision fidelity.  Energy,
+The 64-request Probe sharply improves decision fidelity.  Energy,
 throughput, TPOT, and TTFT MAPE fall to \LoneEnergyMAPE{},
 \LoneThroughputMAPE{}, \LoneTPOTMAPE{}, and \LoneTTFTMAPE{}.  Its provisional
-frontier contains three candidates and includes the true L4 point, giving
-\LoneParetoRecall{} recall and \LoneParetoPrecision{} precision.  L1 can thus
-screen without a false negative, while L4 is still needed to remove two false
+frontier contains three candidates and includes the true verified point, giving
+\LoneParetoRecall{} recall and \LoneParetoPrecision{} precision.  The Probe can thus
+screen without a false negative, while full verification is still needed to remove two false
 positives.
 
-Among \ConfigurationSLOFeasible{} L4-feasible candidates, the unique verified
+Among \ConfigurationSLOFeasible{} Verify-feasible candidates, the unique verified
 point is \VerifiedParetoConfig{}.  Relative to the preregistered expert default,
 it reduces energy by \ParetoEnergyReduction{}, raises throughput by
 \ParetoThroughputGain{}, lowers TTFT by \ParetoTTFTReduction{}, and lowers TPOT
 by \ParetoTPOTReduction{}.  Average power is slightly higher
 (\ParetoPower{} versus \ExpertPower{} W), so the energy benefit comes from
 finishing the workload sooner rather than suppressing instantaneous power.  The
-exhaustive corpus costs \ConfigurationLoneGPUHours{} GPU-h at L1 and
-\ConfigurationLfourGPUHours{} GPU-h at L4; it supplies a sealed oracle for the
+exhaustive corpus costs \ConfigurationLoneGPUHours{} GPU-h for Probe runs and
+\ConfigurationLfourGPUHours{} GPU-h for Verify runs; it supplies a sealed oracle for the
 predeclared policy replay rather than counting those GPU-hours as agent savings.
 
 \input{tables/configuration-results}
 
 \subsubsection{Policy replay.}
 Table~\ref{tab:agent-results} reports the corrected common-random-number
-bootstrap.  \ipig{} reaches the unique median-L4 oracle in \IPIGOracleHit{} of
+bootstrap.  \ipig{} reaches the unique median verified oracle in \IPIGOracleHit{} of
 episodes, \IPIGRandomHitGain{} more often than random, while using
 \IPIGRandomGPUSaving{} fewer total GPU-hours and reaching its first oracle hit
 \IPIGRandomFirstHitSaving{} earlier.  Its mean energy regret is
@@ -77,9 +77,9 @@ The strongest caveat is equally informative: cheapest-first reproduces
 \ipig{}'s verified decisions at \CheapestIPIGGPUSaving{} lower mean cost in
 this 12-candidate, single-GPU space.  The result supports \ipig{} over random
 and cost-blind acquisition under the declared 20-step budget, but not universal
-policy superiority.  It also motivates richer topology and placement spaces,
-where a static fidelity ladder has fewer opportunities to coincide with the
-agent.  No replay episode contains a failed action.
+policy superiority.  Larger serving spaces may provide more opportunity for an
+adaptive policy to differ from a static stage order.  No replay episode contains
+a failed action.
 
 \input{tables/agent-results}
 
@@ -88,7 +88,7 @@ agent.  No replay episode contains a failed action.
 All \AutomatedTests{} automated tests pass.  Injected executor failure becomes
 a failed evidence record charged at declared cost, and the next event enters
 \textsc{Repair}.  Malformed LLM output triggers a recorded rule-based fallback.
-Replay and topology tools cannot relabel L0/L2 outputs as verified, budget
+Replay and CPU-prediction tools cannot relabel Sandbox outputs as verified, budget
 overruns raise a hard error, and recommendations are computed only from
-successful L4 evidence satisfying the SLO.  These tests establish mechanism
+successful Verify evidence satisfying the SLO.  These tests establish mechanism
 enforcement, not the semantic quality of a particular planner model.

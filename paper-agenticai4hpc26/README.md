@@ -3,7 +3,7 @@
 This directory contains the IEEE-format Workshop paper:
 
 > **TokenPowerAgent: Evidence-Gated Multi-Fidelity Search for Energy-Efficient
-> LLM Inference on HPC Clusters**
+> LLM Inference on Single-GPU HPC Nodes**
 
 The target is the [AgenticAI4HPC 2026
 Workshop](https://ornl.github.io/events/agenticai4hpc2026/), co-located with
@@ -12,9 +12,9 @@ including references, in IEEE conference format.
 
 This paper is intentionally distinct from `../paper-draft/`, the longer-term
 MLSys manuscript. The Workshop paper contributes the implemented bounded agent
-runtime, its evidence-gating protocol, and a sealed single-H100 configuration
-corpus. It does not claim multi-node accuracy or policy superiority before the
-separate replay comparison is sealed.
+runtime, its three-stage single-GPU evidence path, and a sealed H100
+configuration corpus. It does not claim multi-GPU, multi-node, or cross-hardware
+accuracy.
 
 ## Build
 
@@ -41,7 +41,7 @@ workload-transfer holdouts:
   (9.27% MAPE) and abstains below concurrency 4 (64.80% MAPE).
 
 These 51 runs validate the CPU-first workload model and release gate. A separate
-12-candidate configuration corpus contains 72 balanced L1/L4 measurements and
+12-candidate configuration corpus contains 72 balanced Probe/Verify measurements and
 190 hash-verified raw artifacts. L0 preserves energy rank (0.884 Spearman) but
 misses the L4 frontier; L1 obtains 1.15% energy MAPE and 100% frontier recall;
 L4 verifies `seq32-bt2048-chunk` as the unique SLO-feasible Pareto point. The
@@ -69,8 +69,9 @@ paper-agenticai4hpc26/
 
 ## Editing Rules
 
-1. Preserve the evidence boundary: L0 is simulated, L1--L4 are measured, and
-   recommendations require successful L4 evidence.
+1. Preserve the evidence boundary: Sandbox/L0 is simulated, Probe/L1 is
+   measured but provisional, and recommendations require successful full
+   Verify/L4 evidence.
 2. Populate agent-search macros only from the sealed H100 corpus and replay
    report. Never use the synthetic three-candidate demo as a paper result.
 3. Keep all policies on the same candidate corpus, seed set, and GPU-hour

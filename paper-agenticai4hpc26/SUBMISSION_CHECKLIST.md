@@ -32,9 +32,10 @@ Last checked against the official Workshop page: August 4, 2026.
 - [x] Replace every visible result placeholder and re-read the abstract, RQ3 results,
       limitations, and conclusion for claim consistency.
 
-The 72-run corpus establishes the L0/L1/L4 fidelity result and verified
-frontier. The corrected CPU replay is complete; remaining work is author,
-submission-system, and final artifact administration.
+The 72-run corpus establishes the Sandbox/Probe/Verify result and verified
+frontier. Stable artifact identifiers remain L0/L1/L4. The corrected CPU replay
+is complete; remaining work is author, submission-system, and final artifact
+administration.
 
 ## Reproducibility Gates
 
@@ -43,7 +44,8 @@ submission-system, and final artifact administration.
 - [x] The runtime records planner source, selected candidate and fidelity,
       expected and realized cost, uncertainty/frontier snapshots, failure
       reason, and fallback behavior.
-- [x] L4 verification is deterministic and cannot be bypassed by the LLM.
+- [x] Full Verify/L4 execution is deterministic and cannot be bypassed by the
+      LLM.
 - [x] All 70 automated tests pass.
 - [x] Archive the final configuration corpus and benchmark report locally and
       download a checksum-matched copy from the cluster.
