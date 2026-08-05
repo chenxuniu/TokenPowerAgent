@@ -497,7 +497,7 @@ def run_configuration_campaign(
     for index, record in enumerate(records.records):
         action = actions[index]
         point = point_map[str(action["candidate_id"])]
-        _assert_existing_record(
+        verify_configuration_measurement_record(
             campaign, point, action, record, artifacts
         )
 
@@ -770,7 +770,7 @@ def _annotate_measurement(
     return replace(record, provenance=provenance)
 
 
-def _assert_existing_record(
+def verify_configuration_measurement_record(
     campaign: ConfigurationCampaign,
     point: ConfigurationPoint,
     action: Mapping[str, Any],

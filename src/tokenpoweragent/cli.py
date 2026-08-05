@@ -29,6 +29,10 @@ from tokenpoweragent.configuration_campaign import (
     ConfigurationCampaignError,
     freeze_configuration_campaign,
 )
+from tokenpoweragent.configuration_analysis import (
+    ConfigurationAnalysisError,
+    build_configuration_campaign_report,
+)
 from tokenpoweragent.configuration_runner import (
     ConfigurationRunnerError,
     DockerVLLMServerManager,
@@ -484,6 +488,34 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-sudo",
         action="store_true",
         help="run Docker and power-limit commands without sudo",
+    )
+
+    validate_config_campaign = subparsers.add_parser(
+        "validate-config-campaign",
+        help="validate a completed configuration corpus and build its L4 oracle",
+    )
+    validate_config_campaign.add_argument("--campaign", type=Path, required=True)
+    validate_config_campaign.add_argument(
+        "--predictions", type=Path, required=True
+    )
+    validate_config_campaign.add_argument("--schedule", type=Path, required=True)
+    validate_config_campaign.add_argument("--summary", type=Path, required=True)
+    validate_config_campaign.add_argument(
+        "--freeze-manifest", type=Path, required=True
+    )
+    validate_config_campaign.add_argument(
+        "--measurements", type=Path, required=True
+    )
+    validate_config_campaign.add_argument("--output", type=Path, required=True)
+    validate_config_campaign.add_argument("--corpus", type=Path, required=True)
+    validate_config_campaign.add_argument("--artifact-list", type=Path)
+    validate_config_campaign.add_argument("--artifact-manifest", type=Path)
+    validate_config_campaign.add_argument(
+        "--include-artifact",
+        action="append",
+        type=Path,
+        default=[],
+        help="include an additional environment or run-log file in raw hashes",
     )
 
     run_campaign = subparsers.add_parser(
@@ -1064,6 +1096,42 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 "cannot run configuration campaign: %s" % exc
             ) from exc
         print(json.dumps(report, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "validate-config-campaign":
+        try:
+            report = build_configuration_campaign_report(
+                campaign_path=args.campaign,
+                predictions_path=args.predictions,
+                schedule_path=args.schedule,
+                summary_path=args.summary,
+                freeze_manifest_path=args.freeze_manifest,
+                measurements_path=args.measurements,
+                report_path=args.output,
+                corpus_path=args.corpus,
+                artifact_list_path=args.artifact_list,
+                artifact_manifest_path=args.artifact_manifest,
+                include_artifacts=args.include_artifact,
+            )
+        except (
+            ConfigurationAnalysisError,
+            ConfigurationCampaignError,
+            OSError,
+        ) as exc:
+            raise SystemExit(
+                "cannot validate configuration campaign: %s" % exc
+            ) from exc
+        print(
+            "validated %d frozen measurements: L4 Pareto=%s; "
+            "publication_ready=%s; wrote %s and %s"
+            % (
+                report["protocol"]["measurement_count"],
+                ",".join(report["oracle"]["pareto_ids"]),
+                str(report["summary"]["publication_ready"]).lower(),
+                args.output,
+                args.corpus,
+            )
+        )
         return 0
 
     if args.command == "run-serving-campaign":

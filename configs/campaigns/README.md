@@ -79,3 +79,29 @@ candidate-repeat block, verifies the live image and serving knobs before each
 measurement, and atomically checkpoints every action. Continue after a clean
 launch check or an SSH interruption by repeating the command with `--resume`;
 omit `--max-actions` to execute every remaining action.
+
+After all 72 actions complete, validate the schedule, chronology, evidence
+labels, serving contract, repeats, and raw artifacts before policy replay:
+
+```bash
+tokenpoweragent validate-config-campaign \
+  --campaign configs/campaigns/qwen2.5-7b-h100-config-search-v1.json \
+  --predictions experiments/results/config-search-v1-l0-predictions.jsonl \
+  --schedule experiments/results/config-search-v1-schedule.json \
+  --summary experiments/results/config-search-v1-freeze-summary.json \
+  --freeze-manifest experiments/results/config-search-v1-freeze.sha256 \
+  --measurements experiments/results/config-search-v1-measurements.jsonl \
+  --output experiments/results/config-search-v1-validation.json \
+  --corpus experiments/results/config-search-v1-replay-corpus.jsonl \
+  --artifact-list experiments/results/config-search-v1-artifacts.list \
+  --artifact-manifest experiments/results/config-search-v1-artifacts.sha256 \
+  --include-artifact experiments/results/config-search-v1-run.log \
+  --include-artifact experiments/results/environment/h100-config-search-preflight-20260804.txt
+```
+
+The resulting report uses the median of three successful L4 repeats to define
+the SLO-feasible energy--throughput oracle. It reports L0/L1 error, rank
+correlation, pairwise ordering, and Pareto precision/recall against that oracle.
+The replay corpus keeps L0 predictions and measured L1/L4 records distinctly
+labeled; the artifact manifest covers the freeze, measurements, DCGM traces,
+client outputs, server logs, run log, and environment snapshot.

@@ -10,6 +10,10 @@ from tokenpoweragent.configuration_campaign import (
     freeze_configuration_campaign,
     sha256_file,
 )
+from tokenpoweragent.configuration_analysis import (
+    ConfigurationAnalysisError,
+    build_configuration_campaign_report,
+)
 from tokenpoweragent.configuration_runner import (
     DockerVLLMServerManager,
     run_configuration_campaign,
@@ -87,6 +91,9 @@ class FakeServerManager:
 
     def capture_current_logs(self) -> None:
         self.capture_calls += 1
+        if self.current_log_path is not None:
+            self.current_log_path.parent.mkdir(parents=True, exist_ok=True)
+            self.current_log_path.write_text("fake vLLM server log\n", encoding="utf-8")
 
 
 class FakeConfigurationExecutor:
@@ -133,6 +140,16 @@ class FakeConfigurationExecutor:
         self.calls.append(
             (candidate.candidate_id, level, seed, dict(candidate.config))
         )
+        artifact_index = len(self.calls) - 1
+        telemetry_path = self.manager.tmp_path / (
+            "telemetry-%03d.txt" % artifact_index
+        )
+        client_path = self.manager.tmp_path / (
+            "client-%03d.txt" % artifact_index
+        )
+        telemetry_path.parent.mkdir(parents=True, exist_ok=True)
+        telemetry_path.write_text("GPU 0 fake telemetry\n", encoding="utf-8")
+        client_path.write_text("fake benchmark output\n", encoding="utf-8")
         energy = 400.0 + candidate.config["max_num_seqs"]
         kind = (
             EvidenceKind.VERIFIED
@@ -159,6 +176,8 @@ class FakeConfigurationExecutor:
                 "server_command": ["vllm", "serve"],
                 "server_configuration": self._configuration(),
                 "power_limit_readback_w": self.campaign.power_limit_w,
+                "telemetry_path": str(telemetry_path),
+                "client_output_path": str(client_path),
                 "workload": {
                     "input_len": candidate.config["input_len"],
                     "output_len": candidate.config["output_len"],
@@ -345,6 +364,116 @@ def test_frozen_configuration_runner_checkpoints_and_resumes(
     ) == 36
     assert sum(record.level == EvidenceLevel.L1 for record in records) == 36
     assert sum(record.level == EvidenceLevel.L4 for record in records) == 36
+
+
+def test_configuration_analysis_builds_verified_oracle_and_replay_corpus(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(ROOT)
+    paths = _freeze(tmp_path / "freeze")
+    campaign = ConfigurationCampaign.load(CAMPAIGN_PATH)
+    manager = FakeServerManager(campaign, tmp_path / "raw")
+    executor = FakeConfigurationExecutor(campaign, manager)
+    measurements_path = tmp_path / "measurements.jsonl"
+    run_log = tmp_path / "run.log"
+    run_log.write_text("campaign_complete=true\n", encoding="utf-8")
+    run_configuration_campaign(
+        campaign_path=CAMPAIGN_PATH,
+        predictions_path=paths["predictions_path"],
+        schedule_path=paths["schedule_path"],
+        summary_path=paths["summary_path"],
+        manifest_path=paths["manifest_path"],
+        output_path=measurements_path,
+        executor=executor,
+        server_manager=manager,
+    )
+
+    report_path = tmp_path / "report.json"
+    corpus_path = tmp_path / "corpus.jsonl"
+    artifact_list_path = tmp_path / "artifacts.list"
+    artifact_manifest_path = tmp_path / "artifacts.sha256"
+    report = build_configuration_campaign_report(
+        campaign_path=CAMPAIGN_PATH,
+        predictions_path=paths["predictions_path"],
+        schedule_path=paths["schedule_path"],
+        summary_path=paths["summary_path"],
+        freeze_manifest_path=paths["manifest_path"],
+        measurements_path=measurements_path,
+        report_path=report_path,
+        corpus_path=corpus_path,
+        artifact_list_path=artifact_list_path,
+        artifact_manifest_path=artifact_manifest_path,
+        include_artifacts=(run_log,),
+    )
+
+    assert report["protocol"]["campaign_complete"] is True
+    assert report["protocol"]["measurement_count"] == 72
+    assert report["protocol"]["level_counts"] == {"L1": 36, "L4": 36}
+    assert report["protocol"]["status_counts"] == {"succeeded": 72}
+    assert report["protocol"]["restart_reason_counts"] == {
+        "none": 36,
+        "scheduled": 36,
+    }
+    assert report["protocol"]["raw_artifacts"]["verified"] is True
+    assert report["protocol"]["raw_artifacts"]["entry_count"] == 189
+    assert report["summary"]["publication_ready"] is True
+    assert len(report["candidates"]) == 12
+    assert report["oracle"]["pareto_ids"]
+    assert len(EvidenceStore.read_jsonl(corpus_path).records) == 84
+    for line in artifact_manifest_path.read_text(encoding="utf-8").splitlines():
+        expected, artifact = line.split("  ", 1)
+        assert sha256_file(Path(artifact)) == expected
+
+
+def test_configuration_analysis_rejects_tampered_frozen_prediction(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(ROOT)
+    paths = _freeze(tmp_path / "freeze")
+    campaign = ConfigurationCampaign.load(CAMPAIGN_PATH)
+    manager = FakeServerManager(campaign, tmp_path / "raw")
+    executor = FakeConfigurationExecutor(campaign, manager)
+    measurements_path = tmp_path / "measurements.jsonl"
+    run_configuration_campaign(
+        CAMPAIGN_PATH,
+        paths["predictions_path"],
+        paths["schedule_path"],
+        paths["summary_path"],
+        paths["manifest_path"],
+        measurements_path,
+        executor,
+        manager,
+    )
+    predictions = EvidenceStore.read_jsonl(paths["predictions_path"])
+    first_measurement = EvidenceStore.read_jsonl(measurements_path).records[0]
+    late_predictions = EvidenceStore(
+        [
+            EvidenceRecord(
+                candidate_id=record.candidate_id,
+                level=record.level,
+                metrics=record.metrics,
+                gpu_hours=record.gpu_hours,
+                kind=record.kind,
+                provenance=record.provenance,
+                created_at=first_measurement.created_at,
+            )
+            for record in predictions.records
+        ]
+    )
+    late_path = tmp_path / "late-predictions.jsonl"
+    late_predictions.write_jsonl(late_path)
+
+    with pytest.raises(ConfigurationAnalysisError, match="freeze manifest"):
+        build_configuration_campaign_report(
+            campaign_path=CAMPAIGN_PATH,
+            predictions_path=late_path,
+            schedule_path=paths["schedule_path"],
+            summary_path=paths["summary_path"],
+            freeze_manifest_path=paths["manifest_path"],
+            measurements_path=measurements_path,
+            report_path=tmp_path / "report.json",
+            corpus_path=tmp_path / "corpus.jsonl",
+        )
 
 
 def test_configuration_runner_resume_restarts_incomplete_block(
