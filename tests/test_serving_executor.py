@@ -131,6 +131,26 @@ def test_serving_contract_rejects_unknown_dataset_split(tmp_path) -> None:
         )
 
 
+@pytest.mark.parametrize(
+    "dataset_split",
+    (
+        "calibration",
+        "validation",
+        "holdout",
+        "diagnostic",
+        "configuration-search",
+        "configuration-confirmation",
+    ),
+)
+def test_serving_contract_accepts_registered_dataset_splits(
+    dataset_split: str,
+) -> None:
+    contract = ServingSandboxExecutor._serving_contract(
+        serving_candidate(dataset_split=dataset_split)
+    )
+    assert contract.dataset_split == dataset_split
+
+
 def test_serving_client_rejects_non_server_url(tmp_path) -> None:
     executor = ServingSandboxExecutor(telemetry_dir=tmp_path)
     with pytest.raises(SandboxExecutionError, match="base_url"):

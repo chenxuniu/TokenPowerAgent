@@ -805,6 +805,7 @@ class ServingSandboxExecutor(SandboxExecutor):
             "holdout",
             "diagnostic",
             "configuration-search",
+            "configuration-confirmation",
         }:
             raise SandboxExecutionError("candidate has invalid dataset_split")
 
