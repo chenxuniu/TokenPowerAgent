@@ -71,7 +71,7 @@ paper-agenticai4hpc26/
   main.tex                 IEEE conference entry point
   references.bib           verified bibliography
   sections/                one source file per section
-  figures/                 TikZ system figures and vector result panels
+  figures/                 LaTeX wrappers and vector system/result panels
   tables/                  scope and exact-value result tables
   results/metrics.tex      single source for measured values
   results/*summary.json    compact sealed controller evidence
@@ -85,8 +85,9 @@ paper-agenticai4hpc26/
 The 10-page paper uses plots for trends and decision geometry, while retaining
 tables where exact values or release thresholds matter:
 
-- `fig4_parity.pdf` replaces the former evidence-summary table and exposes all
-  17 blind workload predictions, uncertainty intervals, and the frozen gate;
+- `fig4_prediction_error.pdf` replaces the former evidence-summary table and
+  exposes signed error for all 17 blind workload predictions against the
+  frozen $\pm15\%$ gate;
 - `fig6a_rank_inversion.pdf` and `fig6b_objective_space.pdf` form the central
   configuration-fidelity figure, paired with the compact verified-value table;
 - `fig7a_budget_response.pdf` and `fig8a_planner_accuracy.pdf` report the two

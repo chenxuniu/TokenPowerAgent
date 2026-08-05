@@ -1,9 +1,11 @@
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/results/fig4_parity.pdf}
-\caption{Frozen CPU predictions versus unseen H100 measurements for both
-holdouts.  Vertical bars are the frozen prediction intervals; dashed lines
-mark the preregistered $\pm15\%$ energy gate.  All 17 observed medians lie
-inside the gate, while rank correlations remain 0.976 and 0.933.}
+\includegraphics[width=\columnwidth]{figures/results/fig4_prediction_error.pdf}
+\caption{Signed error of frozen CPU energy predictions on two unseen H100
+holdouts, plotted against observed median energy on a logarithmic horizontal
+axis.  Signed error is $(\text{prediction}-\text{observation})/
+\text{observation}$, so positive values denote overprediction.  All 17
+workloads remain inside the preregistered $\pm15\%$ gate; energy rank
+correlations are 0.976 and 0.933.}
 \label{fig:energy-parity}
 \end{figure}

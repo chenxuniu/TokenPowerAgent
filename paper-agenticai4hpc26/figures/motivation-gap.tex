@@ -1,57 +1,12 @@
 \begin{figure*}[t]
 \centering
-\resizebox{\textwidth}{!}{%
-\begin{tikzpicture}[
-  x=1cm,y=1cm,
-  every node/.style={font=\sffamily},
-  fixed/.style={draw=tpGray,rounded corners=2pt,minimum height=1.16cm,
-    text width=2.05cm,align=center,inner sep=3pt,font=\scriptsize},
-  knob/.style={draw=tpGray,rounded corners=2pt,minimum height=1.16cm,
-    text width=1.75cm,align=center,inner sep=3pt,font=\scriptsize},
-  stage/.style={draw=tpGray,rounded corners=2pt,minimum height=1.35cm,
-    text width=1.95cm,align=center,inner sep=3pt,font=\scriptsize},
-  flow/.style={-{Stealth[length=2.2mm]},line width=0.85pt,draw=tpGray}
-]
-  \node[font=\small\bfseries,text=tpRoseDark] at (4.35,2.38)
-    {(a) One fixed H100 scenario, 12 serving candidates};
-  \node[fixed,fill=tpGrayLight] (fixed) at (1.18,1.05)
-    {\textbf{Fixed}\\Qwen2.5-7B, BF16\\2048 in / 128 out\\concurrency 32};
-  \node[knob,fill=tpBlueLight] (seq) at (3.82,1.05)
-    {\textbf{Max sequences}\\8, 16, 32\\+ expert 256};
-  \node[font=\normalsize\bfseries,text=tpGray] at (5.14,1.05) {$\times$};
-  \node[knob,fill=tpTealLight] (tok) at (6.47,1.05)
-    {\textbf{Batched tokens}\\2048, 4096,\\8192};
-  \node[font=\normalsize\bfseries,text=tpGray] at (7.79,1.05) {$\times$};
-  \node[knob,fill=tpGoldLight] (chunk) at (9.10,1.05)
-    {\textbf{Chunked prefill}\\enabled\\+ controls};
-  \draw[flow] (fixed.east) -- (seq.west);
-  \node[draw=tpRose,dashed,rounded corners=1.5pt,fill=white,
-    text width=7.65cm,align=center,font=\scriptsize] at (5.10,-0.20)
-    {A full sweep spends target-GPU time on every candidate, including configurations cheap evidence can reject.};
-
-  \draw[tpGray!45,dashed] (10.43,-0.65) -- (10.43,2.68);
-
-  \node[font=\small\bfseries,text=tpTealDark] at (14.10,2.38)
-    {(b) Evidence cost rises only when the decision requires it};
-  \node[stage,fill=tpGrayLight] (sandbox) at (11.75,1.05)
-    {\textbf{CPU Sandbox}\\0 target GPUs\\screen all 12};
-  \node[stage,fill=tpBlueLight] (probe) at (14.18,1.05)
-    {\textbf{Short Probe}\\1 H100, 64 requests\\calibrate ranking};
-  \node[stage,fill=tpRoseLight] (verify) at (16.62,1.05)
-    {\textbf{Full Verify}\\1 H100, 256 requests\\release gate};
-  \draw[flow] (sandbox.east) -- (probe.west);
-  \draw[flow] (probe.east) -- (verify.west);
-  \draw[-{Stealth[length=2.3mm]},very thick,tpRose]
-    (10.68,-0.34) -- node[above,font=\scriptsize\bfseries,text=tpRoseDark]
-    {increasing evidence fidelity and GPU-hour cost} (17.68,-0.34);
-  \node[draw=tpTeal,dashed,rounded corners=1.5pt,fill=white,
-    text width=6.35cm,align=center,font=\scriptsize] at (14.18,-1.08)
-    {Only full target-workload evidence\\can authorize a recommendation.};
-\end{tikzpicture}
-}
-\caption{The single-GPU decision problem studied in this paper.  The serving
-scenario is fixed while sequence capacity, batched-token limits, and chunked
-prefill define a 12-candidate grid.  \system{} screens on CPU, escalates
-ambiguous candidates to a short H100 probe, and verifies before release.}
+\includegraphics[width=\textwidth]{figures/results/fig1_decision_problem.pdf}
+\caption{The bounded single-GPU decision problem.  A frozen model, workload,
+SLO, and online budget define 12 immutable serving candidates: nine chunked
+combinations from three sequence limits and three batched-token limits, two
+no-chunk controls, and one expert default.  A full sweep pays target-GPU cost
+for every candidate; \system{} instead screens all candidates in the CPU
+Sandbox, escalates selected configurations to a short H100 Probe, and allows a
+recommendation only after full target-workload verification.}
 \label{fig:motivation}
 \end{figure*}
