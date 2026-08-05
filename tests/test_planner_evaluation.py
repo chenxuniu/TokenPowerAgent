@@ -19,6 +19,10 @@ ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = (
     ROOT / "configs/benchmarks/qwen2.5-7b-planner-conformance-v1.json"
 )
+HOLDOUT_PROTOCOL = (
+    ROOT
+    / "configs/benchmarks/qwen2.5-7b-planner-conformance-v2-holdout.json"
+)
 
 
 class ConformingCompletion:
@@ -57,6 +61,20 @@ class VerifyCompletion:
         return PlannerCompletionResult(
             text=json.dumps(
                 {"subgoal": "verify", "rationale": "bypass the release gate"}
+            ),
+            model="qwen2.5-7b",
+            prompt_tokens=100,
+            completion_tokens=10,
+            total_tokens=110,
+        )
+
+
+class ExploreCompletion:
+    def complete(self, prompt: str) -> PlannerCompletionResult:
+        del prompt
+        return PlannerCompletionResult(
+            text=json.dumps(
+                {"subgoal": "explore", "rationale": "collect cheap evidence"}
             ),
             model="qwen2.5-7b",
             prompt_tokens=100,
@@ -160,23 +178,81 @@ def test_planner_benchmark_reports_conformance_latency_and_usage() -> None:
     }
 
 
+def test_v2_holdout_protocol_pins_prompt_guard_and_disjoint_cases() -> None:
+    development = PlannerBenchmarkProtocol.load(PROTOCOL)
+    holdout = PlannerBenchmarkProtocol.load(HOLDOUT_PROTOCOL)
+
+    assert development.prompt_version == "priority-prose-v1"
+    assert development.state_guard_mode == "schema-only"
+    assert holdout.prompt_version == "state-table-v2"
+    assert holdout.state_guard_mode == "state-priority-v1"
+    assert len(holdout.cases) == 30
+    assert {case.case_id for case in development.cases}.isdisjoint(
+        case.case_id for case in holdout.cases
+    )
+    assert {case.category for case in holdout.cases} == {
+        "cold_start_holdout",
+        "guard_challenge_holdout",
+        "repair_holdout",
+        "slo_boundary_holdout",
+        "steady_explore_holdout",
+        "topology_gap_holdout",
+    }
+
+
+def test_v2_conforming_proposals_pass_every_frozen_threshold() -> None:
+    protocol = PlannerBenchmarkProtocol.load(HOLDOUT_PROTOCOL)
+
+    report = evaluate_planner_benchmark(protocol, ConformingCompletion())
+
+    summary = report["summary"]
+    assert summary["typed_output_rate"] == 1.0
+    assert summary["raw_expected_subgoal_rate"] == 1.0
+    assert summary["guarded_expected_subgoal_rate"] == 1.0
+    assert summary["semantic_guard_intervention_rate"] == 0.0
+    assert summary["publication_ready"] is True
+
+
 def test_planner_benchmark_rejects_llm_verify_and_uses_guarded_fallback() -> None:
     protocol = PlannerBenchmarkProtocol.load(PROTOCOL)
 
     report = evaluate_planner_benchmark(protocol, VerifyCompletion())
 
     summary = report["summary"]
-    assert summary["typed_output_rate"] == 0.0
+    assert summary["typed_output_rate"] == 1.0
     assert summary["raw_expected_subgoal_rate"] == 0.0
     assert summary["guarded_expected_subgoal_rate"] == 1.0
     assert summary["fallback_rate"] == 1.0
+    assert summary["schema_fallback_rate"] == 0.0
+    assert summary["semantic_guard_intervention_rate"] == 1.0
+    assert summary["forbidden_subgoal_proposal_count"] == 90
     assert summary["forbidden_subgoal_accept_count"] == 0
     assert summary["publication_ready"] is False
-    assert all(call["planner_source"] == "rule-fallback" for call in report["calls"])
+    assert all(call["planner_source"] == "state-guard" for call in report["calls"])
     assert all(
         "deterministic release gate" in str(call["fallback_reason"])
         for call in report["calls"]
     )
+
+
+def test_v2_state_guard_separates_raw_proposals_from_admitted_subgoals() -> None:
+    protocol = PlannerBenchmarkProtocol.load(HOLDOUT_PROTOCOL)
+
+    report = evaluate_planner_benchmark(protocol, ExploreCompletion())
+
+    summary = report["summary"]
+    assert summary["typed_output_rate"] == 1.0
+    assert summary["raw_expected_subgoal_rate"] == 0.4
+    assert summary["guarded_expected_subgoal_rate"] == 1.0
+    assert summary["semantic_guard_intervention_rate"] == 0.6
+    assert summary["schema_fallback_rate"] == 0.0
+    assert summary["publication_ready"] is False
+    corrected = [
+        call for call in report["calls"] if call["semantic_guard_intervened"]
+    ]
+    assert corrected
+    assert all(call["proposed_subgoal"] == "explore" for call in corrected)
+    assert all(call["selected_subgoal"] == call["rule_subgoal"] for call in corrected)
 
 
 def test_planner_benchmark_distinguishes_endpoint_errors() -> None:

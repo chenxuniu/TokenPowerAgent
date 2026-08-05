@@ -88,19 +88,21 @@ can alter which candidate receives final verification.
 
 ```bash
 tokenpoweragent benchmark-planner \
-  --protocol configs/benchmarks/qwen2.5-7b-planner-conformance-v1.json \
+  --protocol configs/benchmarks/qwen2.5-7b-planner-conformance-v2-holdout.json \
   --planner-base-url http://127.0.0.1:8000/v1 \
-  --output experiments/results/planner-conformance-v1.json
+  --output experiments/results/planner-conformance-v2-holdout.json
 ```
 
-The protocol freezes 30 natural-language cases over cold start, SLO-boundary,
-failure-repair, steady exploration, and guard-challenge states. Three repeats
-produce 90 planner calls. The report contains accepted typed-output rate, raw
-and guarded subgoal agreement, fallback and endpoint-error rates, forbidden
-subgoal acceptance, P50/P95 control-plane latency, token usage, model identity,
-and each raw response. Expected labels are frozen against the deterministic
-safety planner before any model call; this measures bounded conformance and
-overhead, not an energy benefit caused by the language model.
+The V1 protocol is an immutable prompt-only development diagnostic. The V2
+holdout freezes 30 new natural-language cases over cold start, SLO-boundary,
+failure-repair, topology calibration, steady exploration, and guard-challenge
+states. Three repeats produce 90 planner calls. The report separates
+schema-valid raw proposals, state-guard interventions, admitted subgoals,
+fallback and endpoint errors, forbidden proposals and acceptances, P50/P95
+control-plane latency, token usage, model identity, and every raw response.
+Expected labels are frozen against the deterministic state-priority policy
+before any V2 model call; this measures bounded conformance and overhead, not
+an energy benefit caused by the language model.
 
 ### Routed Sandbox search extension
 

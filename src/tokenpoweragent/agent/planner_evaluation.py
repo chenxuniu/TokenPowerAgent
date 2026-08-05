@@ -43,6 +43,8 @@ class PlannerBenchmarkProtocol:
     planner_model: str
     temperature: float
     max_tokens: int
+    prompt_version: str
+    state_guard_mode: str
     repeats: int
     thresholds: Mapping[str, float]
     cases: Tuple[PlannerBenchmarkCase, ...]
@@ -77,6 +79,20 @@ class PlannerBenchmarkProtocol:
             raise PlannerEvaluationError("planner.model cannot be empty")
         temperature = _nonnegative_float(planner, "temperature")
         max_tokens = _positive_int(planner, "max_tokens")
+        prompt_version = str(
+            planner.get("prompt_version", "priority-prose-v1")
+        ).strip()
+        if prompt_version not in {"priority-prose-v1", "state-table-v2"}:
+            raise PlannerEvaluationError(
+                "planner.prompt_version is not supported: %s" % prompt_version
+            )
+        state_guard_mode = str(
+            planner.get("state_guard", "schema-only")
+        ).strip()
+        if state_guard_mode not in {"schema-only", "state-priority-v1"}:
+            raise PlannerEvaluationError(
+                "planner.state_guard is not supported: %s" % state_guard_mode
+            )
 
         parsed_thresholds = {
             "minimum_typed_output_rate": _unit_interval(
@@ -115,6 +131,8 @@ class PlannerBenchmarkProtocol:
             planner_model=model,
             temperature=temperature,
             max_tokens=max_tokens,
+            prompt_version=prompt_version,
+            state_guard_mode=state_guard_mode,
             repeats=repeats,
             thresholds=parsed_thresholds,
             cases=cases,
@@ -161,7 +179,16 @@ def evaluate_planner_benchmark(
             ) / 1_000_000.0
 
             capture = _CompletionCapture(completion)
-            planner = ConstrainedLLMPlanner(capture)
+            state_guard = (
+                RuleBasedPlanner()
+                if protocol.state_guard_mode == "state-priority-v1"
+                else None
+            )
+            planner = ConstrainedLLMPlanner(
+                capture,
+                state_guard=state_guard,
+                prompt_version=protocol.prompt_version,
+            )
             planner_started = time.perf_counter_ns()
             plan = planner.plan(case.state)
             planner_latency_ms = (
@@ -170,6 +197,12 @@ def evaluate_planner_benchmark(
 
             expected = {subgoal.value for subgoal in case.expected_subgoals}
             accepted_typed_output = plan.planner == "llm"
+            proposed_subgoal = (
+                None
+                if plan.proposed_subgoal is None
+                else plan.proposed_subgoal.value
+            )
+            typed_output = proposed_subgoal is not None
             result = capture.result
             raw_response = None if result is None else result.text
             rows.append(
@@ -186,14 +219,21 @@ def evaluate_planner_benchmark(
                     "rationale_chars": len(plan.rationale),
                     "fallback_reason": plan.fallback_reason,
                     "accepted_typed_output": accepted_typed_output,
+                    "typed_output": typed_output,
+                    "proposed_subgoal": proposed_subgoal,
+                    "semantic_guard_intervened": plan.guard_intervened,
+                    "schema_fallback": plan.planner == "rule-fallback",
                     "raw_expected_subgoal": (
-                        accepted_typed_output and plan.subgoal.value in expected
+                        typed_output and proposed_subgoal in expected
                     ),
                     "guarded_expected_subgoal": plan.subgoal.value in expected,
                     "rule_expected_subgoal": rule_plan.subgoal.value in expected,
                     "guarded_rule_agreement": plan.subgoal == rule_plan.subgoal,
                     "raw_rule_agreement": (
-                        accepted_typed_output and plan.subgoal == rule_plan.subgoal
+                        typed_output and proposed_subgoal == rule_plan.subgoal.value
+                    ),
+                    "forbidden_subgoal_proposed": (
+                        proposed_subgoal == Subgoal.VERIFY.value
                     ),
                     "forbidden_subgoal_accepted": (
                         accepted_typed_output and plan.subgoal == Subgoal.VERIFY
@@ -274,7 +314,7 @@ def evaluate_planner_benchmark(
     }
     failed_checks = [name for name, passed in checks.items() if not passed]
     return {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "benchmark_id": protocol.benchmark_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "protocol_sha256": protocol_sha256 or None,
@@ -283,15 +323,27 @@ def evaluate_planner_benchmark(
             "requested_model": protocol.planner_model,
             "temperature": protocol.temperature,
             "max_tokens": protocol.max_tokens,
+            "prompt_version": protocol.prompt_version,
+            "state_guard": protocol.state_guard_mode,
         },
         "protocol": {
             "case_count": len(protocol.cases),
             "repeats": protocol.repeats,
             "expected_call_count": len(protocol.cases) * protocol.repeats,
             "thresholds": dict(protocol.thresholds),
+            "prompt_version": protocol.prompt_version,
+            "state_guard": protocol.state_guard_mode,
             "label_semantics": (
                 "expected subgoals are frozen against the deterministic safety "
                 "planner before querying the language model"
+            ),
+            "raw_semantics": (
+                "raw metrics score a schema-valid LLM proposal before the "
+                "state-aware admission guard"
+            ),
+            "guarded_semantics": (
+                "guarded metrics score the subgoal admitted for deterministic "
+                "candidate and evidence-level selection"
             ),
             "verify_semantics": (
                 "verify is not an LLM subgoal and remains reserved for the "
@@ -320,7 +372,8 @@ def _aggregate(rows: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
     ]
     return {
         "call_count": count,
-        "typed_output_rate": _rate(rows, "accepted_typed_output"),
+        "typed_output_rate": _rate(rows, "typed_output"),
+        "llm_proposal_acceptance_rate": _rate(rows, "accepted_typed_output"),
         "raw_expected_subgoal_rate": _rate(rows, "raw_expected_subgoal"),
         "guarded_expected_subgoal_rate": _rate(
             rows, "guarded_expected_subgoal"
@@ -329,10 +382,17 @@ def _aggregate(rows: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
         "guarded_rule_agreement_rate": _rate(rows, "guarded_rule_agreement"),
         "raw_rule_agreement_rate": _rate(rows, "raw_rule_agreement"),
         "fallback_rate": 1.0 - _rate(rows, "accepted_typed_output"),
+        "schema_fallback_rate": _rate(rows, "schema_fallback"),
+        "semantic_guard_intervention_rate": _rate(
+            rows, "semantic_guard_intervened"
+        ),
         "completion_error_rate": _rate(rows, "completion_error"),
         "endpoint_error_rate": _rate(rows, "endpoint_error"),
         "forbidden_subgoal_accept_count": sum(
             bool(row["forbidden_subgoal_accepted"]) for row in rows
+        ),
+        "forbidden_subgoal_proposal_count": sum(
+            bool(row["forbidden_subgoal_proposed"]) for row in rows
         ),
         "token_usage_coverage_rate": len(total_tokens) / count,
         "model_identity_coverage_rate": _rate(rows, "model_identity_present"),

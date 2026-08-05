@@ -33,7 +33,8 @@ paper experiments.
   IPIG estimator.
 - A constrained OpenAI-compatible LLM planner. The model may select only a
   typed semantic subgoal; malformed output falls back to the deterministic
-  planner and is recorded in the decision trace.
+  planner, while a state-priority admission guard rejects valid but
+  controller-inconsistent subgoals. Both events are recorded separately.
 - Reproducible IPIG, random, cost-blind, and cheapest-first replay policies
   with Pareto recall, primary-objective regret, unnecessary escalation, and
   GPU-hour metrics. Policy benchmarks use action-specific empirical bootstrap
@@ -87,9 +88,10 @@ tokenpoweragent replay \
   --max-steps 5
 ```
 
-The endpoint cannot bypass the action guard: candidate selection, fidelity
-routing, budget accounting, SLO checks, Pareto computation, and L4-only final
-recommendations remain deterministic.
+The endpoint cannot bypass either controller state or the action guard:
+state-inconsistent subgoals fall back to the deterministic priority policy,
+while candidate selection, fidelity routing, budget accounting, SLO checks,
+Pareto computation, and L4-only final recommendations remain deterministic.
 
 Render a target-scale Slurm job without submitting it:
 
@@ -160,9 +162,10 @@ TopologySandbox  Replay     Serving/Cluster
        L4-verified Pareto set
 ```
 
-The language-model planner is intentionally bounded: it may choose a semantic
-subgoal and explain a decision, while typed code validates candidates, scores
-actions, tracks budget, computes Pareto sets, and controls execution.
+The language-model planner is intentionally bounded: it may propose a semantic
+subgoal and explain a decision. A state-aware admission guard can replace an
+inadmissible proposal before typed code validates candidates, scores actions,
+tracks budget, computes Pareto sets, and controls execution.
 
 ## Repository Layout
 

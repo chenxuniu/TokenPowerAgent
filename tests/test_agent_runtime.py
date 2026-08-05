@@ -5,6 +5,7 @@ from tokenpoweragent.agent.evaluation import evaluate_replay_policies
 from tokenpoweragent.agent.planner import (
     ConstrainedLLMPlanner,
     PlanningState,
+    RuleBasedPlanner,
     Subgoal,
 )
 from tokenpoweragent.evidence import (
@@ -49,6 +50,26 @@ def test_constrained_llm_planner_accepts_typed_json() -> None:
     assert plan.subgoal == Subgoal.RESOLVE_SLO
     assert plan.planner == "llm"
     assert plan.fallback_reason is None
+    assert plan.proposed_subgoal == Subgoal.RESOLVE_SLO
+    assert plan.guard_intervened is False
+
+
+def test_state_guard_rejects_a_valid_but_inadmissible_subgoal() -> None:
+    planner = ConstrainedLLMPlanner(
+        lambda prompt: (
+            '{"subgoal":"explore",'
+            '"rationale":"collect more evidence"}'
+        ),
+        state_guard=RuleBasedPlanner(),
+    )
+
+    plan = planner.plan(planning_state())
+
+    assert plan.subgoal == Subgoal.RESOLVE_SLO
+    assert plan.proposed_subgoal == Subgoal.EXPLORE
+    assert plan.planner == "state-guard"
+    assert plan.guard_intervened is True
+    assert "requires resolve_slo" in str(plan.fallback_reason)
 
 
 def test_constrained_llm_planner_falls_back_on_untyped_output() -> None:
@@ -86,7 +107,9 @@ def test_constrained_llm_planner_reserves_verify_for_deterministic_gate() -> Non
     plan = planner.plan(planning_state())
 
     assert plan.subgoal == Subgoal.RESOLVE_SLO
-    assert plan.planner == "rule-fallback"
+    assert plan.planner == "state-guard"
+    assert plan.proposed_subgoal == Subgoal.VERIFY
+    assert plan.guard_intervened is True
     assert "deterministic release gate" in str(plan.fallback_reason)
 
 

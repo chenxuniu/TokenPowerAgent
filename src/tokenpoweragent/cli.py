@@ -183,7 +183,11 @@ def _planner_from_args(args: argparse.Namespace):
         api_key=os.environ.get(args.planner_api_key_env),
         timeout_seconds=args.planner_timeout_seconds,
     )
-    return ConstrainedLLMPlanner(completion)
+    return ConstrainedLLMPlanner(
+        completion,
+        state_guard=RuleBasedPlanner(),
+        prompt_version="state-table-v2",
+    )
 
 
 def _run_agent(

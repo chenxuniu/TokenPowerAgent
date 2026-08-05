@@ -72,6 +72,8 @@ class DecisionEvent:
     observed_metrics: Mapping[str, float]
     rationale: str
     planner_fallback_reason: Optional[str] = None
+    planner_proposed_subgoal: Optional[str] = None
+    planner_guard_intervened: bool = False
 
 
 @dataclass(frozen=True)
@@ -80,6 +82,7 @@ class AgentRun:
     intent: str
     policy: str
     semantic_guard_active: bool
+    planner_state_guard_active: bool
     run_seed: int
     status: RunStatus
     outcome_reason: str
@@ -98,6 +101,7 @@ class AgentRun:
             "intent": self.intent,
             "policy": self.policy,
             "semantic_guard_active": self.semantic_guard_active,
+            "planner_state_guard_active": self.planner_state_guard_active,
             "run_seed": self.run_seed,
             "status": self.status.value,
             "outcome_reason": self.outcome_reason,
@@ -290,6 +294,9 @@ class TokenPowerAgent:
             policy=getattr(self.policy, "name", type(self.policy).__name__),
             semantic_guard_active=getattr(
                 self.policy, "uses_semantic_guard", True
+            ),
+            planner_state_guard_active=(
+                getattr(self.planner, "state_guard", None) is not None
             ),
             run_seed=run_seed,
             status=(RunStatus.VERIFIED if verified_ids else RunStatus.ABSTAINED),
@@ -510,4 +517,10 @@ class TokenPowerAgent:
             observed_metrics=dict(record.metrics),
             rationale=plan.rationale + "; " + decision.rationale,
             planner_fallback_reason=plan.fallback_reason,
+            planner_proposed_subgoal=(
+                None
+                if plan.proposed_subgoal is None
+                else plan.proposed_subgoal.value
+            ),
+            planner_guard_intervened=plan.guard_intervened,
         )
