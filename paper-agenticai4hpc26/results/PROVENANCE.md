@@ -11,6 +11,7 @@ these digests identify the immutable source bundles.
 | `tpa-qwen7b-config-search-v1-final-20260805.tar.gz` | `d157300787af4cf16379bd316e7138da00279463c381149bc99605d5af851b33` |
 | `tpa-qwen7b-policy-benchmark-v1-20260805.tar.gz` | `280e6fb95f0a159fc184cb5aa6b2350eb0fe250579e74ae0cea4d824b4ab32bc` |
 | `tpa-qwen7b-policy-bootstrap-v2-20260805.tar.gz` | `08eed18a5d1bb73f8042f4bb2a2f76e7f7634c90b49c7adf6bd9708de9d3293e` |
+| `tpa-qwen7b-planner-guard-v1-v2-20260805.tar.gz` | `6bee92c0c57d7311ea43a671f7e70d67415e3b065bea1c77240d44c532c340b9` |
 
 ## Cross-Checked Headline Values
 
@@ -55,6 +56,36 @@ random. Mean spent GPU-hours are 0.0621 and 0.0712, respectively. Cost-blind
 and cheapest-first also reach 63.6%; IPIG costs 26.6% less than cost-blind but
 4.2% more than cheapest-first. These are empirical bootstrap episodes over
 three hardware repeats per key, not independent hardware trials.
+
+The preregistered budget sweep evaluates five budgets from 0.04 to 0.12 GPU-h,
+500 matched empirical-bootstrap episodes per policy and budget, and 10,000
+episodes total. Its protocol, full-report, and compact-summary SHA-256 values
+are:
+
+- protocol: `7a559d7f3c4b0ac1653a01efb8f04674044aa8e6810e21724f2979e5386e944b`;
+- full report: `0133a7f388c04b90786fdedccff1e990250645a7b05545007f6754ac332fa1b2`;
+- compact summary: `dd78e130d1baf870feb082962bf6513be49bc47cee0eb94c6d8874d4ea34f44a`.
+
+Normalized success AUC is 39.75% for IPIG, 20.425% for random, 39.75% for
+cost-blind, and 42.85% for cheapest-first. Cheapest-first peaks at 76.0% at
+0.08 GPU-h and drops by 12.4 percentage points at the next budget, so the paper
+does not claim monotone anytime behavior.
+
+## Planner Conformance
+
+V1 development and V2 disjoint holdout each contain 30 frozen cases with three
+temperature-zero repeats (90 calls). V1 obtains 83.33% raw and 86.67% admitted
+expected-subgoal agreement. V2 obtains 73.33% raw and 100% admitted agreement;
+the state guard intervenes on 24 calls representing eight unique cases. V2 has
+zero schema fallbacks, endpoint/completion errors, and forbidden-subgoal
+acceptances. Its raw score misses the frozen 90% acceptance threshold.
+
+Planner protocol/report SHA-256 values are:
+
+- V1 protocol: `35c176158c07e3d6a24a434a1f006aea5dac127a57ab85f2f8f972ca3a367f76`;
+- V1 report: `4464c7cad782c59e685391638ae7c56f2707da2001fbde8bbb066dcdd30096b0`;
+- V2 protocol: `49bee50977bc112dacf223da7ca2692cc82d3fa942d199bdbc0f2cc894a6274f`;
+- V2 report: `4a59ec3d5dfcfbeb2e2c2be03eb3b9a4930973c285e9692b63985e730e39791a`.
 
 The source archives contain the frozen predictions, measurement JSONL, raw
 100-ms DCGM telemetry, benchmark output, campaign and artifact manifests,

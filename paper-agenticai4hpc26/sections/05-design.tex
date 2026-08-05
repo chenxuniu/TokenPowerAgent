@@ -8,12 +8,13 @@ Compiler enforces scenario conditioning (R1) by combining a typed JSON/YAML
 specification with a natural-language intent and rejecting infeasible
 candidates.  The evidence contracts preserve uncertainty across Sandbox,
 Probe, and Verify (R2).  \ipig{} allocates GPU cost to decision-relevant
-ambiguity (R3), while the guarded planner and Verifier bound semantic autonomy
-(R4).  A language-model planner observes the intent, a compact belief summary,
-remaining budget, failures, and provenance, then emits one structured subgoal
-from \{\textsc{Explore}, \textsc{ResolveSLO}, \textsc{Calibrate},
-\textsc{Repair}\}.  Final \textsc{Verify} is entered only by the deterministic
-controller.  Within a guarded subgoal, \ipig{} selects the numerical
+ambiguity (R3), while the state guard and Verifier bound semantic autonomy
+(R4).  A language-model planner observes the intent, compact belief state,
+remaining budget, failures, and provenance, then proposes one structured
+subgoal from \{\textsc{Explore}, \textsc{ResolveSLO},
+\textsc{CalibrateScale}, \textsc{Repair}\}.  A deterministic guard admits or
+replaces the proposal; final \textsc{Verify} is reserved for the controller.
+Within the admitted subgoal, \ipig{} selects the numerical
 configuration--stage action.  The Tool Layer invokes the CPU predictor, pinned
 serving containers, telemetry readers, and replay executor.  Observations
 update the Energy Twin and a versioned Evidence Store; the Verifier reruns final
@@ -140,11 +141,15 @@ top-$k$ candidates; no recommendation is released without verified evidence.
 
 \subsection{Bounded Autonomy and Provenance}
 
-The LLM can choose only a typed semantic subgoal; it cannot issue an
+The LLM can propose only a typed semantic subgoal; it cannot issue an
 unrestricted shell command, modify model weights, change telemetry intervals,
-or enlarge the measurement budget.  Numeric calculations, feasibility, Pareto
-sorting, candidate selection, and budget accounting are deterministic.  Every
-action records scenario and configuration hashes, planner source, evidence
-stage, raw-data URI, uncertainty, cost, and decision rationale.  The Verifier
-checks units, missing samples, clock/power state, run completion, and SLO
-acceptance before admitting evidence to the released Pareto set.
+or enlarge the measurement budget.  The state guard applies a frozen precedence
+to the same machine state: repair after failure; otherwise establish initial
+evidence; then calibrate a material transfer gap; then resolve an SLO boundary;
+otherwise explore.  A valid JSON proposal that violates this precedence is
+replaced, just as malformed output invokes the rule path.  Each event preserves
+the raw proposal, admitted subgoal, intervention reason, and model rationale.
+Numeric calculations, feasibility, Pareto sorting, candidate selection, budget
+accounting, and final verification remain deterministic.  The Verifier checks
+units, missing samples, clock/power state, completion, and SLO acceptance before
+admitting evidence to the released Pareto set.

@@ -25,3 +25,12 @@ beats random and cost-blind acquisition on the declared cost--success metrics
 but not cheapest-first in this small grid.  The exhaustive
 \ConfigurationTotalGPUHours{}-GPU-h corpus validates fidelity and supplies an
 oracle; replay does not erase that offline data-collection cost.
+
+\textbf{Planner scope.}  Planner conformance is measured for one local
+Qwen2.5-7B endpoint, one fixed prompt, \PlannerCallsPerSet{} calls per protocol,
+and synthetic but frozen controller states.  V2 raw accuracy
+(\PlannerVtwoRaw{}) misses its preregistered threshold; 100\% admitted accuracy
+comes from a deterministic guard, not improved language-model reasoning.  The
+study therefore supports a bounded advisory role for the LLM and does not show
+that it outperforms a rule planner, transfers to other models, or improves the
+final configuration relative to the same policy without an LLM.

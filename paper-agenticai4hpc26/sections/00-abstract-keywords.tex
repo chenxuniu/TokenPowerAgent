@@ -1,39 +1,35 @@
 \begin{abstract}
-LLM inference increasingly accounts for a large share of deployed-AI energy,
-and its energy per token changes materially with request shape and serving
-configuration.  Selecting a configuration by exhaustive target-GPU trials is
-therefore both important and expensive on capacity-constrained HPC GPU nodes.
-We present \system{}, a bounded hybrid agent that treats tuning as an
-evidence-allocation problem: which configuration should be examined next, at
-which of three operational stages, and when is a full target-workload run worth
-its cost?  A
-constrained LLM planner translates operator intent into typed subgoals, while
-deterministic guards select candidate--fidelity actions, enforce GPU-hour and
-SLO constraints, maintain the Pareto state, and release only measured
-recommendations.  Its evidence substrate, \sandbox{}, combines a CPU-resident
-projector, short probes, full target-workload verification, immutable
-provenance, and explicit abstention.  On one H100 80GB serving Qwen2.5-7B with
-vLLM, two
-preregistered workload-transfer holdouts totaling \BlindMeasurements{} runs
-obtain \CalibratedEnergyMAPE{} and \ConfirmationEnergyMAPE{} energy MAPE.  A
-separate \ConfigurationCandidates{}-configuration corpus contains
-\ConfigurationMeasuredRuns{} balanced short-probe and target-verification
-measurements.  The CPU Sandbox preserves energy ranking (Spearman
-\LzeroEnergySpearman{}) but reverses TTFT ranking (\LzeroTTFTSpearman{}) and
-misses the verified Pareto set.  Short probes reduce
-energy, throughput, TPOT, and TTFT MAPE to \LoneEnergyMAPE{},
-\LoneThroughputMAPE{}, \LoneTPOTMAPE{}, and \LoneTTFTMAPE{}, recovering the
-true frontier with \LoneParetoRecall{} recall before full verification.  The
-corrected empirical replay reaches the median verified oracle in
-\IPIGOracleHit{} of
-\ipig{} episodes versus \RandomOracleHit{} for random while using
-\IPIGRandomGPUSaving{} fewer GPU-hours; a cheapest-first ladder matches
-\ipig{} at \CheapestIPIGGPUSaving{} lower cost, delimiting the policy claim.  The
-verified configuration uses \ParetoEnergyReduction{} less energy, delivers
-\ParetoThroughputGain{} higher throughput, and reduces TTFT by
-\ParetoTTFTReduction{} relative to the expert default.  These results show why
-CPU-first screening is useful, why it cannot be treated as hardware truth, and
-how evidence-gated escalation makes agentic inference tuning auditable.
+LLM inference can dominate the operational energy of deployed AI, while energy
+per token changes materially with request shape and serving configuration.
+Choosing a serving profile is therefore important, but exhaustively trying each
+candidate on a capacity-constrained HPC GPU is expensive.  We present
+\system{}, a bounded hybrid agent that decides which configuration to examine,
+at which evidence stage, and when a full target-workload run is worth its
+GPU-hour cost.  A constrained LLM proposes a typed semantic subgoal; a
+deterministic state guard admits or replaces that proposal, and deterministic
+tools select actions, enforce SLO and budget constraints, maintain the Pareto
+state, and release only verified recommendations.  The underlying
+\sandbox{} combines a CPU-resident projector, short target-GPU probes, full
+verification, immutable provenance, and explicit abstention.  On one H100 80GB
+serving Qwen2.5-7B with vLLM, two preregistered workload-transfer holdouts
+totaling \BlindMeasurements{} runs obtain \CalibratedEnergyMAPE{} and
+\ConfirmationEnergyMAPE{} energy MAPE.  A separate
+\ConfigurationCandidates{}-configuration corpus contains
+\ConfigurationMeasuredRuns{} balanced Probe/Verify runs.  The CPU Sandbox
+preserves energy rank (Spearman \LzeroEnergySpearman{}) but reverses TTFT rank
+(\LzeroTTFTSpearman{}) and misses the verified frontier; short probes recover
+that frontier with \LoneParetoRecall{} recall.  Full verification identifies a
+configuration using \ParetoEnergyReduction{} less energy with
+\ParetoTTFTReduction{} lower TTFT than the expert default.  Across
+\BudgetTotalEpisodes{} sealed replay episodes, \ipig{} nearly doubles normalized
+success AUC over random, although cheapest-first remains slightly stronger in
+this small search space.  On a disjoint \PlannerCallsPerSet{}-call planner
+holdout, raw subgoal accuracy is \PlannerVtwoRaw{}; the state guard intervenes
+on \PlannerVtwoIntervention{} of calls and admits the expected subgoal on all
+calls at \PlannerVtwoMedianLatency{}/\PlannerVtwoPninetyfiveLatency{}-ms
+median/P95 latency.  Because raw accuracy misses the frozen
+\PlannerRawThreshold{} gate, our claim is guarded, evidence-gated autonomy, not
+unrestricted LLM reasoning.
 \end{abstract}
 
 \begin{IEEEkeywords}

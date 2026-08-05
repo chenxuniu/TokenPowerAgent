@@ -52,6 +52,14 @@ cheapest-first also matches its decisions and is 4.2% cheaper. The replay
 episodes bootstrap three measured repeats per candidate--level key and are not
 additional hardware measurements.
 
+A five-budget response study contributes 10,000 matched replay episodes. IPIG's
+normalized success AUC is 39.8% versus 20.4% for random; cheapest-first reaches
+42.9% and is explicitly reported as the strongest policy in this small grid.
+Two planner protocols add 90 calls each. On the disjoint V2 holdout, raw
+subgoal accuracy is 73.3%, below the frozen 90% gate, while a deterministic
+state guard intervenes on 26.7% of calls and admits the expected subgoal on all
+calls. This is evidence for guarded autonomy, not standalone LLM reliability.
+
 ## Directory Layout
 
 ```text
@@ -62,6 +70,7 @@ paper-agenticai4hpc26/
   figures/                 standalone TikZ system figures
   tables/                  evidence, scope, and search tables
   results/metrics.tex      single source for measured values
+  results/*summary.json    compact sealed controller evidence
   results/PROVENANCE.md    source-archive hashes and cross-checks
   SUBMISSION_CHECKLIST.md  final scientific and format gates
   REVISION_NOTES.md        claim boundary and experiment priorities
@@ -78,5 +87,7 @@ paper-agenticai4hpc26/
    budget.
 4. Report failures and charged GPU-hours; failed actions cannot disappear from
    accounting.
-5. Replace `Anonymous Authors` before submission. The Workshop page does not
+5. Report raw planner proposals separately from guard-admitted subgoals; never
+   attribute deterministic guard correctness to the LLM.
+6. Replace `Anonymous Authors` before submission. The Workshop page does not
    request anonymous review.

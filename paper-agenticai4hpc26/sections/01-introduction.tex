@@ -50,21 +50,19 @@ failures; deterministic tools compile candidates, score actions, account for
 cost, ingest telemetry, compute Pareto sets, and enforce final verification.
 The LLM never generates energy estimates or receives release authority.
 
-We evaluate both the evidence substrate and the fidelity ladder on one H100.
-First, a frozen CPU-side model is tested on \BlindMeasurements{} blind
-Qwen2.5-7B workload-transfer measurements.  Second, a preregistered
-\ConfigurationCandidates{}-candidate serving grid varies sequence capacity,
-batched-token limits, and chunked prefill.  Its \ConfigurationMeasuredRuns{}
-balanced short-probe and target-workload measurements expose the exact boundary
-the system is designed to manage: the Sandbox ranks energy well but fails for TTFT and
-the Pareto decision, whereas the short Probe recovers the true verified frontier
-with \LoneParetoRecall{} recall.  The full target run then removes two false
-positives and verifies a
-configuration that improves energy, throughput, TTFT, and TPOT over the expert
-default.  In corrected empirical replay, \ipig{} improves oracle-hit rate and
-GPU-hour cost over random and cost-blind acquisition, but not over a static
-cheapest-first ladder.  The corpus is sealed before replay; its exhaustive cost
-is ground-truth construction, not an agent-savings claim.
+We evaluate the evidence substrate, fidelity ladder, acquisition policy, and
+semantic planner on one H100.  A frozen CPU model is tested on
+\BlindMeasurements{} blind Qwen2.5-7B workload-transfer measurements.  A
+separate preregistered \ConfigurationCandidates{}-candidate serving grid then
+varies sequence capacity, batched-token limits, and chunked prefill.  Its
+\ConfigurationMeasuredRuns{} balanced Probe/Verify measurements expose the
+boundary the system must manage: the Sandbox ranks energy well but fails for
+TTFT and the Pareto decision; the Probe recovers the true frontier with
+\LoneParetoRecall{} recall; and Verify removes two false positives.  Corrected
+replay compares four policies across five GPU-hour budgets, while two frozen
+\PlannerCallsPerSet{}-call protocols separate raw LLM proposals from admitted
+subgoals.  The corpus is sealed before replay, so its exhaustive collection
+cost establishes ground truth rather than an agent-savings claim.
 
 This paper makes four contributions:
 \begin{itemize}
@@ -76,12 +74,14 @@ This paper makes four contributions:
     CPU-first projection, a short measured probe, uncertainty, immutable
     provenance, and mandatory full-workload verification on one target GPU.
     \item We implement a bounded hybrid agent with an \ipig{} policy interface,
-    typed executors, failure-aware reflection, hard budget and action guards,
-    and a deterministic release gate.
+    typed executors, failure-aware reflection, a state-priority semantic guard,
+    hard budget enforcement, and a deterministic release gate.
     \item We provide \BlindMeasurements{} blind workload-transfer runs and a
     \ConfigurationMeasuredRuns{}-run configuration corpus.  The measurements
     quantify when the Sandbox is informative, when the agent must escalate to a
     short Probe, and how full verification converts a three-candidate
     provisional frontier into one verified configuration; sealed replay then
-    compares four acquisition policies without spending additional GPU-hours.
+    compares four acquisition policies across \BudgetLevels{} budgets without
+    spending additional GPU-hours, and a disjoint planner holdout quantifies
+    raw proposal accuracy, guard intervention, and end-to-end planner latency.
 \end{itemize}

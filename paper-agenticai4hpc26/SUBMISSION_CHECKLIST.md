@@ -31,6 +31,10 @@ Last checked against the official Workshop page: August 4, 2026.
       `benchmark-replay` report.
 - [x] Replace every visible result placeholder and re-read the abstract, RQ3 results,
       limitations, and conclusion for claim consistency.
+- [x] Run the five-budget response protocol with 500 matched episodes per policy
+      and budget; report success AUC and the cheapest-first nonmonotonic result.
+- [x] Freeze and run a disjoint 90-call V2 planner holdout; report raw and
+      guard-admitted accuracy separately and retain the failed raw threshold.
 
 The 72-run corpus establishes the Sandbox/Probe/Verify result and verified
 frontier. Stable artifact identifiers remain L0/L1/L4. The corrected CPU replay
@@ -46,9 +50,11 @@ administration.
       reason, and fallback behavior.
 - [x] Full Verify/L4 execution is deterministic and cannot be bypassed by the
       LLM.
-- [x] All 70 automated tests pass.
+- [x] All 82 automated tests pass.
 - [x] Archive the final configuration corpus and benchmark report locally and
       download a checksum-matched copy from the cluster.
+- [x] Download and verify the combined planner V1/V2 archive; SHA-256 is
+      `6bee92c0c57d7311ea43a671f7e70d67415e3b065bea1c77240d44c532c340b9`.
 - [ ] Pin the final Git commit and container/model digests in the artifact text.
 - [ ] Prepare an optional artifact archive with replay commands and no private
       cluster credentials or identifying paths.

@@ -13,7 +13,8 @@ after full target-workload verification.
 - A typed scenario combines natural-language intent, candidate configurations,
   SLOs, available evidence levels, and a real GPU-hour budget.
 - A constrained LLM planner emits one JSON subgoal from a fixed vocabulary and
-  falls back to a deterministic planner on malformed output.
+  falls back to a deterministic planner on malformed output. A state-priority
+  guard separately checks semantically valid proposals before admission.
 - IPIG selects a candidate--stage action using an auditable
   uncertainty-per-cost proxy conditioned on SLO and frontier terms.
 - The operational path is CPU Sandbox, short H100 Probe, and full H100 Verify;
@@ -59,6 +60,23 @@ This experiment is intentionally narrower than the eventual MLSys study. TP,
 PP, placement, H200/B200 transfer, multi-node fidelity, posterior Pareto
 information, and live scheduler integration remain MLSys extensions.
 
+## Budget Response and Planner Holdout
+
+The five-budget sweep runs 500 matched episodes for each of four policies at
+each budget, 10,000 replay episodes total. IPIG's normalized success AUC is
+39.8% versus 20.4% for random and 39.8% for cost-blind. Cheapest-first reaches
+42.9%, peaks at 76.0% success at 0.08 GPU-h, then loses 12.4 points as extra
+resampled evidence changes the final verification choice. The paper therefore
+does not claim monotone anytime behavior.
+
+The planner evaluation contains a 90-call V1 development diagnostic and a
+90-call disjoint V2 holdout. V2 produces typed output on every call with zero
+endpoint, completion, schema, or forbidden-acceptance errors, but raw semantic
+agreement is only 73.3%, below the frozen 90% gate. The deterministic guard
+intervenes on 24 calls (eight unique cases) and yields 100% admitted agreement.
+Median/P95 planner latency is 247/515 ms. This supports the guard architecture,
+not autonomous LLM correctness or benefit over the rule planner.
+
 ## Claim Guardrails
 
 - Do not call the Docker container itself a simulator; it is the isolated
@@ -70,3 +88,5 @@ information, and live scheduler integration remain MLSys extensions.
 - Keep multi-GPU and multi-node mechanisms out of the Workshop paper's central
   design, algorithm, figures, and contributions.
 - Do not attribute causal benefit to the LLM without a planner ablation.
+- Preserve the failed planner raw-accuracy gate in every summary; 100% is the
+  guard-admitted score, not the model score.

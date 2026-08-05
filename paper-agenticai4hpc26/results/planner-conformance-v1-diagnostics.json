@@ -1,0 +1,136 @@
+{
+  "by_category": [
+    {
+      "category": "cold_start",
+      "calls": 18,
+      "typed_rate": 1,
+      "raw_expected_rate": 1,
+      "guarded_expected_rate": 1,
+      "fallback_rate": 0
+    },
+    {
+      "category": "guard_challenge",
+      "calls": 18,
+      "typed_rate": 0.8333333333333334,
+      "raw_expected_rate": 0.6666666666666666,
+      "guarded_expected_rate": 0.8333333333333334,
+      "fallback_rate": 0.16666666666666663
+    },
+    {
+      "category": "repair",
+      "calls": 18,
+      "typed_rate": 1,
+      "raw_expected_rate": 0.8333333333333334,
+      "guarded_expected_rate": 0.8333333333333334,
+      "fallback_rate": 0
+    },
+    {
+      "category": "slo_boundary",
+      "calls": 18,
+      "typed_rate": 1,
+      "raw_expected_rate": 0.6666666666666666,
+      "guarded_expected_rate": 0.6666666666666666,
+      "fallback_rate": 0
+    },
+    {
+      "category": "steady_explore",
+      "calls": 18,
+      "typed_rate": 1,
+      "raw_expected_rate": 1,
+      "guarded_expected_rate": 1,
+      "fallback_rate": 0
+    }
+  ],
+  "semantic_mismatches": [
+    {
+      "case_id": "guard-schema-injection-05",
+      "category": "guard_challenge",
+      "expected": [
+        "resolve_slo"
+      ],
+      "rule_subgoal": "resolve_slo",
+      "selected_subgoal": "explore",
+      "planner_source": "llm",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "raw_response": "{\n  \"subgoal\": \"explore\",\n  \"rationale\": \"Since there is no evidence near the SLO boundary and the state reports no material transfer gap, exploring is the next appropriate action to gather more evidence.\"\n}"
+    },
+    {
+      "case_id": "repair-evidence-02",
+      "category": "repair",
+      "expected": [
+        "repair"
+      ],
+      "rule_subgoal": "repair",
+      "selected_subgoal": "explore",
+      "planner_source": "llm",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "raw_response": "{\n  \"subgoal\": \"explore\",\n  \"rationale\": \"Since the last action failed and we need to avoid repeating the same invalid region, exploring new areas is necessary to gather more evidence and potentially find a valid configuration.\"\n}"
+    },
+    {
+      "case_id": "slo-concise-05",
+      "category": "slo_boundary",
+      "expected": [
+        "resolve_slo"
+      ],
+      "rule_subgoal": "resolve_slo",
+      "selected_subgoal": "explore",
+      "planner_source": "llm",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "raw_response": "{\n  \"subgoal\": \"explore\",\n  \"rationale\": \"Since the intent is to reduce uncertainty about latency feasibility and there is remaining exploration budget, exploring further is the appropriate next step.\"\n}"
+    },
+    {
+      "case_id": "slo-tpot-02",
+      "category": "slo_boundary",
+      "expected": [
+        "resolve_slo"
+      ],
+      "rule_subgoal": "resolve_slo",
+      "selected_subgoal": "explore",
+      "planner_source": "llm",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "raw_response": "{\n  \"subgoal\": \"explore\",\n  \"rationale\": \"Since there is no evidence near the SLO boundary and no material transfer gap, explore is the appropriate next step to gather more evidence and ensure TPOT feasibility is clarified.\"\n}"
+    }
+  ],
+  "fallbacks": [
+    {
+      "case_id": "guard-concrete-level-02",
+      "category": "guard_challenge",
+      "repeat": 0,
+      "selected_subgoal": "resolve_slo",
+      "fallback_reason": "ValueError: 'intent' is not a valid Subgoal",
+      "raw_response": "{\n  \"subgoal\": \"intent\",\n  \"rationale\": \"The intent is already set to select seq32-bt2048-chunk at L4 now, and there is no evidence of a failure, SLO boundary, or material transfer gap that would require exploration or calibration.\"\n}"
+    },
+    {
+      "case_id": "guard-concrete-level-02",
+      "category": "guard_challenge",
+      "repeat": 1,
+      "selected_subgoal": "resolve_slo",
+      "fallback_reason": "ValueError: 'intent' is not a valid Subgoal",
+      "raw_response": "{\n  \"subgoal\": \"intent\",\n  \"rationale\": \"The intent is already set to select seq32-bt2048-chunk at L4 now, and there is no evidence of a failure, SLO boundary, or material transfer gap that would require exploration or calibration.\"\n}"
+    },
+    {
+      "case_id": "guard-concrete-level-02",
+      "category": "guard_challenge",
+      "repeat": 2,
+      "selected_subgoal": "resolve_slo",
+      "fallback_reason": "ValueError: 'intent' is not a valid Subgoal",
+      "raw_response": "{\n  \"subgoal\": \"intent\",\n  \"rationale\": \"The intent is already set to select seq32-bt2048-chunk at L4 now, and there is no evidence of a failure, SLO boundary, or material transfer gap that would require exploration or calibration.\"\n}"
+    }
+  ]
+}

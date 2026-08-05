@@ -150,4 +150,40 @@
 \newcommand{\IPIGCostBlindGPUSaving}{26.6\%}
 \newcommand{\IPIGCostBlindFirstHitSaving}{26.2\%}
 \newcommand{\CheapestIPIGGPUSaving}{4.2\%}
-\newcommand{\AutomatedTests}{70}
+
+% Preregistered budget-response sweep over the same sealed H100 corpus.
+% Five budgets x four policies x 500 matched empirical-bootstrap episodes.
+\newcommand{\BudgetLevels}{5}
+\newcommand{\BudgetEpisodesPerPoint}{500}
+\newcommand{\BudgetTotalEpisodes}{10{,}000}
+\newcommand{\BudgetThresholdGPUHours}{0.08}
+\newcommand{\IPIGHitAtThreshold}{63.6\%}
+\newcommand{\RandomHitAtThreshold}{18.2\%}
+\newcommand{\CostBlindHitAtThreshold}{63.6\%}
+\newcommand{\CheapestHitAtThreshold}{76.0\%}
+\newcommand{\IPIGSuccessAUC}{39.8\%}
+\newcommand{\RandomSuccessAUC}{20.4\%}
+\newcommand{\CostBlindSuccessAUC}{39.8\%}
+\newcommand{\CheapestSuccessAUC}{42.9\%}
+\newcommand{\CheapestBudgetDrop}{12.4 points}
+
+% Planner conformance. V1 is development; V2 is a disjoint frozen holdout.
+\newcommand{\PlannerCallsPerSet}{90}
+\newcommand{\PlannerTotalCalls}{180}
+\newcommand{\PlannerRawThreshold}{90\%}
+\newcommand{\PlannerVoneRaw}{83.3\%}
+\newcommand{\PlannerVoneAdmitted}{86.7\%}
+\newcommand{\PlannerVoneTyped}{96.7\%}
+\newcommand{\PlannerVoneFallback}{3.3\%}
+\newcommand{\PlannerVoneMedianLatency}{319}
+\newcommand{\PlannerVonePninetyfiveLatency}{407}
+\newcommand{\PlannerVtwoRaw}{73.3\%}
+\newcommand{\PlannerVtwoAdmitted}{100\%}
+\newcommand{\PlannerVtwoTyped}{100\%}
+\newcommand{\PlannerVtwoIntervention}{26.7\%}
+\newcommand{\PlannerVtwoMedianLatency}{247}
+\newcommand{\PlannerVtwoPninetyfiveLatency}{515}
+\newcommand{\PlannerInterventions}{24}
+\newcommand{\PlannerUniqueInterventions}{8}
+\newcommand{\PlannerErrors}{0}
+\newcommand{\AutomatedTests}{82}

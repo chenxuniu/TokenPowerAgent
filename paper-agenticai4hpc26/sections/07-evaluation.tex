@@ -18,9 +18,10 @@ predictions where they transfer and abstain where performance fidelity fails?
 each exercised evidence stage preserve about the verified SLO-feasible Pareto set, and what
 quality can acquisition policies recover per GPU-hour?
 
-\textbf{RQ4 -- Bounded autonomy.}  Does the runtime enforce budgets, preserve
-evidence labels, recover from failures, reject malformed planner output, and
-withhold recommendations lacking full verification?
+\textbf{RQ4 -- Bounded autonomy.}  How accurately and quickly does the LLM
+propose semantic subgoals, when must the state guard intervene, and does the
+runtime still enforce budgets, evidence labels, failure accounting, and final
+verification?
 
 \subsection{Workload-Transfer Study}
 
@@ -85,6 +86,33 @@ a stable hash of episode seed and action; the mapping is shared across policies
 as common random numbers.  Thus the \PolicyEpisodes{} episodes per policy are a
 sensitivity analysis over empirical repeats, not \PolicyEpisodes{} independent
 hardware experiments.
+
+To test budget response rather than one operating point, we repeat the matched
+bootstrap at \BudgetLevels{} preregistered budgets from 0.04 to 0.12 GPU-h.
+Every policy receives the same \BudgetEpisodesPerPoint{} seeds at each budget,
+for \BudgetTotalEpisodes{} total replay episodes.  We report the trapezoidal
+area under the success--budget curve normalized by that budget interval.  This
+is still counterfactual replay over the sealed measurements, not additional
+hardware execution.
+
+\subsection{Planner Conformance and Overhead}
+
+The planner study calls the same pinned Qwen2.5-7B endpoint at temperature zero
+on frozen controller states.  V1 is a 30-case development diagnostic repeated
+three times with prompt/schema guarding.  After observing V1, V2 freezes 30
+disjoint intents and case identifiers, repeats each three times, and enables the
+state-priority guard.  V2 includes cold-start, SLO-boundary, repair,
+scale-calibration, steady-exploration, and overlapping adversarial states.
+Expected subgoals come from the frozen deterministic precedence, not from the
+model output.
+
+We distinguish typed output, the LLM's raw expected-subgoal rate, the final
+admitted-subgoal rate, schema fallback, semantic intervention, endpoint errors,
+forbidden-subgoal acceptance, token use, and end-to-end planner latency.  The
+frozen acceptance criteria require at least 95\% typed output,
+\PlannerRawThreshold{} raw agreement, 100\% admitted agreement, zero completion
+errors, and zero forbidden acceptances.  This protocol tests semantic routing;
+the planner does not estimate energy or directly launch a benchmark.
 
 \subsection{Reliability Tests}
 

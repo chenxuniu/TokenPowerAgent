@@ -1,21 +1,33 @@
 \begin{table}[t]
 \centering
-\caption{Corrected empirical replay over the sealed H100 corpus.  Hit is recall
-of the unique median verified oracle point; first hit is median GPU-hours conditional
-on a hit.  Each row has \PolicyEpisodes{} bootstrap episodes.}
+\caption{Sealed controller results.  Policy rows use
+\BudgetEpisodesPerPoint{} matched episodes/budget; AUC spans \BudgetLevels{}
+budgets.  Planner rows use \PlannerCallsPerSet{} calls/set; V2 is a disjoint
+holdout.  Guard event is V1 fallback or V2 intervention; latency is P50/P95 ms.}
 \label{tab:agent-results}
 \footnotesize
-\setlength{\tabcolsep}{3.2pt}
+\setlength{\tabcolsep}{3.0pt}
+\textbf{(a) Acquisition policy}\par\vspace{2pt}
+\begin{tabular}{lrrr}
+\toprule
+Policy & Hit@.12 & Mean GPU-h & Success AUC \\
+\midrule
+\ipig{} & \IPIGOracleHit{} & \IPIGGPUHours{} & \IPIGSuccessAUC{} \\
+Random & \RandomOracleHit{} & \RandomGPUHours{} & \RandomSuccessAUC{} \\
+Cost-blind & \CostBlindOracleHit{} & \CostBlindGPUHours{} & \CostBlindSuccessAUC{} \\
+Cheapest-first & \CheapestOracleHit{} & \CheapestGPUHours{} & \CheapestSuccessAUC{} \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}
+\textbf{(b) Semantic planner}\par\vspace{2pt}
 \begin{tabular}{lrrrr}
 \toprule
-Policy & Hit & Mean GPU-h & First hit & Regret \\
+Set & Raw & Admitted & Guard event & P50/P95 \\
 \midrule
-\ipig{} & \IPIGOracleHit{} & \IPIGGPUHours{} & \IPIGFirstHit{} & \IPIGRegret{} \\
-Random & \RandomOracleHit{} & \RandomGPUHours{} & \RandomFirstHit{} & \RandomRegret{} \\
-Cost-blind & \CostBlindOracleHit{} & \CostBlindGPUHours{} &
-\CostBlindFirstHit{} & \CostBlindRegret{} \\
-Cheapest-first & \CheapestOracleHit{} & \CheapestGPUHours{} &
-\CheapestFirstHit{} & \CheapestRegret{} \\
+V1 development & \PlannerVoneRaw{} & \PlannerVoneAdmitted{} &
+\PlannerVoneFallback{} & \PlannerVoneMedianLatency{}/\PlannerVonePninetyfiveLatency{} \\
+V2 holdout & \PlannerVtwoRaw{} & \PlannerVtwoAdmitted{} &
+\PlannerVtwoIntervention{} & \PlannerVtwoMedianLatency{}/\PlannerVtwoPninetyfiveLatency{} \\
 \bottomrule
 \end{tabular}
 \end{table}

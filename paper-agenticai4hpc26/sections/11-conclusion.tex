@@ -15,7 +15,10 @@ verified configuration improves energy by
 \ParetoTTFTReduction{} over the expert default.  Corrected empirical replay
 also places the policy claim precisely: \ipig{} improves oracle-hit rate and
 GPU-hour cost over random and cost-blind acquisition, while cheapest-first
-remains slightly cheaper in this narrow search space.  These results establish
-an auditable CPU-first path from scarce HPC resources to measured,
-single-GPU configuration decisions.  Cross-hardware and distributed search are
-separate extension questions rather than claims of this paper.
+remains slightly stronger in this narrow search space.  Finally, the disjoint
+planner holdout shows why autonomy is bounded: raw subgoal accuracy is only
+\PlannerVtwoRaw{}, whereas the deterministic state guard admits the expected
+subgoal on every call and preserves the failed raw gate in provenance.  These
+results establish an auditable CPU-first path from scarce HPC resources to
+measured, single-GPU configuration decisions.  Cross-hardware and distributed
+search are separate extension questions rather than claims of this paper.

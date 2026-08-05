@@ -15,7 +15,7 @@
   \node[stage,fill=tpBlueLight,text width=2.28cm] (compiler) at (4.15,0.55)
     {\textbf{Scenario Compiler}\\[2pt]typed search space\\memory / support\\feasibility filter};
   \node[stage,fill=tpGoldLight,text width=2.72cm] (agent) at (7.35,0.55)
-    {\textbf{Hybrid Agent}\\[2pt]semantic subgoal\\\ipig{}\ action selection\\
+    {\textbf{Hybrid Agent}\\[2pt]LLM proposal + state guard\\\ipig{}\ action selection\\
      reflect / repair};
   \node[stage,fill=tpTealLight,text width=3.00cm] (twin) at (11.05,0.55)
     {\textbf{Energy Twin + Tools}\\[2pt]CPU prediction\\DCGM + serving probes\\uncertainty + Pareto search};
@@ -48,10 +48,10 @@
   \node[anchor=west,font=\small\bfseries,text=tpGray] at (frame.north west)
     {\system{}};
 \end{tikzpicture}
-\caption{\system{}\ overview.  The language model selects a typed experiment
-subgoal, while \ipig{}\ chooses a candidate--fidelity action.  Deterministic tools
-perform feasibility checking, simulation, telemetry integration, surrogate
-fitting, and Pareto analysis; full target-workload \bench{}\ evidence gates every
-recommendation.}
+\caption{\system{}\ overview.  The language model proposes a typed experiment
+subgoal; a state-priority guard admits it before \ipig{}\ chooses a
+candidate--fidelity action.  Deterministic tools perform feasibility checking,
+simulation, telemetry integration, surrogate fitting, and Pareto analysis;
+full target-workload \bench{}\ evidence gates every recommendation.}
 \label{fig:architecture}
 \end{figure*}

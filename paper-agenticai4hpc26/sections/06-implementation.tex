@@ -33,10 +33,11 @@ retrieval}, \textbf{Energy Twin}, \textbf{executor}, and
 \textbf{planner/policy}.  CPU prediction, replay, Probe/Verify serving
 execution, balanced configuration campaigns, evidence freezing, blind
 validation, corpus construction, and policy benchmarking are implemented.  The
-constrained planner calls an OpenAI-compatible endpoint, accepts only a JSON
-subgoal and rationale, and falls back to the deterministic planner on malformed
-output or endpoint failure.  Candidate selection and every safety-critical
-state transition remain outside the language model.
+constrained planner calls an OpenAI-compatible endpoint and accepts only a JSON
+subgoal and rationale.  Schema failure invokes a deterministic fallback; a
+separate state-priority guard compares every valid proposal with the required
+subgoal and records any replacement.  Candidate selection and every
+safety-critical state transition remain outside the language model.
 
 All executors share a typed interface keyed by candidate, evidence stage, and
 seed.  Replay returns a hidden sealed row only after an action requests it; the
@@ -64,7 +65,7 @@ fallback reason.
 \STATE $\mathcal D\gets\mathcal D_0$; $\mathcal T\gets\textsc{FitTwin}(\mathcal D_0,S)$
 \STATE $(B_s,B_v)\gets\textsc{ReserveVerification}(B_m,S,k)$
 \WHILE{$B_s>0$}
-  \STATE $g_t\gets\textsc{SemanticPlan}(S,\mathcal T,\mathcal D,B_s)$
+  \STATE $(\widetilde g_t,g_t)\gets\textsc{ProposeAndGuard}(S,\mathcal T,\mathcal D,B_s)$
   \STATE $\mathcal A_s\gets\textsc{GuardAvailableStages}(g_t,\mathcal X,B_s)$
   \STATE $(x^*,e^*)\gets\arg\max_{(x,e)\in\mathcal A_s}
   \alpha_t((x,e)\mid S)$

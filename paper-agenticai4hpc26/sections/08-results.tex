@@ -65,30 +65,53 @@ predeclared policy replay rather than counting those GPU-hours as agent savings.
 
 \subsubsection{Policy replay.}
 Table~\ref{tab:agent-results} reports the corrected common-random-number
-bootstrap.  \ipig{} reaches the unique median verified oracle in \IPIGOracleHit{} of
-episodes, \IPIGRandomHitGain{} more often than random, while using
-\IPIGRandomGPUSaving{} fewer total GPU-hours and reaching its first oracle hit
-\IPIGRandomFirstHitSaving{} earlier.  Its mean energy regret is
-\IPIGRandomRegretSaving{} lower.  Against cost-blind information gain, \ipig{}
-preserves the same hit rate and regret while using \IPIGCostBlindGPUSaving{}
-fewer GPU-hours, isolating the value of cost normalization.
+bootstrap.  At 0.12 GPU-h, \ipig{} reaches the unique median verified oracle in
+\IPIGOracleHit{} of episodes, \IPIGRandomHitGain{} more often than random, while
+using \IPIGRandomGPUSaving{} fewer total GPU-hours.  It preserves cost-blind
+information gain's hit rate while using \IPIGCostBlindGPUSaving{} fewer
+GPU-hours, isolating the value of cost normalization at this operating point.
+
+The budget sweep sharpens that comparison.  No policy succeeds at 0.04 GPU-h;
+at \BudgetThresholdGPUHours{} GPU-h, \ipig{} reaches \IPIGHitAtThreshold{}
+success versus \RandomHitAtThreshold{} for random.  Across all five budgets,
+their normalized success AUCs are \IPIGSuccessAUC{} and \RandomSuccessAUC{},
+respectively.  Cost-blind matches \ipig{} at \CostBlindSuccessAUC{}, whereas
+cheapest-first has the highest AUC (\CheapestSuccessAUC{}) and reaches
+\CheapestHitAtThreshold{} success at 0.08 GPU-h.
 
 The strongest caveat is equally informative: cheapest-first reproduces
 \ipig{}'s verified decisions at \CheapestIPIGGPUSaving{} lower mean cost in
-this 12-candidate, single-GPU space.  The result supports \ipig{} over random
-and cost-blind acquisition under the declared 20-step budget, but not universal
-policy superiority.  Larger serving spaces may provide more opportunity for an
-adaptive policy to differ from a static stage order.  No replay episode contains
-a failed action.
+this 12-candidate, single-GPU space.  Moreover, its success falls by
+\CheapestBudgetDrop{} after 0.08 GPU-h because additional resampled evidence can
+change final verification choices.  The result supports \ipig{} over random and
+shows the effect of cost normalization, but neither universal policy superiority
+nor monotone anytime behavior.  No replay episode contains a failed action.
 
 \input{tables/agent-results}
 
 \subsection{RQ4: Bounded Runtime Behavior}
 
+Panel (b) of Table~\ref{tab:agent-results} separates LLM proposals from admitted
+subgoals.  On V1 development states, raw and admitted agreement are
+\PlannerVoneRaw{} and \PlannerVoneAdmitted{}, with \PlannerVoneFallback{} schema
+fallback.  On the disjoint V2 holdout, all outputs are typed and endpoint,
+completion, schema-fallback, and forbidden-acceptance counts are zero, but raw
+agreement falls to \PlannerVtwoRaw{}.  The model repeatedly chooses
+\textsc{Explore} at an SLO boundary or mishandles overlapping scale and SLO
+conditions.  Thus it misses the preregistered \PlannerRawThreshold{} criterion.
+
+The state guard intervenes on \PlannerInterventions{} of
+\PlannerCallsPerSet{} calls (\PlannerUniqueInterventions{} unique cases, each
+repeated three times) and raises admitted agreement to \PlannerVtwoAdmitted{}.
+Median/P95 planner latency is
+\PlannerVtwoMedianLatency{}/\PlannerVtwoPninetyfiveLatency{} ms.  This is small
+relative to multi-second Probe/Verify jobs, but it is measured endpoint latency,
+not zero-cost reasoning.  The result validates deterministic semantic admission,
+not standalone LLM reliability: the raw gate failed and the guard supplies the
+safety property.
+
 All \AutomatedTests{} automated tests pass.  Injected executor failure becomes
-a failed evidence record charged at declared cost, and the next event enters
-\textsc{Repair}.  Malformed LLM output triggers a recorded rule-based fallback.
-Replay and CPU-prediction tools cannot relabel Sandbox outputs as verified, budget
-overruns raise a hard error, and recommendations are computed only from
-successful Verify evidence satisfying the SLO.  These tests establish mechanism
-enforcement, not the semantic quality of a particular planner model.
+a charged immutable record and drives \textsc{Repair}; budget overruns raise a
+hard error; and only successful, SLO-feasible Verify evidence can enter the
+released recommendation.  Replay and CPU tools cannot relabel simulated output
+as verified.

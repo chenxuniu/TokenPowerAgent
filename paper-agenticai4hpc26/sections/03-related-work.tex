@@ -6,24 +6,19 @@ Inference-energy studies establish joules/token and joules/request as
 first-class metrics and show sensitivity to model, workload, hardware, engine,
 decoding, and parallelism
 \cite{samsi2023words,fernandez2025energy,niu2025engines}.  MLPerf Power,
-ML.ENERGY, and prompt-level datasets add cross-scale measurement or automated
-prediction \cite{tschand2024mlperf,chung2025mlenergy,caravaca2025prompts}.
-\bench{} contributes declarative, phase-aligned GPU, component, and node
-telemetry from single- to multi-node inference \cite{niu2026tokenpowerbench}.
-These systems supply observations; they do not allocate a scenario-specific
-budget for acquiring the next observation.
+and \bench{} add cross-scale measurement and declarative phase-aligned GPU,
+component, and node telemetry \cite{tschand2024mlperf,niu2026tokenpowerbench}.
+They supply observations but do not allocate a scenario-specific budget for
+the next observation.
 
 Serving systems expose the knob space through memory management, chunked
-prefill, disaggregation, scheduling, and heterogeneous placement
-\cite{kwon2023vllm,agrawal2024sarathi,zhong2024distserve,
-hong2025sola,jiang2025thunderserve}.  Vidur, LLMServingSim, and LLMCompass use
-profiling and simulation for what-if analysis
-\cite{agrawal2024vidur,cho2024llmservingsim,zhang2024llmcompass}; Lumos validates
-distributed trace estimation, Charon combines profiled and analytical operator
-backends, and Meta explores millions of configurations
-\cite{liang2025lumos,yang2026charon,cho2026deployment}.  These works establish
-strong simulator priors.  \system{} instead asks when such a prior is
-sufficient and when scale-specific measurement is worth its cost.
+prefill, and disaggregation \cite{kwon2023vllm,agrawal2024sarathi,
+zhong2024distserve}.  Vidur uses profiling for what-if analysis, Charon combines
+profiled and analytical operator backends, and Meta searches millions of
+deployment configurations \cite{agrawal2024vidur,yang2026charon,
+cho2026deployment}.  These works establish strong simulator priors;
+\system{} asks when a prior is sufficient and when measurement is worth its
+cost.
 
 \subsection{Energy Control and Multi-Fidelity Optimization}
 
@@ -37,28 +32,25 @@ actions under a fixed observation model.  \system{} instead optimizes the
 evidence-acquisition process before a verified recommendation.
 
 Generic multi-fidelity Pareto optimization is the closest algorithmic
-precedent.  $\epsilon$-PAL classifies Pareto membership, PESMO targets Pareto-set
-information, and qNEHVI is a strong noisy single-fidelity optimizer
-\cite{zuluaga2016epal,hernandezlobato2016pesmo,daulton2021qnehvi}.  MF-OSEMO
-selects candidate--fidelity vectors using highest-fidelity frontier information,
-while MF-JESMOC adds constraints
+precedent.  MF-OSEMO selects candidate--fidelity vectors using highest-fidelity
+frontier information, while MF-JESMOC adds constraints
 \cite{belakaria2020mfosemo,fernandezsanchez2025mfjesmoc}.  We do not claim the
-first information-gain or multi-fidelity optimizer.  \ipig{} conditions the
-terminal variable on intent-specific SLO feasibility and Pareto membership,
-then adds typed evidence stages, guarded execution, and mandatory verified release.
+first information-gain optimizer.  \ipig{} conditions the terminal variable on
+intent-specific SLO feasibility and Pareto membership, then adds typed evidence,
+guarded execution, and mandatory verified release.
 
 \subsection{Agentic Systems Optimization}
 
-ReAct and Toolformer separate language reasoning from external actions
-\cite{yao2023react,schick2023toolformer}.  STELLAR tunes parallel file systems,
-LLM-Box uses simulator-guided agents for accelerator mapping, and PROMPTS uses
-profiler feedback for multi-agent configuration recommendation
-\cite{egersdoerfer2025stellar,pandit2025llmbox,ding2026prompts}.  AIOpsLab shows
+ReAct separates language reasoning from external actions \cite{yao2023react}.
+STELLAR tunes parallel file systems, and PROMPTS uses profiler feedback for
+multi-agent configuration recommendation
+\cite{egersdoerfer2025stellar,ding2026prompts}.  AIOpsLab shows
 that operational agents need controlled workloads, telemetry, fault injection,
-and outcome-based evaluation \cite{chen2025aiopslab}.  We therefore test a
-narrower hypothesis: semantic planning helps intent translation, repair, and
-escalation, while numerical evidence selection remains auditable and is
-compared with an optimizer-only controller.
+and outcome-based evaluation \cite{chen2025aiopslab}.  We test a narrower
+architectural question: can semantic proposals be evaluated and admitted
+safely while numerical evidence selection remains auditable?  Raw planner
+agreement and guarded decisions are therefore reported separately; we do not
+attribute the guard's correctness to the language model.
 
 Across these areas, the joint gap is configuration--fidelity co-selection under
 real GPU-hour cost followed by full target-workload verification.  No individual
