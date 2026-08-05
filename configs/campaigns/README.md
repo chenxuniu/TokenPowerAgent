@@ -35,6 +35,17 @@ has one CPU-side L0 prediction, three 64-request L1 probes, and three
 256-request L4 validations. The 72 GPU measurements use a frozen cyclic order
 with one server restart per candidate-repeat block.
 
+`qwen2.5-7b-h100-winner-confirmation-v1.json` is the independent
+post-selection confirmation. It locks `seq32-bt2048-chunk` as the winner and
+`expert-seq256-bt8192-chunk` as the baseline using hashes from config-search-v1;
+the winner may not be refitted or reselected after this file is frozen. Five
+new seeds produce five L4 pairs (10 target-workload measurements). Pair order
+alternates between repeats, and the server restarts before every action. The
+preregistered pass rule requires five complete pairs, an energy win in every
+pair, a positive lower endpoint of the exact paired-bootstrap 95% interval for
+mean energy saving, a positive median TTFT reduction, and SLO compliance in
+every run.
+
 The required order is:
 
 1. Freeze every campaign prediction and its SHA-256 manifest.
@@ -105,3 +116,48 @@ correlation, pairwise ordering, and Pareto precision/recall against that oracle.
 The replay corpus keeps L0 predictions and measured L1/L4 records distinctly
 labeled; the artifact manifest covers the freeze, measurements, DCGM traces,
 client outputs, server logs, run log, and environment snapshot.
+
+Freeze the winner confirmation before starting any new measurement:
+
+```bash
+tokenpoweragent freeze-config-campaign \
+  --campaign configs/campaigns/qwen2.5-7b-h100-winner-confirmation-v1.json \
+  --calibration experiments/results/qwen2.5-7b-h100-workload-v2.json \
+  --scenario experiments/results/winner-confirmation-v1-scenario.json \
+  --predictions experiments/results/winner-confirmation-v1-l0-predictions.jsonl \
+  --schedule experiments/results/winner-confirmation-v1-schedule.json \
+  --summary experiments/results/winner-confirmation-v1-freeze-summary.json \
+  --manifest experiments/results/winner-confirmation-v1-freeze.sha256
+```
+
+After checking and archiving the freeze, run all 10 L4 actions. The same command
+with `--resume` safely continues after an SSH interruption:
+
+```bash
+tokenpoweragent run-config-campaign \
+  --campaign configs/campaigns/qwen2.5-7b-h100-winner-confirmation-v1.json \
+  --predictions experiments/results/winner-confirmation-v1-l0-predictions.jsonl \
+  --schedule experiments/results/winner-confirmation-v1-schedule.json \
+  --summary experiments/results/winner-confirmation-v1-freeze-summary.json \
+  --freeze-manifest experiments/results/winner-confirmation-v1-freeze.sha256 \
+  --output experiments/results/winner-confirmation-v1-measurements.jsonl \
+  --telemetry-dir experiments/results/winner-confirmation-v1-telemetry \
+  --server-log-dir experiments/results/winner-confirmation-v1-server-logs
+```
+
+Validate the paired result and hash every raw artifact without changing the
+locked selection:
+
+```bash
+tokenpoweragent validate-config-confirmation \
+  --campaign configs/campaigns/qwen2.5-7b-h100-winner-confirmation-v1.json \
+  --predictions experiments/results/winner-confirmation-v1-l0-predictions.jsonl \
+  --schedule experiments/results/winner-confirmation-v1-schedule.json \
+  --summary experiments/results/winner-confirmation-v1-freeze-summary.json \
+  --freeze-manifest experiments/results/winner-confirmation-v1-freeze.sha256 \
+  --measurements experiments/results/winner-confirmation-v1-measurements.jsonl \
+  --output experiments/results/winner-confirmation-v1-report.json \
+  --artifact-list experiments/results/winner-confirmation-v1-artifacts.list \
+  --artifact-manifest experiments/results/winner-confirmation-v1-artifacts.sha256 \
+  --include-artifact experiments/results/winner-confirmation-v1-run.log
+```

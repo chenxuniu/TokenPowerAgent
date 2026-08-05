@@ -43,6 +43,10 @@ from tokenpoweragent.configuration_analysis import (
     ConfigurationAnalysisError,
     build_configuration_campaign_report,
 )
+from tokenpoweragent.configuration_confirmation import (
+    ConfigurationConfirmationError,
+    build_configuration_confirmation_report,
+)
 from tokenpoweragent.configuration_runner import (
     ConfigurationRunnerError,
     DockerVLLMServerManager,
@@ -553,6 +557,45 @@ def build_parser() -> argparse.ArgumentParser:
     validate_config_campaign.add_argument("--artifact-list", type=Path)
     validate_config_campaign.add_argument("--artifact-manifest", type=Path)
     validate_config_campaign.add_argument(
+        "--include-artifact",
+        action="append",
+        type=Path,
+        default=[],
+        help="include an additional environment or run-log file in raw hashes",
+    )
+
+    validate_config_confirmation = subparsers.add_parser(
+        "validate-config-confirmation",
+        help="validate an independently frozen paired L4 confirmation",
+    )
+    validate_config_confirmation.add_argument(
+        "--campaign", type=Path, required=True
+    )
+    validate_config_confirmation.add_argument(
+        "--predictions", type=Path, required=True
+    )
+    validate_config_confirmation.add_argument(
+        "--schedule", type=Path, required=True
+    )
+    validate_config_confirmation.add_argument(
+        "--summary", type=Path, required=True
+    )
+    validate_config_confirmation.add_argument(
+        "--freeze-manifest", type=Path, required=True
+    )
+    validate_config_confirmation.add_argument(
+        "--measurements", type=Path, required=True
+    )
+    validate_config_confirmation.add_argument(
+        "--output", type=Path, required=True
+    )
+    validate_config_confirmation.add_argument(
+        "--artifact-list", type=Path, required=True
+    )
+    validate_config_confirmation.add_argument(
+        "--artifact-manifest", type=Path, required=True
+    )
+    validate_config_confirmation.add_argument(
         "--include-artifact",
         action="append",
         type=Path,
@@ -1146,11 +1189,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 "cannot freeze configuration campaign: %s" % exc
             ) from exc
         print(
-            "froze %d L0 predictions and %d balanced L1/L4 measurements "
+            "froze %d L0 predictions and %d frozen %s measurements "
             "for %s; manifest=%s"
             % (
                 summary["l0_prediction_count"],
                 summary["measurement_count"],
+                "/".join(summary["levels"]),
                 summary["campaign_id"],
                 args.manifest,
             )
@@ -1229,6 +1273,44 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 str(report["summary"]["publication_ready"]).lower(),
                 args.output,
                 args.corpus,
+            )
+        )
+        return 0
+
+    if args.command == "validate-config-confirmation":
+        try:
+            report = build_configuration_confirmation_report(
+                campaign_path=args.campaign,
+                predictions_path=args.predictions,
+                schedule_path=args.schedule,
+                summary_path=args.summary,
+                freeze_manifest_path=args.freeze_manifest,
+                measurements_path=args.measurements,
+                report_path=args.output,
+                artifact_list_path=args.artifact_list,
+                artifact_manifest_path=args.artifact_manifest,
+                include_artifacts=args.include_artifact,
+            )
+        except (
+            ConfigurationConfirmationError,
+            ConfigurationCampaignError,
+            OSError,
+        ) as exc:
+            raise SystemExit(
+                "cannot validate configuration confirmation: %s" % exc
+            ) from exc
+        print(
+            "validated %d independent pairs: energy saving %.2f%% "
+            "(95%% CI %.2f%% to %.2f%%), TTFT reduction %.2f%%; "
+            "confirmation_passed=%s; wrote %s"
+            % (
+                report["protocol"]["pair_count"],
+                report["summary"]["headline_energy_saving_pct"],
+                report["summary"]["headline_energy_saving_ci95_pct"][0],
+                report["summary"]["headline_energy_saving_ci95_pct"][1],
+                report["summary"]["headline_ttft_reduction_pct"],
+                str(report["summary"]["confirmation_passed"]).lower(),
+                args.output,
             )
         )
         return 0

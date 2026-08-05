@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "qwen2.5-7b-h100-winner-confirmation-v1",
+  "dataset_split": "configuration-confirmation",
+  "intent": "Independently confirm, without refitting or reselection, whether the serving configuration selected by config-search-v1 retains lower GPU energy per 1,000 output tokens and lower TTFT than the locked expert baseline on the same single-H100 target workload.",
+  "preregistered_confirmation": {
+    "winner_id": "seq32-bt2048-chunk",
+    "baseline_id": "expert-seq256-bt8192-chunk",
+    "selection_locked_before_measurement": true,
+    "no_refit_or_reselection": true,
+    "source_artifact_sha256": {
+      "config_search_campaign": "27d38ff3367db0b408569596f1ded30f4892cf57d355e546d3dee41619ef6fa4",
+      "config_search_measurements": "4a6bac3b82117cd5265d0d66e57b412b966f071dcdf79e16f1504a60bea096f0",
+      "config_search_validation": "b6aa51dc7e9c3912622e278718f7b1ea55fee9b0b387a5776fcb0af678dd447f",
+      "config_search_replay_corpus": "2811f77938f349b95ec679804dcb0d262377fd0d7277d3740a73dd1815c8a471"
+    },
+    "acceptance": {
+      "minimum_pair_count": 5,
+      "minimum_energy_pair_win_rate": 1.0,
+      "energy_mean_saving_ci_lower_gt_pct": 0.0,
+      "ttft_median_reduction_gt_pct": 0.0
+    }
+  },
+  "model": {
+    "id": "Qwen/Qwen2.5-7B-Instruct",
+    "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "tokenizer_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "max_model_len": 4096
+  },
+  "hardware": {
+    "hostname": "ipp2-0052",
+    "gpu_name": "NVIDIA H100 80GB HBM3",
+    "gpu_uuid": "GPU-d855366e-f145-3cd6-d96d-508f1476b727",
+    "gpu_count": 1,
+    "node_count": 1,
+    "driver_version": "580.173.02"
+  },
+  "runtime": {
+    "server_image": "vllm/vllm-openai@sha256:6d8429e38e3747723ca07ee1b17972e09bb9c51c4032b266f24fb1cc3b22ed8f",
+    "client_image": "tokenpower-vllm-client:v0.23.0",
+    "client_image_id": "sha256:29fcf3ca9a7ef630571b9bd24150249db245f83fb5d0c817942e41c1036679b9",
+    "server_container": "tpa-vllm-qwen7b",
+    "network": "tpa-serving-bench",
+    "cache_volume": "tpa-hf-cache",
+    "base_url": "http://tpa-vllm-qwen7b:8000",
+    "served_model_name": "qwen2.5-7b",
+    "gpu_memory_utilization": 0.9,
+    "generation_config": "vllm",
+    "seed": 0
+  },
+  "workload": {
+    "input_tokens": 2048,
+    "output_tokens": 128,
+    "concurrency": 32,
+    "num_requests": 256,
+    "request_rate": "inf"
+  },
+  "objectives": {
+    "energy_j_per_1k_output_tokens": "min",
+    "throughput_tok_s": "max"
+  },
+  "slo": {
+    "ttft_ms": 1600,
+    "tpot_ms": 20
+  },
+  "budget": {
+    "gpu_hours": 0.2,
+    "verify_top_k": 2
+  },
+  "level_cost_gpu_hours": {
+    "L0": 0,
+    "L1": 0.01,
+    "L4": 0.02
+  },
+  "measurement": {
+    "power_limit_w": 700,
+    "probe_requests": 64,
+    "repeats": 5,
+    "num_warmups": 2,
+    "sample_ms": 100,
+    "levels": [
+      "L4"
+    ],
+    "schedule": "paired-alternating",
+    "schedule_seed": 20260805,
+    "seed_base": 100,
+    "restart_server_per_candidate": true,
+    "cooldown_temperature_c": 45,
+    "server_ready_timeout_seconds": 300,
+    "failure_policy": "stop-and-resume-same-schedule"
+  },
+  "candidates": [
+    {
+      "id": "seq32-bt2048-chunk",
+      "serving_configuration": {
+        "engine": "vllm",
+        "precision": "bfloat16",
+        "kv_cache_dtype": "bfloat16",
+        "tensor_parallel": 1,
+        "pipeline_parallel": 1,
+        "data_parallel": 1,
+        "max_num_seqs": 32,
+        "max_num_batched_tokens": 2048,
+        "chunked_prefill": true,
+        "prefix_caching": false
+      }
+    },
+    {
+      "id": "expert-seq256-bt8192-chunk",
+      "role": "expert-baseline",
+      "serving_configuration": {
+        "engine": "vllm",
+        "precision": "bfloat16",
+        "kv_cache_dtype": "bfloat16",
+        "tensor_parallel": 1,
+        "pipeline_parallel": 1,
+        "data_parallel": 1,
+        "max_num_seqs": 256,
+        "max_num_batched_tokens": 8192,
+        "chunked_prefill": true,
+        "prefix_caching": false
+      }
+    }
+  ]
+}

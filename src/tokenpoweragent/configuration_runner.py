@@ -614,7 +614,7 @@ def _serving_candidate(
             "num_warmups": campaign.num_warmups,
             "request_rate": "inf" if rate is None else "%g" % rate,
             "max_concurrency": workload.concurrency,
-            "dataset_split": "configuration-search",
+            "dataset_split": campaign.dataset_split,
         },
     )
 
@@ -664,7 +664,7 @@ def _assert_measurement_record(
         raise ConfigurationRunnerError("measurement candidate or level drifted")
     provenance = record.provenance
     expected_scalars = {
-        "dataset_split": "configuration-search",
+        "dataset_split": campaign.dataset_split,
         "model": campaign.model_id,
         "client_image_id": campaign.runtime["client_image_id"],
         "server_image": campaign.runtime["server_image"],

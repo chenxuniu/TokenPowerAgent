@@ -14,6 +14,9 @@ from tokenpoweragent.configuration_analysis import (
     ConfigurationAnalysisError,
     build_configuration_campaign_report,
 )
+from tokenpoweragent.configuration_confirmation import (
+    build_configuration_confirmation_report,
+)
 from tokenpoweragent.configuration_runner import (
     DockerVLLMServerManager,
     run_configuration_campaign,
@@ -36,6 +39,10 @@ CAMPAIGN_PATH = (
 PROFILE_PATH = (
     ROOT
     / "configs/calibration/qwen2.5-7b-h100-synthetic-example.json"
+)
+CONFIRMATION_PATH = (
+    ROOT
+    / "configs/campaigns/qwen2.5-7b-h100-winner-confirmation-v1.json"
 )
 
 
@@ -150,7 +157,21 @@ class FakeConfigurationExecutor:
         telemetry_path.parent.mkdir(parents=True, exist_ok=True)
         telemetry_path.write_text("GPU 0 fake telemetry\n", encoding="utf-8")
         client_path.write_text("fake benchmark output\n", encoding="utf-8")
-        energy = 400.0 + candidate.config["max_num_seqs"]
+        if candidate.candidate_id == "seq32-bt2048-chunk":
+            energy = 367.0 + 0.1 * seed
+            throughput = 2200.0 + seed
+            ttft = 1050.0 + seed
+            tpot = 8.0
+        elif candidate.candidate_id == "expert-seq256-bt8192-chunk":
+            energy = 371.0 + 0.1 * seed
+            throughput = 2000.0 + seed
+            ttft = 1340.0 + seed
+            tpot = 9.0
+        else:
+            energy = 400.0 + candidate.config["max_num_seqs"]
+            throughput = 2000.0
+            ttft = 1000.0
+            tpot = 10.0
         kind = (
             EvidenceKind.VERIFIED
             if level == EvidenceLevel.L4
@@ -161,9 +182,9 @@ class FakeConfigurationExecutor:
             level=level,
             metrics={
                 "energy_j_per_1k_output_tokens": energy,
-                "throughput_tok_s": 2000.0,
-                "ttft_ms": 1000.0,
-                "tpot_ms": 10.0,
+                "throughput_tok_s": throughput,
+                "ttft_ms": ttft,
+                "tpot_ms": tpot,
             },
             gpu_hours=0.01,
             kind=kind,
@@ -202,6 +223,13 @@ def test_configuration_campaign_locks_controlled_search_space() -> None:
     assert campaign.target_workload.num_requests == 256
     assert campaign.probe_requests == 64
     assert campaign.repeats == 3
+    assert campaign.dataset_split == "configuration-search"
+    assert campaign.measurement_levels == (
+        EvidenceLevel.L1,
+        EvidenceLevel.L4,
+    )
+    assert campaign.measurement_schedule == "cyclic-balanced"
+    assert campaign.seed_base == 0
     assert campaign.objectives == {
         "energy_j_per_1k_output_tokens": "min",
         "throughput_tok_s": "max",
@@ -222,6 +250,108 @@ def test_configuration_campaign_locks_controlled_search_space() -> None:
     assert all(point.configuration["tensor_parallel"] == 1 for point in campaign.candidates)
     assert all(point.configuration["pipeline_parallel"] == 1 for point in campaign.candidates)
     assert all(point.configuration["power_limit_w"] == 700 for point in campaign.candidates)
+
+
+def test_confirmation_campaign_freezes_five_alternating_l4_pairs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(ROOT)
+    paths = _outputs(tmp_path)
+    summary = freeze_configuration_campaign(
+        campaign_path=CONFIRMATION_PATH.relative_to(ROOT),
+        calibration_path=PROFILE_PATH.relative_to(ROOT),
+        **paths,
+    )
+    campaign = ConfigurationCampaign.load(CONFIRMATION_PATH)
+    schedule = json.loads(paths["schedule_path"].read_text(encoding="utf-8"))
+    actions = schedule["actions"]
+
+    assert campaign.dataset_split == "configuration-confirmation"
+    assert campaign.measurement_levels == (EvidenceLevel.L4,)
+    assert campaign.measurement_schedule == "paired-alternating"
+    assert summary["measurement_count"] == 10
+    assert summary["levels"] == ["L4"]
+    assert len(actions) == 10
+    assert all(action["level"] == "L4" for action in actions)
+    assert all(action["restart_server"] is True for action in actions)
+    assert [action["seed"] for action in actions] == [
+        100,
+        100,
+        101,
+        101,
+        102,
+        102,
+        103,
+        103,
+        104,
+        104,
+    ]
+    for pair_index in range(5):
+        pair = actions[2 * pair_index : 2 * pair_index + 2]
+        assert [action["pair_order_position"] for action in pair] == [0, 1]
+        assert {action["candidate_id"] for action in pair} == {
+            "seq32-bt2048-chunk",
+            "expert-seq256-bt8192-chunk",
+        }
+        if pair_index:
+            previous = actions[2 * (pair_index - 1) : 2 * pair_index]
+            assert [action["candidate_id"] for action in pair] == list(
+                reversed([action["candidate_id"] for action in previous])
+            )
+
+
+def test_confirmation_analysis_validates_locked_paired_result(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(ROOT)
+    paths = _outputs(tmp_path / "freeze")
+    freeze_configuration_campaign(
+        campaign_path=CONFIRMATION_PATH.relative_to(ROOT),
+        calibration_path=PROFILE_PATH.relative_to(ROOT),
+        **paths,
+    )
+    campaign = ConfigurationCampaign.load(CONFIRMATION_PATH)
+    manager = FakeServerManager(campaign, tmp_path / "raw")
+    executor = FakeConfigurationExecutor(campaign, manager)
+    measurements_path = tmp_path / "measurements.jsonl"
+    run_configuration_campaign(
+        campaign_path=CONFIRMATION_PATH,
+        predictions_path=paths["predictions_path"],
+        schedule_path=paths["schedule_path"],
+        summary_path=paths["summary_path"],
+        manifest_path=paths["manifest_path"],
+        output_path=measurements_path,
+        executor=executor,
+        server_manager=manager,
+    )
+    run_log = tmp_path / "run.log"
+    run_log.write_text("campaign_complete=true\n", encoding="utf-8")
+    report = build_configuration_confirmation_report(
+        campaign_path=CONFIRMATION_PATH,
+        predictions_path=paths["predictions_path"],
+        schedule_path=paths["schedule_path"],
+        summary_path=paths["summary_path"],
+        freeze_manifest_path=paths["manifest_path"],
+        measurements_path=measurements_path,
+        report_path=tmp_path / "report.json",
+        artifact_list_path=tmp_path / "artifacts.list",
+        artifact_manifest_path=tmp_path / "artifacts.sha256",
+        include_artifacts=(run_log,),
+    )
+
+    assert report["protocol"]["independent_confirmation_valid"] is True
+    assert report["protocol"]["pair_count"] == 5
+    assert report["protocol"]["measurement_count"] == 10
+    assert report["protocol"]["level_counts"] == {"L4": 10}
+    assert report["protocol"]["raw_artifacts"]["entry_count"] == 39
+    assert report["acceptance"]["confirmation_passed"] is True
+    assert report["summary"]["publication_ready"] is True
+    assert report["summary"]["energy_pair_win_rate"] == 1.0
+    assert report["summary"]["energy_sign_test_p_one_sided"] == pytest.approx(
+        0.03125
+    )
+    assert report["summary"]["headline_energy_saving_ci95_pct"][0] > 0
+    assert report["summary"]["headline_ttft_reduction_pct"] > 0
 
 
 def test_freeze_writes_balanced_hash_verified_artifacts(

@@ -81,6 +81,7 @@ class ConfigurationCampaign:
     schema_version: str
     campaign_id: str
     intent: str
+    dataset_split: str
     model: Mapping[str, Any]
     hardware: Mapping[str, Any]
     runtime: Mapping[str, Any]
@@ -95,7 +96,10 @@ class ConfigurationCampaign:
     repeats: int
     num_warmups: int
     sample_ms: int
+    measurement_levels: Tuple[EvidenceLevel, ...]
+    measurement_schedule: str
     schedule_seed: int
+    seed_base: int
     restart_server_per_candidate: bool
     cooldown_temperature_c: float
     server_ready_timeout_seconds: float
@@ -126,6 +130,17 @@ class ConfigurationCampaign:
         intent = str(raw.get("intent", "")).strip()
         if not intent:
             raise ConfigurationCampaignError("campaign.intent is required")
+        dataset_split = str(
+            raw.get("dataset_split", "configuration-search")
+        ).strip()
+        if dataset_split not in {
+            "configuration-search",
+            "configuration-confirmation",
+        }:
+            raise ConfigurationCampaignError(
+                "dataset_split must be configuration-search or "
+                "configuration-confirmation"
+            )
 
         model = dict(_mapping(raw, "model"))
         runtime = dict(_mapping(raw, "runtime"))
@@ -276,9 +291,10 @@ class ConfigurationCampaign:
         try:
             num_warmups = int(measurement.get("num_warmups", 0))
             schedule_seed = int(measurement.get("schedule_seed", 0))
+            seed_base = int(measurement.get("seed_base", 0))
         except (TypeError, ValueError) as exc:
             raise ConfigurationCampaignError(
-                "measurement warmups and schedule seed must be integers"
+                "measurement warmups, schedule seed, and seed base must be integers"
             ) from exc
         if num_warmups < 0:
             raise ConfigurationCampaignError(
@@ -378,16 +394,60 @@ class ConfigurationCampaign:
                 "campaign requires exactly one expert-baseline candidate"
             )
 
-        schedule = str(measurement.get("schedule", "")).strip().lower()
-        if schedule != "cyclic-balanced":
+        raw_levels = measurement.get("levels", ["L1", "L4"])
+        if not isinstance(raw_levels, Sequence) or isinstance(
+            raw_levels, (str, bytes)
+        ) or not raw_levels:
             raise ConfigurationCampaignError(
-                "measurement.schedule must be cyclic-balanced"
+                "measurement.levels must be a non-empty list"
+            )
+        try:
+            measurement_levels = tuple(
+                EvidenceLevel.parse(str(level)) for level in raw_levels
+            )
+        except ValueError as exc:
+            raise ConfigurationCampaignError(
+                "measurement.levels may contain only L1 and L4"
+            ) from exc
+        if (
+            len(set(measurement_levels)) != len(measurement_levels)
+            or any(
+                level not in {EvidenceLevel.L1, EvidenceLevel.L4}
+                for level in measurement_levels
+            )
+        ):
+            raise ConfigurationCampaignError(
+                "measurement.levels must contain unique L1/L4 levels"
+            )
+
+        schedule = str(measurement.get("schedule", "")).strip().lower()
+        if schedule not in {"cyclic-balanced", "paired-alternating"}:
+            raise ConfigurationCampaignError(
+                "measurement.schedule must be cyclic-balanced or paired-alternating"
+            )
+        if schedule == "paired-alternating":
+            if dataset_split != "configuration-confirmation":
+                raise ConfigurationCampaignError(
+                    "paired-alternating requires configuration-confirmation"
+                )
+            if len(candidates) != 2:
+                raise ConfigurationCampaignError(
+                    "paired-alternating requires exactly two candidates"
+                )
+            if measurement_levels != (EvidenceLevel.L4,):
+                raise ConfigurationCampaignError(
+                    "paired-alternating requires L4-only measurements"
+                )
+        elif dataset_split != "configuration-search":
+            raise ConfigurationCampaignError(
+                "configuration-confirmation requires paired-alternating"
             )
 
         return cls(
             schema_version=str(raw.get("schema_version", "1.0")),
             campaign_id=campaign_id,
             intent=intent,
+            dataset_split=dataset_split,
             model=model,
             hardware=hardware,
             runtime=runtime,
@@ -402,7 +462,10 @@ class ConfigurationCampaign:
             repeats=repeats,
             num_warmups=num_warmups,
             sample_ms=sample_ms,
+            measurement_levels=measurement_levels,
+            measurement_schedule=schedule,
             schedule_seed=schedule_seed,
+            seed_base=seed_base,
             restart_server_per_candidate=True,
             cooldown_temperature_c=cooldown_temperature_c,
             server_ready_timeout_seconds=server_ready_timeout_seconds,
@@ -518,7 +581,8 @@ def freeze_configuration_campaign(
                 "campaign_id": campaign.campaign_id,
                 "campaign_sha256": campaign_hash,
                 "candidate_role": point.role,
-                "dataset_split": "preregistered-configuration-search",
+                "dataset_split": "preregistered-%s"
+                % campaign.dataset_split,
             }
         )
         record = replace(record, provenance=provenance)
@@ -608,7 +672,7 @@ def freeze_configuration_campaign(
         "measurement_count": len(schedule["actions"]),
         "measurement_blocks": len(campaign.candidates) * campaign.repeats,
         "repeats_per_candidate_level": campaign.repeats,
-        "levels": ["L1", "L4"],
+        "levels": [level.name for level in campaign.measurement_levels],
         "probe_requests": campaign.probe_requests,
         "target_requests": campaign.target_workload.num_requests,
         "schedule_seed": campaign.schedule_seed,
@@ -664,6 +728,9 @@ def configuration_measurement_schedule(
 ) -> Dict[str, Any]:
     base = [point.point_id for point in campaign.candidates]
     random.Random(campaign.schedule_seed).shuffle(base)
+    if campaign.measurement_schedule == "paired-alternating":
+        return _paired_alternating_schedule(campaign, campaign_hash, base)
+
     shift_step = max(1, len(base) // campaign.repeats)
     actions = []
     block_index = 0
@@ -674,7 +741,7 @@ def configuration_measurement_schedule(
         if repeat_index % 2:
             ordered = list(reversed(ordered))
         for position, candidate_id in enumerate(ordered):
-            levels = [EvidenceLevel.L1, EvidenceLevel.L4]
+            levels = list(campaign.measurement_levels)
             if (position + repeat_index) % 2:
                 levels.reverse()
             for level_position, level in enumerate(levels):
@@ -715,5 +782,60 @@ def configuration_measurement_schedule(
             "power_limit_w": campaign.power_limit_w,
         },
         "candidate_order_seeded": base,
+        "actions": actions,
+    }
+
+
+def _paired_alternating_schedule(
+    campaign: ConfigurationCampaign,
+    campaign_hash: str,
+    base: Sequence[str],
+) -> Dict[str, Any]:
+    actions = []
+    action_index = 0
+    block_index = 0
+    for repeat_index in range(campaign.repeats):
+        ordered = list(base)
+        if repeat_index % 2:
+            ordered.reverse()
+        for order_position, candidate_id in enumerate(ordered):
+            actions.append(
+                {
+                    "action_index": action_index,
+                    "block_index": block_index,
+                    "candidate_id": candidate_id,
+                    "level": EvidenceLevel.L4.name,
+                    "num_prompts": campaign.target_workload.num_requests,
+                    "repeat": repeat_index,
+                    "pair_index": repeat_index,
+                    "pair_order_position": order_position,
+                    "seed": campaign.seed_base + repeat_index,
+                    "restart_server": True,
+                }
+            )
+            action_index += 1
+            block_index += 1
+    return {
+        "schema_version": campaign.schema_version,
+        "campaign_id": campaign.campaign_id,
+        "campaign_sha256": campaign_hash,
+        "dataset_split": campaign.dataset_split,
+        "schedule": campaign.measurement_schedule,
+        "schedule_seed": campaign.schedule_seed,
+        "seed_base": campaign.seed_base,
+        "candidate_count": len(campaign.candidates),
+        "repeats": campaign.repeats,
+        "levels": [level.name for level in campaign.measurement_levels],
+        "workload": campaign.workload_dict(
+            campaign.target_workload.num_requests
+        ),
+        "measurement": {
+            "probe_requests": campaign.probe_requests,
+            "target_requests": campaign.target_workload.num_requests,
+            "num_warmups": campaign.num_warmups,
+            "sample_ms": campaign.sample_ms,
+            "power_limit_w": campaign.power_limit_w,
+        },
+        "candidate_order_seeded": list(base),
         "actions": actions,
     }
