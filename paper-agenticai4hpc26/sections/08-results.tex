@@ -2,8 +2,9 @@
 
 \subsection{RQ1: Cheap Evidence Preserves Energy Decisions}
 
-Table~\ref{tab:evidence-results} summarizes the two sealed workload holdouts.
-On holdout v2, energy MAPE is \CalibratedEnergyMAPE{}, maximum APE is
+Figure~\ref{fig:energy-parity} shows all 17 frozen predictions against their
+unseen measured medians.  On holdout v2, energy MAPE is
+\CalibratedEnergyMAPE{}, maximum APE is
 \EnergyMaxAPE{}, and rank correlation is \EnergySpearman{}; \EnergyPairwise{}
 pairwise orderings (\EnergyPairwisePct{}) are correct.  Median repeat CV is only
 \EnergyRepeatCV{}, so model error rather than measurement noise dominates.
@@ -14,7 +15,7 @@ MAPE, \ConfirmationEnergySpearman{} rank correlation, and
 workloads.  This supports CPU-first energy screening inside the measured
 single-H100 envelope, not cross-GPU or multi-node accuracy.
 
-\input{tables/evidence-results}
+\input{figures/energy-parity}
 
 \subsection{RQ2: The Scope Gate Prevents a False Latency Claim}
 
@@ -35,7 +36,9 @@ energy predictor into an unsupported latency recommendation.
 All \ConfigurationMeasuredRuns{} preregistered configuration runs succeed;
 frozen predictions precede measurements and all \ConfigurationRawArtifacts{}
 raw-artifact entries verify.  Table~\ref{tab:configuration-results} shows the
-central result.  The CPU Sandbox is useful but insufficient: its energy rank correlation is
+exact verified operating points, while
+Fig.~\ref{fig:configuration-fidelity} shows the decision geometry.  The CPU
+Sandbox is useful but insufficient: its energy rank correlation is
 \LzeroEnergySpearman{} with \LzeroEnergyPairwise{} pairwise accuracy, yet TTFT
 correlation is $\LzeroTTFTSpearman{}$.  That inversion changes SLO feasibility,
 so the Sandbox frontier selects the expert default and has
@@ -50,6 +53,8 @@ frontier contains three candidates and includes the true verified point, giving
 screen without a false negative, while full verification is still needed to remove two false
 positives.
 
+\input{figures/configuration-fidelity}
+
 Among \ConfigurationSLOFeasible{} Verify-feasible candidates, the unique verified
 point is \VerifiedParetoConfig{}.  Relative to the preregistered expert default,
 it reduces energy by \ParetoEnergyReduction{}, raises throughput by
@@ -63,9 +68,20 @@ predeclared policy replay rather than counting those GPU-hours as agent savings.
 
 \input{tables/configuration-results}
 
+\subsubsection{Independent winner confirmation.}
+Without refitting or reselection, all \WinnerConfirmationRuns{} new Verify runs
+succeed, satisfy both SLOs, and pass artifact checks.  The locked winner uses
+less energy in all \WinnerConfirmationPairs{} pairs, saving
+\WinnerEnergySaving{} on average (95\% CI [\WinnerEnergyCILower{},
+\WinnerEnergyCIUpper{}]; one-sided sign test $p=\WinnerEnergySignTestP{}$),
+while median paired TTFT falls \WinnerTTFTReduction{}.  This
+\WinnerConfirmationGPUHours{}-GPU-h follow-up independently confirms the
+sealed-corpus selection within the same model, workload, and H100.
+
 \subsubsection{Policy replay.}
-Table~\ref{tab:agent-results} reports the corrected common-random-number
-bootstrap.  At 0.12 GPU-h, \ipig{} reaches the unique median verified oracle in
+Figure~\ref{fig:agent-evaluation}(a) reports the corrected
+common-random-number bootstrap.  At 0.12 GPU-h, \ipig{} reaches the unique
+median verified oracle in
 \IPIGOracleHit{} of episodes, \IPIGRandomHitGain{} more often than random, while
 using \IPIGRandomGPUSaving{} fewer total GPU-hours.  It preserves cost-blind
 information gain's hit rate while using \IPIGCostBlindGPUSaving{} fewer
@@ -87,12 +103,13 @@ change final verification choices.  The result supports \ipig{} over random and
 shows the effect of cost normalization, but neither universal policy superiority
 nor monotone anytime behavior.  No replay episode contains a failed action.
 
-\input{tables/agent-results}
+\input{figures/agent-evaluation}
 
 \subsection{RQ4: Bounded Runtime Behavior}
 
-Panel (b) of Table~\ref{tab:agent-results} separates LLM proposals from admitted
-subgoals.  On V1 development states, raw and admitted agreement are
+Figure~\ref{fig:agent-evaluation}(b) separates LLM proposals from admitted
+subgoals.  On V1 development states, raw and
+admitted agreement are
 \PlannerVoneRaw{} and \PlannerVoneAdmitted{}, with \PlannerVoneFallback{} schema
 fallback.  On the disjoint V2 holdout, all outputs are typed and endpoint,
 completion, schema-fallback, and forbidden-acceptance counts are zero, but raw

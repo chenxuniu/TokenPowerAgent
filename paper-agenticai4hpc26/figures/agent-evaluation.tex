@@ -1,0 +1,19 @@
+\begin{figure*}[t]
+\centering
+\begin{minipage}[t]{0.49\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/results/fig7a_budget_response.pdf}
+  \vspace{-2pt}\textbf{(a) Search success versus online budget}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/results/fig8a_planner_accuracy.pdf}
+  \vspace{-2pt}\textbf{(b) Raw and guard-admitted subgoals}
+\end{minipage}
+\caption{Bounded agent behavior.  (a) Matched empirical-bootstrap episodes
+show the budget--success response; \ipig{} matches cost-blind's hit rate with
+26.6\% less GPU time, while cheapest-first is strongest at low budget but
+non-monotone.  (b) On the disjoint V2 holdout, the state guard restores raw
+proposal agreement from 73.3\% to 100\% admitted agreement.}
+\label{fig:agent-evaluation}
+\end{figure*}

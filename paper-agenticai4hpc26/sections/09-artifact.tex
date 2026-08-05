@@ -1,38 +1,26 @@
 \section{Artifact and Reproducibility}
 
-The artifact contains versioned scenarios, candidate grids, evidence schemas,
-CPU-prediction, replay, and serving executors, the bounded planner/controller, four replay
-policies, calibration and validation tools, and \AutomatedTests{} automated
-tests.  Each agent event records proposed and admitted subgoals, planner source,
-guard intervention, candidate and fidelity, expected and realized cost,
-uncertainty and Pareto state, remaining budget, evidence kind, metrics, and
-fallback reason.
+The artifact contains versioned scenarios, grids, evidence schemas, CPU,
+replay, and serving executors, the bounded controller, four policies,
+calibration/validation tools, and \AutomatedTests{} tests.  Each event records
+the proposed and admitted subgoal, guard action, candidate, fidelity, cost,
+uncertainty, Pareto state, budget, evidence kind, metrics, and fallback.
 
-Three H100 bundles preserve the workload holdout, scope confirmation, and
-configuration corpus.  They contain raw 100-ms telemetry, benchmark output,
-frozen predictions, campaign files, manifests, validation reports, decisions,
-analysis provenance, and nested SHA-256 lists.  The configuration bundle verifies
-\ConfigurationRawArtifacts{} raw entries and includes an
-\ConfigurationReplayRows{}-row replay corpus.  Predictions precede measurements,
-raw artifacts precede analysis, and the second workload confirmation uses the
-same frozen model without refitting.
+H100 evidence bundles preserve raw 100-ms telemetry, benchmark output, frozen
+predictions and schedules, reports, and nested SHA-256 manifests.  The
+configuration bundle verifies \ConfigurationRawArtifacts{} raw entries and an
+\ConfigurationReplayRows{}-row corpus; the paired follow-up likewise hashes its
+freeze, \WinnerConfirmationRuns{} measurements, and raw outputs.  Predictions
+precede measurements, raw evidence precedes analysis, and confirmation permits
+neither refitting nor reselection.
 
-Replay exposes a sealed row only after a policy requests its candidate--stage
-key.  Its oracle is formed from median successful Verify
-metrics, never from CPU predictions.  Reports embed scenario and corpus
-hashes and retain failed episodes.  Audit detected that the first replay runner
-globally coupled all actions to one of three repeat indices; that summary is
-retained but excluded.  Commit \texttt{c41d8a6} replaces it with an
-action-specific, cross-policy common-random-number bootstrap, and the corrected
-report is identified by SHA-256 in the artifact.  Sandbox, Probe, and Verify
-retain stable machine-readable identifiers L0, L1, and L4; simulated, measured,
-and verified evidence remain distinct labels in every path.
+Replay reveals a row only when its candidate--stage key is requested and forms
+the oracle solely from successful Verify metrics.  Audit found repeat aliasing
+in the first replay summary; that report remains archived but excluded, while
+commit \texttt{c41d8a6} supplies action-specific common random numbers.  L0,
+L1, and L4 retain distinct simulated, measured, and verified labels.
 
-The artifact also freezes the five-point budget protocol and two
-\PlannerCallsPerSet{}-call planner protocols.  The latter preserve prompts,
-controller states, raw responses, proposed/admitted subgoals, model identity,
-token use, latency, and every guard intervention.  V1 development and V2
-holdout use disjoint case identifiers, and the V2 report retains the failed raw
-acceptance check rather than relabeling guarded accuracy as model accuracy.
-Compact publication summaries are checked into the paper directory; sealed
-archives and their SHA-256 digests identify the full raw evidence.
+The artifact also freezes the five-budget study and both planner protocols,
+including prompts, states, raw responses, admitted subgoals, latency, and guard
+interventions.  V1/V2 identifiers are disjoint, and V2 retains the failed raw
+accuracy gate.  Compact summaries accompany SHA-256-identified raw archives.

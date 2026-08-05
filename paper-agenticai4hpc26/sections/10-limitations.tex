@@ -1,36 +1,24 @@
 \section{Limitations and Threats to Validity}
 
-\textbf{Empirical scope.}  The study deliberately covers one H100, one 7B
-model, one vLLM version, BF16, fixed output length, and bounded
-workload/configuration grids.  The measured knob search varies sequence and
-token limits plus chunked prefill.  The claims are therefore about evidence
-allocation on one target GPU, not parallel or distributed serving.
+\textbf{Empirical scope.}  We evaluate one H100, Qwen2.5-7B, vLLM/BF16, fixed
+output length, and a bounded sequence/token/chunking grid.  Claims concern
+evidence allocation on this target, not distributed serving.
 
-\textbf{Fidelity and telemetry.}  DCGM cumulative energy captures GPU-device
-rather than host or facility energy.  The CPU Sandbox and short Probe may both
-miss behavior outside the frozen model, software, workload, and hardware scope;
-the Sandbox TTFT inversion observed here further shows that good energy ranking
-must not be generalized to every metric.  TP/PP, cross-hardware, MoE, and
-multi-node communication require new measured calibration and verification and
-are reserved for a broader follow-on study.
+\textbf{Fidelity and telemetry.}  DCGM excludes host/facility energy.  L0/L1
+may miss behavior beyond the frozen scope, and the TTFT inversion shows that
+energy fidelity does not imply latency fidelity.  TP/PP, MoE, cross-hardware,
+and multi-node claims require new calibration.
 
-\textbf{Uncertainty and policy value.}  Prediction intervals are not calibrated
-across hardware generations; new kernels, engines, GPUs, arrival processes, or
-MoE routing may invalidate residual corrections.  The current \ipig{} estimator
-is an auditable proxy rather than exact Pareto mutual information.  Its
-\PolicyEpisodes{} episodes per policy bootstrap only \PolicyHardwareRepeats{}
-real repeats per candidate--stage key, so they measure sensitivity to observed
-run-to-run variation rather than independent production deployments.  \ipig{}
-beats random and cost-blind acquisition on the declared cost--success metrics
-but not cheapest-first in this small grid.  The exhaustive
-\ConfigurationTotalGPUHours{}-GPU-h corpus validates fidelity and supplies an
-oracle; replay does not erase that offline data-collection cost.
+\textbf{Uncertainty and policy value.}  Intervals are not cross-hardware
+calibrated, and \ipig{} is a proxy rather than exact Pareto information gain.
+Its \PolicyEpisodes{} episodes bootstrap \PolicyHardwareRepeats{} repeats per
+key, measuring sensitivity rather than deployments; it does not beat
+cheapest-first.  Replay also excludes the corpus's
+\ConfigurationTotalGPUHours{}-GPU-h collection cost.  The
+\WinnerConfirmationPairs{}-pair \WinnerEnergySaving{} effect is consistent but
+modest and not evidence of deployment-scale savings.
 
-\textbf{Planner scope.}  Planner conformance is measured for one local
-Qwen2.5-7B endpoint, one fixed prompt, \PlannerCallsPerSet{} calls per protocol,
-and synthetic but frozen controller states.  V2 raw accuracy
-(\PlannerVtwoRaw{}) misses its preregistered threshold; 100\% admitted accuracy
-comes from a deterministic guard, not improved language-model reasoning.  The
-study therefore supports a bounded advisory role for the LLM and does not show
-that it outperforms a rule planner, transfers to other models, or improves the
-final configuration relative to the same policy without an LLM.
+\textbf{Planner scope.}  One endpoint, prompt, and
+\PlannerCallsPerSet{}-call frozen protocol yield \PlannerVtwoRaw{} raw accuracy;
+the guard, not the LLM, supplies 100\% admitted accuracy.  This supports a
+bounded advisory role, not LLM superiority or transfer.

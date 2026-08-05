@@ -1,35 +1,19 @@
-\begin{table*}[t]
+\begin{table}[t]
 \centering
-\caption{Frozen configuration-corpus results.  Panel A compares each cheaper
-stage with the median Verify outcome for all 12 candidates; P/R denotes precision
-and recall of the verified SLO-feasible Pareto set.  Panel B compares the verified
-frontier point with the preregistered expert default.}
+\caption{Discovery-corpus median Verify outcomes for the preregistered expert
+and unique SLO-feasible Pareto configuration.}
 \label{tab:configuration-results}
-\small
-\setlength{\tabcolsep}{3.7pt}
-\begin{tabular}{lrrrrrr}
+\footnotesize
+\setlength{\tabcolsep}{3.0pt}
+\begin{tabular}{lrrr}
 \toprule
-\multicolumn{7}{l}{\textbf{A. Fidelity against full verification}} \\
-Evidence & Energy MAPE & Energy $\rho$ & Throughput MAPE & TPOT MAPE &
-TTFT MAPE / $\rho$ & Pareto P/R \\
+Metric & Expert & Pareto & Change \\
 \midrule
-Sandbox (L0) & \LzeroEnergyMAPE{} & \LzeroEnergySpearman{} &
-\LzeroThroughputMAPE{} & \LzeroTPOTMAPE{} &
-\LzeroTTFTMAPE{} / $\LzeroTTFTSpearman{}$ &
-\LzeroParetoPrecision{} / \LzeroParetoRecall{} \\
-Probe (L1) & \LoneEnergyMAPE{} & \LoneEnergySpearman{} &
-\LoneThroughputMAPE{} & \LoneTPOTMAPE{} &
-\LoneTTFTMAPE{} / \LoneTTFTSpearman{} &
-\LoneParetoPrecision{} / \LoneParetoRecall{} \\
-\addlinespace[3pt]
-\multicolumn{7}{l}{\textbf{B. Median Verify outcome}} \\
-Configuration & Energy (J/1k out) & Power (W) & Throughput (tok/s) &
-TTFT (ms) & TPOT (ms) & Decision \\
-\midrule
-Expert default & \ExpertEnergy{} & \ExpertPower{} & \ExpertThroughput{} &
-\ExpertTTFT{} & \ExpertTPOT{} & feasible, dominated \\
-\texttt{seq32-bt2048-chunk} & \ParetoEnergy{} & \ParetoPower{} &
-\ParetoThroughput{} & \ParetoTTFT{} & \ParetoTPOT{} & verified Pareto \\
+Energy (J/1k out.) & \ExpertEnergy{} & \ParetoEnergy{} & $-\ParetoEnergyReduction{}$ \\
+Throughput (tok/s) & \ExpertThroughput{} & \ParetoThroughput{} & $+\ParetoThroughputGain{}$ \\
+TTFT (ms) & \ExpertTTFT{} & \ParetoTTFT{} & $-\ParetoTTFTReduction{}$ \\
+TPOT (ms) & \ExpertTPOT{} & \ParetoTPOT{} & $-\ParetoTPOTReduction{}$ \\
+Power (W) & \ExpertPower{} & \ParetoPower{} & $+\ParetoPowerIncrease{}$ \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}

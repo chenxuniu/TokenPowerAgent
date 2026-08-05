@@ -40,6 +40,12 @@ Pareto recall. L1 reaches 1.15% energy MAPE and recovers the true frontier with
 Pareto point; relative to the expert default it uses 1.04% less energy, delivers
 3.06% higher throughput, and reduces TTFT by 21.59%.
 
+The winner and expert baseline were then locked before five new paired,
+alternating Verify repeats. Without refitting or reselection, the winner uses
+less energy in all five pairs and saves 1.39% on average (95% CI [1.19%,
+1.59%], one-sided sign test p=0.03125), while median paired TTFT falls 21.43%.
+All 10 runs satisfy the SLOs and the confirmation report is publication-ready.
+
 ## Sealed Policy Result
 
 The frozen 84-row replay corpus remains unchanged. A post-run audit found that

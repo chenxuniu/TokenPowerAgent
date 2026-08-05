@@ -20,7 +20,10 @@ preserves energy rank (Spearman \LzeroEnergySpearman{}) but reverses TTFT rank
 (\LzeroTTFTSpearman{}) and misses the verified frontier; short probes recover
 that frontier with \LoneParetoRecall{} recall.  Full verification identifies a
 configuration using \ParetoEnergyReduction{} less energy with
-\ParetoTTFTReduction{} lower TTFT than the expert default.  Across
+\ParetoTTFTReduction{} lower TTFT than the expert default.  A subsequent
+preregistered \WinnerConfirmationPairs{}-pair follow-up confirms
+\WinnerEnergySaving{} lower energy (95\% CI [\WinnerEnergyCILower{},
+\WinnerEnergyCIUpper{}]) and \WinnerTTFTReduction{} lower TTFT.  Across
 \BudgetTotalEpisodes{} sealed replay episodes, \ipig{} nearly doubles normalized
 success AUC over random, although cheapest-first remains slightly stronger in
 this small search space.  On a disjoint \PlannerCallsPerSet{}-call planner

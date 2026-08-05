@@ -117,10 +117,24 @@
 \newcommand{\ParetoTPOT}{16.76}
 \newcommand{\ExpertPower}{641.58}
 \newcommand{\ParetoPower}{652.35}
+\newcommand{\ParetoPowerIncrease}{1.68\%}
 \newcommand{\ParetoEnergyReduction}{1.04\%}
 \newcommand{\ParetoThroughputGain}{3.06\%}
 \newcommand{\ParetoTTFTReduction}{21.59\%}
 \newcommand{\ParetoTPOTReduction}{2.84\%}
+
+% Independent winner confirmation frozen after config-search-v1. The winner
+% and expert baseline were locked before five new paired, alternating L4 runs.
+\newcommand{\WinnerConfirmationPairs}{5}
+\newcommand{\WinnerConfirmationRuns}{10}
+\newcommand{\WinnerConfirmationGPUHours}{0.0956}
+\newcommand{\WinnerEnergySaving}{1.39\%}
+\newcommand{\WinnerEnergyCILower}{1.19\%}
+\newcommand{\WinnerEnergyCIUpper}{1.59\%}
+\newcommand{\WinnerEnergyPairWinRate}{100\%}
+\newcommand{\WinnerEnergySignTestP}{0.03125}
+\newcommand{\WinnerTTFTReduction}{21.43\%}
+
 % Corrected common-random-number bootstrap over the sealed configuration corpus.
 % There are three real hardware repeats per candidate--level key; the 500
 % episodes per policy are empirical sensitivity resamples, not hardware runs.
@@ -186,4 +200,4 @@
 \newcommand{\PlannerInterventions}{24}
 \newcommand{\PlannerUniqueInterventions}{8}
 \newcommand{\PlannerErrors}{0}
-\newcommand{\AutomatedTests}{82}
+\newcommand{\AutomatedTests}{90}

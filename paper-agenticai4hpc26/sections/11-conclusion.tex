@@ -1,24 +1,15 @@
 \section{Conclusion}
 
-\system{} turns energy-aware inference tuning into a bounded evidence-allocation
-loop: interpret intent, choose a configuration and fidelity, observe immutable
-evidence, update an SLO-feasible Pareto belief, and verify before recommending.
-Across \BlindMeasurements{} blind H100 workload-transfer runs, its CPU-first
-model obtains \CalibratedEnergyMAPE{} and \ConfirmationEnergyMAPE{} energy MAPE,
-while the release gate exposes a low-concurrency TTFT boundary.  More
-importantly, the \ConfigurationMeasuredRuns{}-run configuration corpus shows
-why the three stages are necessary: the CPU Sandbox preserves energy ranking
-but misses the frontier, the short Probe recovers the true candidate with
-\LoneParetoRecall{} recall, and full verification removes false positives.  The
-verified configuration improves energy by
-\ParetoEnergyReduction{}, throughput by \ParetoThroughputGain{}, and TTFT by
-\ParetoTTFTReduction{} over the expert default.  Corrected empirical replay
-also places the policy claim precisely: \ipig{} improves oracle-hit rate and
-GPU-hour cost over random and cost-blind acquisition, while cheapest-first
-remains slightly stronger in this narrow search space.  Finally, the disjoint
-planner holdout shows why autonomy is bounded: raw subgoal accuracy is only
-\PlannerVtwoRaw{}, whereas the deterministic state guard admits the expected
-subgoal on every call and preserves the failed raw gate in provenance.  These
-results establish an auditable CPU-first path from scarce HPC resources to
-measured, single-GPU configuration decisions.  Cross-hardware and distributed
-search are separate extension questions rather than claims of this paper.
+\system{} makes inference tuning a bounded loop that selects configuration and
+fidelity, then verifies before release.  Across \BlindMeasurements{} blind H100
+runs, CPU-first energy MAPE is \CalibratedEnergyMAPE{}/
+\ConfirmationEnergyMAPE{}, with a low-concurrency TTFT abstention boundary.
+The \ConfigurationMeasuredRuns{}-run corpus shows Sandbox missing the frontier,
+Probe recovering it at \LoneParetoRecall{} recall, and Verify removing false
+positives.  The locked \WinnerConfirmationPairs{}-pair follow-up confirms
+\WinnerEnergySaving{} energy saving (95\% CI [\WinnerEnergyCILower{},
+\WinnerEnergyCIUpper{}]) and \WinnerTTFTReduction{} lower TTFT.  Replay favors
+\ipig{} over random and cost-blind acquisition but not cheapest-first, while
+\PlannerVtwoRaw{} raw versus 100\% guard-admitted planner accuracy bounds the
+LLM's role.  The result is an auditable CPU-first path to measured single-GPU
+decisions; cross-hardware and distributed search remain future work.

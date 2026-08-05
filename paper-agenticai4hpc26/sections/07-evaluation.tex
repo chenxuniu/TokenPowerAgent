@@ -68,6 +68,12 @@ GPU-hours.  The full corpus costs \ConfigurationTotalGPUHours{} GPU-h to build;
 this offline cost establishes an oracle and is not charged as an online-policy
 result.
 
+After locking \VerifiedParetoConfig{} and the expert baseline, we freeze an
+independent \WinnerConfirmationPairs{}-pair, alternating Verify campaign with
+per-candidate restarts and no refitting or reselection.  Its gate requires
+\WinnerConfirmationPairs{}/\WinnerConfirmationPairs{} energy wins, a positive
+95\% confidence-interval lower bound, lower median TTFT, and SLO-feasible runs.
+
 \subsection{Sealed Policy Replay}
 
 The corpus contains \ConfigurationReplayRows{} rows: 12 frozen Sandbox
