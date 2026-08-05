@@ -12,6 +12,7 @@ these digests identify the immutable source bundles.
 | `tpa-qwen7b-policy-benchmark-v1-20260805.tar.gz` | `280e6fb95f0a159fc184cb5aa6b2350eb0fe250579e74ae0cea4d824b4ab32bc` |
 | `tpa-qwen7b-policy-bootstrap-v2-20260805.tar.gz` | `08eed18a5d1bb73f8042f4bb2a2f76e7f7634c90b49c7adf6bd9708de9d3293e` |
 | `tpa-qwen7b-planner-guard-v1-v2-20260805.tar.gz` | `6bee92c0c57d7311ea43a671f7e70d67415e3b065bea1c77240d44c532c340b9` |
+| `tpa-qwen7b-winner-confirmation-v1-final-20260805.tar.gz` | `f6e011f88cefbb884db77e885caaa6585b524cd8299ef001fe808b33296abc52` |
 
 ## Cross-Checked Headline Values
 
@@ -34,6 +35,25 @@ measurement, report, and replay-corpus SHA-256 values are:
 - measurement: `4a6bac3b82117cd5265d0d66e57b412b966f071dcdf79e16f1504a60bea096f0`;
 - validation report: `b6aa51dc7e9c3912622e278718f7b1ea55fee9b0b387a5776fcb0af678dd447f`;
 - replay corpus: `2811f77938f349b95ec679804dcb0d262377fd0d7277d3740a73dd1815c8a471`.
+
+## Independent Winner Confirmation
+
+After locking `seq32-bt2048-chunk` as the selected configuration and
+`expert-seq256-bt8192-chunk` as the expert baseline, a separate alternating
+campaign ran five seed-matched L4 pairs without refitting or reselection. All
+10 runs succeeded and satisfied the frozen 1600-ms TTFT and 20-ms TPOT SLOs.
+The selected configuration won all five energy pairs and reduced energy by
+1.389010% on average (95% CI [1.192026%, 1.585894%], one-sided exact sign-test
+$p=0.03125$). Median paired TTFT reduction was 21.431332%; total confirmation
+cost was 0.095599 GPU-h.
+
+The independently checked internal identifiers are:
+
+- analysis commit: `42cf0d1694a239e21a4b4947d57c3cb538ec2307`;
+- campaign: `f34f7b080cd8ad6c1ec5edfffcad6f4070091d30ccc9d70ae53f8db20db9ddd6`;
+- measurements: `4333cad03da0b544b8a77177d31edee86748515ad221663c68fb28df7a3ce4a3`;
+- validation report: `abcea598179c4d64ea0a37f84a57e790441fd86950ab90534a17ac9b5a755a54`;
+- raw-artifact manifest: `20a77108cf3af3ec2f22cdf22b13d34a82694f5c1bbca64b67cbd4330e7889a5`.
 
 The preregistered scope decision is
 `support_latency_at_concurrency_ge_4_abstain_below_4`. Its supported TTFT MAPE

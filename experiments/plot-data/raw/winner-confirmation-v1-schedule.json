@@ -1,0 +1,154 @@
+{
+  "actions": [
+    {
+      "action_index": 0,
+      "block_index": 0,
+      "candidate_id": "expert-seq256-bt8192-chunk",
+      "level": "L4",
+      "num_prompts": 256,
+      "pair_index": 0,
+      "pair_order_position": 0,
+      "repeat": 0,
+      "restart_server": true,
+      "seed": 100
+    },
+    {
+      "action_index": 1,
+      "block_index": 1,
+      "candidate_id": "seq32-bt2048-chunk",
+      "level": "L4",
+      "num_prompts": 256,
+      "pair_index": 0,
+      "pair_order_position": 1,
+      "repeat": 0,
+      "restart_server": true,
+      "seed": 100
+    },
+    {
+      "action_index": 2,
+      "block_index": 2,
+      "candidate_id": "seq32-bt2048-chunk",
+      "level": "L4",
+      "num_prompts": 256,
+      "pair_index": 1,
+      "pair_order_position": 0,
+      "repeat": 1,
+      "restart_server": true,
+      "seed": 101
+    },
+    {
+      "action_index": 3,
+      "block_index": 3,
+      "candidate_id": "expert-seq256-bt8192-chunk",
+      "level": "L4",
+      "num_prompts": 256,
+      "pair_index": 1,
+      "pair_order_position": 1,
+      "repeat": 1,
+      "restart_server": true,
+      "seed": 101
+    },
+    {
+      "action_index": 4,
+      "block_index": 4,
+      "candidate_id": "expert-seq256-bt8192-chunk",
+      "level": "L4",
+      "num_prompts": 256,
+      "pair_index": 2,
+      "pair_order_position": 0,
+      "repeat": 2,
+      "restart_server": true,
+      "seed": 102
+    },
+    {
+      "action_index": 5,
+      "block_index": 5,
+      "candidate_id": "seq32-bt2048-chunk",
+      "level": "L4",
+      "num_prompts": 256,
+      "pair_index": 2,
+      "pair_order_position": 1,
+      "repeat": 2,
+      "restart_server": true,
+      "seed": 102
+    },
+    {
+      "action_index": 6,
+      "block_index": 6,
+      "candidate_id": "seq32-bt2048-chunk",
+      "level": "L4",
+      "num_prompts": 256,
+      "pair_index": 3,
+      "pair_order_position": 0,
+      "repeat": 3,
+      "restart_server": true,
+      "seed": 103
+    },
+    {
+      "action_index": 7,
+      "block_index": 7,
+      "candidate_id": "expert-seq256-bt8192-chunk",
+      "level": "L4",
+      "num_prompts": 256,
+      "pair_index": 3,
+      "pair_order_position": 1,
+      "repeat": 3,
+      "restart_server": true,
+      "seed": 103
+    },
+    {
+      "action_index": 8,
+      "block_index": 8,
+      "candidate_id": "expert-seq256-bt8192-chunk",
+      "level": "L4",
+      "num_prompts": 256,
+      "pair_index": 4,
+      "pair_order_position": 0,
+      "repeat": 4,
+      "restart_server": true,
+      "seed": 104
+    },
+    {
+      "action_index": 9,
+      "block_index": 9,
+      "candidate_id": "seq32-bt2048-chunk",
+      "level": "L4",
+      "num_prompts": 256,
+      "pair_index": 4,
+      "pair_order_position": 1,
+      "repeat": 4,
+      "restart_server": true,
+      "seed": 104
+    }
+  ],
+  "campaign_id": "qwen2.5-7b-h100-winner-confirmation-v1",
+  "campaign_sha256": "f34f7b080cd8ad6c1ec5edfffcad6f4070091d30ccc9d70ae53f8db20db9ddd6",
+  "candidate_count": 2,
+  "candidate_order_seeded": [
+    "expert-seq256-bt8192-chunk",
+    "seq32-bt2048-chunk"
+  ],
+  "dataset_split": "configuration-confirmation",
+  "levels": [
+    "L4"
+  ],
+  "measurement": {
+    "num_warmups": 2,
+    "power_limit_w": 700.0,
+    "probe_requests": 64,
+    "sample_ms": 100,
+    "target_requests": 256
+  },
+  "repeats": 5,
+  "schedule": "paired-alternating",
+  "schedule_seed": 20260805,
+  "schema_version": "1.0",
+  "seed_base": 100,
+  "workload": {
+    "concurrency": 32,
+    "input_tokens": 2048,
+    "num_requests": 256,
+    "output_tokens": 128,
+    "request_rate": "inf"
+  }
+}

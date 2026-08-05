@@ -1,0 +1,524 @@
+{
+  "acceptance": {
+    "checks": {
+      "all_measurements_satisfy_slo": true,
+      "all_measurements_succeeded": true,
+      "energy_mean_saving_ci_lower_gt_pct": true,
+      "minimum_energy_pair_win_rate": true,
+      "minimum_pair_count": true,
+      "ttft_median_reduction_gt_pct": true
+    },
+    "confirmation_passed": true,
+    "preregistered_thresholds": {
+      "energy_mean_saving_ci_lower_gt_pct": 0.0,
+      "minimum_energy_pair_win_rate": 1.0,
+      "minimum_pair_count": 5,
+      "ttft_median_reduction_gt_pct": 0.0
+    }
+  },
+  "campaign_id": "qwen2.5-7b-h100-winner-confirmation-v1",
+  "candidates": {
+    "expert-seq256-bt8192-chunk": {
+      "gpu_hours_total": 0.048128372360564144,
+      "metrics": {
+        "energy_j_per_1k_output_tokens": {
+          "mad": 0.395294189453125,
+          "mean": 372.2624084472656,
+          "median": 372.2091979980469,
+          "sample_sd": 0.8204434377187964,
+          "values": [
+            371.0446472167969,
+            372.6044921875,
+            373.3005676269531,
+            372.15313720703125,
+            372.2091979980469
+          ]
+        },
+        "throughput_tok_s": {
+          "mad": 3.6499999999998636,
+          "mean": 1725.136,
+          "median": 1727.44,
+          "sample_sd": 11.815118704439678,
+          "values": [
+            1727.44,
+            1726.38,
+            1705.04,
+            1735.73,
+            1731.09
+          ]
+        },
+        "tpot_ms": {
+          "mad": 0.029999999999997584,
+          "mean": 17.282,
+          "median": 17.29,
+          "sample_sd": 0.05167204273105529,
+          "values": [
+            17.26,
+            17.21,
+            17.3,
+            17.35,
+            17.29
+          ]
+        },
+        "ttft_ms": {
+          "mad": 4.539999999999964,
+          "mean": 1338.124,
+          "median": 1340.92,
+          "sample_sd": 12.21370664458587,
+          "values": [
+            1338.54,
+            1317.37,
+            1340.92,
+            1348.33,
+            1345.46
+          ]
+        }
+      },
+      "repeat_count": 5
+    },
+    "seq32-bt2048-chunk": {
+      "gpu_hours_total": 0.0474702279797283,
+      "metrics": {
+        "energy_j_per_1k_output_tokens": {
+          "mad": 0.733795166015625,
+          "mean": 367.0906494140625,
+          "median": 367.2635803222656,
+          "sample_sd": 0.8308716931683127,
+          "values": [
+            367.2635803222656,
+            366.52978515625,
+            368.1595764160156,
+            366.0281982421875,
+            367.47210693359375
+          ]
+        },
+        "throughput_tok_s": {
+          "mad": 0.8399999999999181,
+          "mean": 1784.68,
+          "median": 1783.71,
+          "sample_sd": 2.511085422680802,
+          "values": [
+            1783.36,
+            1789.02,
+            1784.55,
+            1782.76,
+            1783.71
+          ]
+        },
+        "tpot_ms": {
+          "mad": 0.010000000000001563,
+          "mean": 16.712,
+          "median": 16.77,
+          "sample_sd": 0.13553597308463994,
+          "values": [
+            16.78,
+            16.47,
+            16.77,
+            16.76,
+            16.78
+          ]
+        },
+        "ttft_ms": {
+          "mad": 26.310000000000173,
+          "mean": 1038.0720000000001,
+          "median": 1057.11,
+          "sample_sd": 45.547825085288125,
+          "values": [
+            1083.42,
+            980.0,
+            999.65,
+            1070.18,
+            1057.11
+          ]
+        }
+      },
+      "repeat_count": 5
+    }
+  },
+  "cost": {
+    "actual_gpu_hours_by_candidate": {
+      "expert-seq256-bt8192-chunk": 0.048128372360564144,
+      "seq32-bt2048-chunk": 0.0474702279797283
+    },
+    "actual_gpu_hours_total": 0.09559860034029244
+  },
+  "experiment": {
+    "hardware": {
+      "driver_version": "580.173.02",
+      "gpu_count": 1,
+      "gpu_name": "NVIDIA H100 80GB HBM3",
+      "gpu_uuid": "GPU-d855366e-f145-3cd6-d96d-508f1476b727",
+      "hostname": "ipp2-0052",
+      "node_count": 1
+    },
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "power_limit_w": 700.0,
+    "repeats": 5,
+    "seeds": [
+      100,
+      101,
+      102,
+      103,
+      104
+    ],
+    "slo": {
+      "tpot_ms": 20.0,
+      "ttft_ms": 1600.0
+    },
+    "workload": {
+      "concurrency": 32,
+      "input_tokens": 2048,
+      "num_requests": 256,
+      "output_tokens": 128,
+      "request_rate": "inf"
+    }
+  },
+  "paired_results": {
+    "energy_j_per_1k_output_tokens": {
+      "baseline_id": "expert-seq256-bt8192-chunk",
+      "baseline_median": 372.2091979980469,
+      "baseline_values": [
+        371.0446472167969,
+        372.6044921875,
+        373.3005676269531,
+        372.15313720703125,
+        372.2091979980469
+      ],
+      "direction": "lower",
+      "exact_sign_test_p_one_sided": 0.03125,
+      "maximum_improvement_pct": 1.6458114556848156,
+      "mean_improvement_pct": 1.3890097532155394,
+      "mean_improvement_pct_ci95": [
+        1.1920261905776999,
+        1.585893598704251
+      ],
+      "median_improvement_pct": 1.377172085115873,
+      "metric": "energy_j_per_1k_output_tokens",
+      "minimum_improvement_pct": 1.0190328638057453,
+      "pair_count": 5,
+      "paired_improvement_pct": [
+        1.0190328638057453,
+        1.6303364985178759,
+        1.377172085115873,
+        1.6458114556848156,
+        1.2726958629533873
+      ],
+      "tie_count": 0,
+      "win_count": 5,
+      "win_rate": 1.0,
+      "winner_id": "seq32-bt2048-chunk",
+      "winner_median": 367.2635803222656,
+      "winner_values": [
+        367.2635803222656,
+        366.52978515625,
+        368.1595764160156,
+        366.0281982421875,
+        367.47210693359375
+      ]
+    },
+    "throughput_tok_s": {
+      "baseline_id": "expert-seq256-bt8192-chunk",
+      "baseline_median": 1727.44,
+      "baseline_values": [
+        1727.44,
+        1726.38,
+        1705.04,
+        1735.73,
+        1731.09
+      ],
+      "direction": "higher",
+      "exact_sign_test_p_one_sided": 0.03125,
+      "maximum_improvement_pct": 4.663233707127105,
+      "mean_improvement_pct": 3.4556043254437125,
+      "mean_improvement_pct_ci95": [
+        2.9471224792661266,
+        4.092804300597289
+      ],
+      "median_improvement_pct": 3.237160190802566,
+      "metric": "throughput_tok_s",
+      "minimum_improvement_pct": 2.709522794443835,
+      "pair_count": 5,
+      "paired_improvement_pct": [
+        3.237160190802566,
+        3.6284016265248593,
+        4.663233707127105,
+        2.709522794443835,
+        3.039703308320198
+      ],
+      "tie_count": 0,
+      "win_count": 5,
+      "win_rate": 1.0,
+      "winner_id": "seq32-bt2048-chunk",
+      "winner_median": 1783.71,
+      "winner_values": [
+        1783.36,
+        1789.02,
+        1784.55,
+        1782.76,
+        1783.71
+      ]
+    },
+    "tpot_ms": {
+      "baseline_id": "expert-seq256-bt8192-chunk",
+      "baseline_median": 17.29,
+      "baseline_values": [
+        17.26,
+        17.21,
+        17.3,
+        17.35,
+        17.29
+      ],
+      "direction": "lower",
+      "exact_sign_test_p_one_sided": 0.03125,
+      "maximum_improvement_pct": 4.299825682742603,
+      "mean_improvement_pct": 3.298932857490449,
+      "mean_improvement_pct_ci95": [
+        2.9049881313276433,
+        3.8162099881716474
+      ],
+      "median_improvement_pct": 3.0635838150289083,
+      "metric": "tpot_ms",
+      "minimum_improvement_pct": 2.7809965237543475,
+      "pair_count": 5,
+      "paired_improvement_pct": [
+        2.7809965237543475,
+        4.299825682742603,
+        3.0635838150289083,
+        3.4005763688760795,
+        2.949681897050307
+      ],
+      "tie_count": 0,
+      "win_count": 5,
+      "win_rate": 1.0,
+      "winner_id": "seq32-bt2048-chunk",
+      "winner_median": 16.77,
+      "winner_values": [
+        16.78,
+        16.47,
+        16.77,
+        16.76,
+        16.78
+      ]
+    },
+    "ttft_ms": {
+      "baseline_id": "expert-seq256-bt8192-chunk",
+      "baseline_median": 1340.92,
+      "baseline_values": [
+        1338.54,
+        1317.37,
+        1340.92,
+        1348.33,
+        1345.46
+      ],
+      "direction": "lower",
+      "exact_sign_test_p_one_sided": 0.03125,
+      "maximum_improvement_pct": 25.609358039123396,
+      "mean_improvement_pct": 22.435984454785196,
+      "mean_improvement_pct_ci95": [
+        20.161784481535438,
+        24.710184428034957
+      ],
+      "median_improvement_pct": 21.431332035140407,
+      "metric": "ttft_ms",
+      "minimum_improvement_pct": 19.05957236989555,
+      "pair_count": 5,
+      "paired_improvement_pct": [
+        19.05957236989555,
+        25.609358039123396,
+        25.450437013393792,
+        20.629222816372838,
+        21.431332035140407
+      ],
+      "tie_count": 0,
+      "win_count": 5,
+      "win_rate": 1.0,
+      "winner_id": "seq32-bt2048-chunk",
+      "winner_median": 1057.11,
+      "winner_values": [
+        1083.42,
+        980.0,
+        999.65,
+        1070.18,
+        1057.11
+      ]
+    }
+  },
+  "pairs": [
+    {
+      "baseline_gpu_hours": 0.009551631253335573,
+      "baseline_metrics": {
+        "energy_j_per_1k_output_tokens": 371.0446472167969,
+        "throughput_tok_s": 1727.44,
+        "tpot_ms": 17.26,
+        "ttft_ms": 1338.54
+      },
+      "pair_index": 0,
+      "run_order": [
+        "expert-seq256-bt8192-chunk",
+        "seq32-bt2048-chunk"
+      ],
+      "seed": 100,
+      "winner_gpu_hours": 0.009455563865275407,
+      "winner_metrics": {
+        "energy_j_per_1k_output_tokens": 367.2635803222656,
+        "throughput_tok_s": 1783.36,
+        "tpot_ms": 16.78,
+        "ttft_ms": 1083.42
+      }
+    },
+    {
+      "baseline_gpu_hours": 0.009684180294999453,
+      "baseline_metrics": {
+        "energy_j_per_1k_output_tokens": 372.6044921875,
+        "throughput_tok_s": 1726.38,
+        "tpot_ms": 17.21,
+        "ttft_ms": 1317.37
+      },
+      "pair_index": 1,
+      "run_order": [
+        "seq32-bt2048-chunk",
+        "expert-seq256-bt8192-chunk"
+      ],
+      "seed": 101,
+      "winner_gpu_hours": 0.00950973502666683,
+      "winner_metrics": {
+        "energy_j_per_1k_output_tokens": 366.52978515625,
+        "throughput_tok_s": 1789.02,
+        "tpot_ms": 16.47,
+        "ttft_ms": 980.0
+      }
+    },
+    {
+      "baseline_gpu_hours": 0.009645684216666268,
+      "baseline_metrics": {
+        "energy_j_per_1k_output_tokens": 373.3005676269531,
+        "throughput_tok_s": 1705.04,
+        "tpot_ms": 17.3,
+        "ttft_ms": 1340.92
+      },
+      "pair_index": 2,
+      "run_order": [
+        "expert-seq256-bt8192-chunk",
+        "seq32-bt2048-chunk"
+      ],
+      "seed": 102,
+      "winner_gpu_hours": 0.00953057808778087,
+      "winner_metrics": {
+        "energy_j_per_1k_output_tokens": 368.1595764160156,
+        "throughput_tok_s": 1784.55,
+        "tpot_ms": 16.77,
+        "ttft_ms": 999.65
+      }
+    },
+    {
+      "baseline_gpu_hours": 0.009598088092227246,
+      "baseline_metrics": {
+        "energy_j_per_1k_output_tokens": 372.15313720703125,
+        "throughput_tok_s": 1735.73,
+        "tpot_ms": 17.35,
+        "ttft_ms": 1348.33
+      },
+      "pair_index": 3,
+      "run_order": [
+        "seq32-bt2048-chunk",
+        "expert-seq256-bt8192-chunk"
+      ],
+      "seed": 103,
+      "winner_gpu_hours": 0.00949669958444752,
+      "winner_metrics": {
+        "energy_j_per_1k_output_tokens": 366.0281982421875,
+        "throughput_tok_s": 1782.76,
+        "tpot_ms": 16.76,
+        "ttft_ms": 1070.18
+      }
+    },
+    {
+      "baseline_gpu_hours": 0.009648788503335608,
+      "baseline_metrics": {
+        "energy_j_per_1k_output_tokens": 372.2091979980469,
+        "throughput_tok_s": 1731.09,
+        "tpot_ms": 17.29,
+        "ttft_ms": 1345.46
+      },
+      "pair_index": 4,
+      "run_order": [
+        "expert-seq256-bt8192-chunk",
+        "seq32-bt2048-chunk"
+      ],
+      "seed": 104,
+      "winner_gpu_hours": 0.009477651415557679,
+      "winner_metrics": {
+        "energy_j_per_1k_output_tokens": 367.47210693359375,
+        "throughput_tok_s": 1783.71,
+        "tpot_ms": 16.78,
+        "ttft_ms": 1057.11
+      }
+    }
+  ],
+  "protocol": {
+    "campaign_sha256": "f34f7b080cd8ad6c1ec5edfffcad6f4070091d30ccc9d70ae53f8db20db9ddd6",
+    "dataset_split": "configuration-confirmation",
+    "expected_measurement_count": 10,
+    "freeze_manifest_sha256": "0704110f1c65d3e25c6e75c1f2bb4601648dcf382514d3fb27dd03c0b5e02867",
+    "freeze_manifest_verified": true,
+    "independent_confirmation_valid": true,
+    "level_counts": {
+      "L4": 10
+    },
+    "measurement_count": 10,
+    "measurement_sha256": "4333cad03da0b544b8a77177d31edee86748515ad221663c68fb28df7a3ce4a3",
+    "no_refit_or_reselection": true,
+    "pair_count": 5,
+    "prediction_sha256": "232182fb929aed639579abb55e1d153f67692645bf2e15391bee95d6a7789b51",
+    "predictions_precede_measurements": true,
+    "raw_artifacts": {
+      "entry_count": 39,
+      "list_path": "experiments/results/winner-confirmation-v1-artifacts.list",
+      "manifest_path": "experiments/results/winner-confirmation-v1-artifacts.sha256",
+      "sha256": "20a77108cf3af3ec2f22cdf22b13d34a82694f5c1bbca64b67cbd4330e7889a5",
+      "verified": true
+    },
+    "schedule": "paired-alternating",
+    "schedule_sha256": "63384eb35d8cd08fa42d5f9b5dc901c2a4e81651733ae741148cc687239beac4",
+    "selection_locked_before_measurement": true,
+    "status_counts": {
+      "succeeded": 10
+    },
+    "summary_sha256": "811f7198a45f8feaeaa7f5f2798b6d7b48e8a4c740091099a7ba1097ef8fc320"
+  },
+  "schema_version": "1.0",
+  "selection_lock": {
+    "baseline_id": "expert-seq256-bt8192-chunk",
+    "source_artifact_sha256": {
+      "config_search_campaign": "27d38ff3367db0b408569596f1ded30f4892cf57d355e546d3dee41619ef6fa4",
+      "config_search_measurements": "4a6bac3b82117cd5265d0d66e57b412b966f071dcdf79e16f1504a60bea096f0",
+      "config_search_replay_corpus": "2811f77938f349b95ec679804dcb0d262377fd0d7277d3740a73dd1815c8a471",
+      "config_search_validation": "b6aa51dc7e9c3912622e278718f7b1ea55fee9b0b387a5776fcb0af678dd447f"
+    },
+    "winner_id": "seq32-bt2048-chunk"
+  },
+  "slo": {
+    "all_repeats_pass": {
+      "expert-seq256-bt8192-chunk": true,
+      "seq32-bt2048-chunk": true
+    },
+    "thresholds": {
+      "tpot_ms": 20.0,
+      "ttft_ms": 1600.0
+    }
+  },
+  "summary": {
+    "confirmation_passed": true,
+    "energy_pair_win_rate": 1.0,
+    "energy_sign_test_p_one_sided": 0.03125,
+    "headline_energy_saving_ci95_pct": [
+      1.1920261905776999,
+      1.585893598704251
+    ],
+    "headline_energy_saving_pct": 1.3890097532155394,
+    "headline_ttft_reduction_pct": 21.431332035140407,
+    "publication_ready": true,
+    "warnings": []
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "budget_gpu_hours": 0.2,
+  "campaign_id": "qwen2.5-7b-h100-winner-confirmation-v1",
+  "campaign_sha256": "f34f7b080cd8ad6c1ec5edfffcad6f4070091d30ccc9d70ae53f8db20db9ddd6",
+  "candidate_count": 2,
+  "expert_baseline_id": "expert-seq256-bt8192-chunk",
+  "l0_frontier_is_provisional": true,
+  "l0_predicted_pareto_ids": [
+    "expert-seq256-bt8192-chunk"
+  ],
+  "l0_prediction_count": 2,
+  "l0_robust_predicted_pareto_ids": [],
+  "l0_robust_slo_feasible_ids": [],
+  "l0_slo_feasible_ids": [
+    "expert-seq256-bt8192-chunk"
+  ],
+  "levels": [
+    "L4"
+  ],
+  "measurement_blocks": 10,
+  "measurement_count": 10,
+  "objectives": {
+    "energy_j_per_1k_output_tokens": "min",
+    "throughput_tok_s": "max"
+  },
+  "probe_requests": 64,
+  "profile_id": "qwen2.5-7b-h100-workload-v2",
+  "profile_publication_eligible": false,
+  "profile_sha256": "68c474085e5eb99717b4e1bb68a66bb937d8e142f8efaad456a480898cbdc4da",
+  "publication_claims_locked_until_measurement": true,
+  "repeats_per_candidate_level": 5,
+  "schedule_seed": 20260805,
+  "schema_version": "1.0",
+  "slo": {
+    "tpot_ms": 20.0,
+    "ttft_ms": 1600.0
+  },
+  "target_requests": 256,
+  "uncertainty_calibrated": false,
+  "verify_top_k": 2
+}

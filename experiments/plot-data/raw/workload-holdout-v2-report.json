@@ -1,0 +1,1269 @@
+{
+  "aggregate_metrics": {
+    "energy_j_per_1k_output_tokens": {
+      "best_workload_match": true,
+      "direction": "min",
+      "interval_covered_workloads": 8,
+      "interval_evaluated_workloads": 8,
+      "maximum_absolute_percentage_error_pct": 13.834999094595815,
+      "maximum_repeat_cv_pct": 1.2655206805471448,
+      "mean_absolute_percentage_error_pct": 6.227225029897492,
+      "mean_signed_prediction_error_pct": -2.776445222066793,
+      "median_absolute_percentage_error_pct": 4.9619729637822605,
+      "median_repeat_cv_pct": 0.7810938722485867,
+      "observed_best_workload_id": "holdout-c256-o128-k32",
+      "observed_median_interval_coverage": 1.0,
+      "pairwise_comparable_pairs": 28,
+      "pairwise_concordant_pairs": 27,
+      "pairwise_discordant_pairs": 1,
+      "pairwise_order_accuracy": 0.9642857142857143,
+      "pairwise_skipped_ties": 0,
+      "predicted_best_workload_id": "holdout-c256-o128-k32",
+      "root_mean_squared_percentage_error_pct": 7.796734932328224,
+      "spearman_rank_correlation": 0.9761904761904762,
+      "workload_count": 8
+    },
+    "throughput_tok_s": {
+      "best_workload_match": true,
+      "direction": "max",
+      "interval_covered_workloads": 8,
+      "interval_evaluated_workloads": 8,
+      "maximum_absolute_percentage_error_pct": 52.53186741433099,
+      "maximum_repeat_cv_pct": 1.0062325616777275,
+      "mean_absolute_percentage_error_pct": 10.534481060057798,
+      "mean_signed_prediction_error_pct": 7.702361669088243,
+      "median_absolute_percentage_error_pct": 3.73836178202703,
+      "median_repeat_cv_pct": 0.2016548304150198,
+      "observed_best_workload_id": "holdout-c256-o128-k32",
+      "observed_median_interval_coverage": 1.0,
+      "pairwise_comparable_pairs": 28,
+      "pairwise_concordant_pairs": 27,
+      "pairwise_discordant_pairs": 1,
+      "pairwise_order_accuracy": 0.9642857142857143,
+      "pairwise_skipped_ties": 0,
+      "predicted_best_workload_id": "holdout-c256-o128-k32",
+      "root_mean_squared_percentage_error_pct": 19.48713635187188,
+      "spearman_rank_correlation": 0.9761904761904762,
+      "workload_count": 8
+    },
+    "tpot_ms": {
+      "best_workload_match": false,
+      "direction": "min",
+      "interval_covered_workloads": 8,
+      "interval_evaluated_workloads": 8,
+      "maximum_absolute_percentage_error_pct": 33.1941676125029,
+      "maximum_repeat_cv_pct": 0.15444055350592217,
+      "mean_absolute_percentage_error_pct": 7.989273184695917,
+      "mean_signed_prediction_error_pct": -5.067677966192364,
+      "median_absolute_percentage_error_pct": 3.523275127421008,
+      "median_repeat_cv_pct": 0.113269656323527,
+      "observed_best_workload_id": "holdout-c512-o128-k1",
+      "observed_median_interval_coverage": 1.0,
+      "pairwise_comparable_pairs": 28,
+      "pairwise_concordant_pairs": 25,
+      "pairwise_discordant_pairs": 3,
+      "pairwise_order_accuracy": 0.8928571428571429,
+      "pairwise_skipped_ties": 0,
+      "predicted_best_workload_id": "holdout-c2048-o128-k1",
+      "root_mean_squared_percentage_error_pct": 12.951357218373555,
+      "spearman_rank_correlation": 0.9285714285714286,
+      "workload_count": 8
+    },
+    "ttft_ms": {
+      "best_workload_match": true,
+      "direction": "min",
+      "interval_covered_workloads": 7,
+      "interval_evaluated_workloads": 8,
+      "maximum_absolute_percentage_error_pct": 138.75489373981605,
+      "maximum_repeat_cv_pct": 4.323292145490627,
+      "mean_absolute_percentage_error_pct": 32.66912898967363,
+      "mean_signed_prediction_error_pct": 21.296715654885105,
+      "median_absolute_percentage_error_pct": 12.05534825098233,
+      "median_repeat_cv_pct": 1.7373918367294772,
+      "observed_best_workload_id": "holdout-c512-o128-k1",
+      "observed_median_interval_coverage": 0.875,
+      "pairwise_comparable_pairs": 28,
+      "pairwise_concordant_pairs": 26,
+      "pairwise_discordant_pairs": 2,
+      "pairwise_order_accuracy": 0.9285714285714286,
+      "pairwise_skipped_ties": 0,
+      "predicted_best_workload_id": "holdout-c512-o128-k1",
+      "root_mean_squared_percentage_error_pct": 54.09929892994508,
+      "spearman_rank_correlation": 0.9523809523809523,
+      "workload_count": 8
+    }
+  },
+  "experiment": {
+    "client_image_id": "sha256:29fcf3ca9a7ef630571b9bd24150249db245f83fb5d0c817942e41c1036679b9",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "power_limit_w": 700.0,
+    "profile_id": "qwen2.5-7b-h100-workload-v2",
+    "profile_publication_eligible": false,
+    "profile_sha256": "68c474085e5eb99717b4e1bb68a66bb937d8e142f8efaad456a480898cbdc4da",
+    "server_image_id": "sha256:6d8429e38e3747723ca07ee1b17972e09bb9c51c4032b266f24fb1cc3b22ed8f",
+    "serving_configuration": {
+      "chunked_prefill": true,
+      "data_parallel": 1,
+      "engine": "vllm",
+      "kv_cache_dtype": "bfloat16",
+      "max_num_batched_tokens": 8192,
+      "max_num_seqs": 256,
+      "pipeline_parallel": 1,
+      "precision": "bfloat16",
+      "prefix_caching": false,
+      "tensor_parallel": 1
+    },
+    "uncertainty_calibrated": false
+  },
+  "protocol": {
+    "campaign_id": "qwen2.5-7b-h100-workload-transfer-holdout-v2",
+    "campaign_sha256": "e24bfd51ed692e51cba69ffcbf2fdf89c484fd80e57e128755c2e940eda5b787",
+    "dataset_split": "holdout",
+    "first_measurement_created_at": "2026-08-04T17:37:04.386723+00:00",
+    "freeze_manifest_sha256": "4c8f42cdbbb335488b80d4a77ea5223ec20f79ac4542e20dd2d35bbab4b6a1d9",
+    "last_prediction_created_at": "2026-08-04T17:31:19.367288+00:00",
+    "measurement_count": 24,
+    "measurement_sha256": "01c1a2bca6e583bb0d5e22a326ae1d79c49ca8ae393df37380d730504c85f973",
+    "prediction_manifest_verified": true,
+    "prediction_sha256": "e0f5e632e190a458d447027577e92595821fdd8eaeb234d92deddb7aaec23c41",
+    "predictions_precede_measurements": true,
+    "preregistered_campaign_valid": true,
+    "preregistered_holdout_valid": true,
+    "preregistered_validation_valid": false,
+    "raw_artifact_manifest_entry_count": 62,
+    "raw_artifact_manifest_sha256": "6e387504865f040bf9253a7570aec8e6777115e2ef27ee136f1107e168c1ea38",
+    "raw_artifact_manifest_verified": true,
+    "repeats_per_workload": 3,
+    "schedule": "cyclic-balanced",
+    "workload_count": 8
+  },
+  "schema_version": "1.0",
+  "summary": {
+    "analysis_ready": true,
+    "final_holdout_completed": true,
+    "final_holdout_required": false,
+    "interval_covered_metric_workload_pairs": 31,
+    "interval_evaluated_metric_workload_pairs": 32,
+    "maximum_absolute_percentage_error_pct": 138.75489373981605,
+    "mean_absolute_percentage_error_pct": 14.355027066081208,
+    "measurement_count": 24,
+    "median_absolute_percentage_error_pct": 6.739257176921803,
+    "metric_workload_pair_count": 32,
+    "observed_interval_coverage": 0.96875,
+    "publication_ready": false,
+    "warnings": [
+      "Final holdout workloads must not be used to refit the reported model.",
+      "Any post-holdout model change requires a newly frozen disjoint holdout.",
+      "The source calibration profile is not publication eligible.",
+      "Prediction intervals were not calibrated before validation."
+    ],
+    "workload_count": 8
+  },
+  "workloads": [
+    {
+      "dataset_split": "holdout",
+      "diagnostics": {
+        "avg_power_w": {
+          "absolute_percentage_error_pct": 11.000571506382807,
+          "interval_covers_observed_median": null,
+          "observations": [
+            429.5218025222199,
+            431.2387584782362,
+            431.44486592858715
+          ],
+          "observed_cv_pct": 0.24512148879987086,
+          "observed_mad": 0.2061074503509417,
+          "observed_median": 431.2387584782362,
+          "observed_sample_sd": 1.0558243936137328,
+          "observed_semantics": "DCGM active-window average GPU power",
+          "prediction": 383.8000304886004,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": -11.000571506382807
+        },
+        "duration_s": {
+          "absolute_percentage_error_pct": 2.1824548483290678,
+          "interval_covers_observed_median": null,
+          "observations": [
+            6.62,
+            6.63,
+            6.63
+          ],
+          "observed_cv_pct": 0.0871252921312294,
+          "observed_mad": 0.0,
+          "observed_median": 6.63,
+          "observed_sample_sd": 0.005773502691896135,
+          "observed_semantics": "vLLM main benchmark duration",
+          "prediction": 6.485303243555783,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": -2.1824548483290678
+        }
+      },
+      "first_measurement_created_at": "2026-08-04T17:37:04.386723+00:00",
+      "metrics": {
+        "energy_j_per_1k_output_tokens": {
+          "absolute_percentage_error_pct": 13.834999094595815,
+          "interval_covers_observed_median": true,
+          "observations": [
+            706.2392578125,
+            704.546630859375,
+            705.252197265625
+          ],
+          "observed_cv_pct": 0.12053739212261647,
+          "observed_mad": 0.70556640625,
+          "observed_median": 705.252197265625,
+          "observed_sample_sd": 0.8502057083701308,
+          "observed_semantics": "GPU joules per 1,000 output tokens",
+          "prediction": 607.6805621593087,
+          "prediction_interval": [
+            342.73183705785016,
+            872.6292872607672
+          ],
+          "prediction_interval_source": "energy_j_per_1k_output_tokens",
+          "signed_prediction_error_pct": -13.834999094595815
+        },
+        "throughput_tok_s": {
+          "absolute_percentage_error_pct": 2.302003287670539,
+          "interval_covers_observed_median": true,
+          "observations": [
+            618.31,
+            617.34,
+            617.37
+          ],
+          "observed_cv_pct": 0.08929857854791898,
+          "observed_mad": 0.029999999999972715,
+          "observed_median": 617.37,
+          "observed_sample_sd": 0.5515735067362161,
+          "observed_semantics": "output-token throughput",
+          "prediction": 631.5818776970916,
+          "prediction_interval": [
+            356.2121790211597,
+            906.9515763730235
+          ],
+          "prediction_interval_source": "throughput_tok_s",
+          "signed_prediction_error_pct": 2.302003287670539
+        },
+        "tpot_ms": {
+          "absolute_percentage_error_pct": 2.3151076563390967,
+          "interval_covers_observed_median": true,
+          "observations": [
+            6.28,
+            6.28,
+            6.28
+          ],
+          "observed_cv_pct": 0.0,
+          "observed_mad": 0.0,
+          "observed_median": 6.28,
+          "observed_sample_sd": 0.0,
+          "observed_semantics": "P95 TPOT per repeat, then median across repeats",
+          "prediction": 6.134611239181905,
+          "prediction_interval": [
+            3.4599207388985946,
+            8.809301739465216
+          ],
+          "prediction_interval_source": "tpot_ms",
+          "signed_prediction_error_pct": -2.3151076563390967
+        },
+        "ttft_ms": {
+          "absolute_percentage_error_pct": 13.802079257967023,
+          "interval_covers_observed_median": true,
+          "observations": [
+            44.75,
+            46.02,
+            43.46
+          ],
+          "observed_cv_pct": 2.860790480742996,
+          "observed_mad": 1.2700000000000031,
+          "observed_median": 44.75,
+          "observed_sample_sd": 1.2800130207671079,
+          "observed_semantics": "P95 TTFT per repeat, then median across repeats",
+          "prediction": 38.57356953205976,
+          "prediction_interval": [
+            21.755493216081707,
+            55.39164584803781
+          ],
+          "prediction_interval_source": "ttft_ms",
+          "signed_prediction_error_pct": -13.802079257967023
+        }
+      },
+      "prediction_created_at": "2026-08-04T17:31:19.366156+00:00",
+      "repeat_count": 3,
+      "workload": {
+        "concurrency": 4,
+        "input_tokens": 256,
+        "num_requests": 32,
+        "output_tokens": 128,
+        "request_rate_req_s": "inf"
+      },
+      "workload_id": "holdout-c256-o128-k4"
+    },
+    {
+      "dataset_split": "holdout",
+      "diagnostics": {
+        "avg_power_w": {
+          "absolute_percentage_error_pct": 0.24930465329185708,
+          "interval_covers_observed_median": null,
+          "observations": [
+            546.6070988251456,
+            545.5241909441569,
+            551.5645796120881
+          ],
+          "observed_cv_pct": 0.5878189841418451,
+          "observed_mad": 1.0829078809887278,
+          "observed_median": 546.6070988251456,
+          "observed_sample_sd": 3.2206521205930523,
+          "observed_semantics": "DCGM active-window average GPU power",
+          "prediction": 545.2443818925509,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": -0.24930465329185708
+        },
+        "duration_s": {
+          "absolute_percentage_error_pct": 4.937672032619695,
+          "interval_covers_observed_median": null,
+          "observations": [
+            8.12,
+            8.1,
+            8.11
+          ],
+          "observed_cv_pct": 0.12330456226880132,
+          "observed_mad": 0.009999999999999787,
+          "observed_median": 8.11,
+          "observed_sample_sd": 0.009999999999999787,
+          "observed_semantics": "vLLM main benchmark duration",
+          "prediction": 7.709554798154542,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": -4.937672032619695
+        }
+      },
+      "first_measurement_created_at": "2026-08-04T17:37:26.225991+00:00",
+      "metrics": {
+        "energy_j_per_1k_output_tokens": {
+          "absolute_percentage_error_pct": 6.20264205385029,
+          "interval_covers_observed_median": true,
+          "observations": [
+            137.26492309570312,
+            136.63485717773438,
+            136.76657104492188
+          ],
+          "observed_cv_pct": 0.24277867066704373,
+          "observed_mad": 0.1317138671875,
+          "observed_median": 136.76657104492188,
+          "observed_sample_sd": 0.3323367695358549,
+          "observed_semantics": "GPU joules per 1,000 output tokens",
+          "prediction": 128.28343019368052,
+          "prediction_interval": [
+            69.20891058949064,
+            187.35794979787042
+          ],
+          "prediction_interval_source": "energy_j_per_1k_output_tokens",
+          "signed_prediction_error_pct": -6.20264205385029
+        },
+        "throughput_tok_s": {
+          "absolute_percentage_error_pct": 5.174720276383521,
+          "interval_covers_observed_median": true,
+          "observations": [
+            4037.81,
+            4047.18,
+            4041.19
+          ],
+          "observed_cv_pct": 0.11739552535793335,
+          "observed_mad": 3.380000000000109,
+          "observed_median": 4041.19,
+          "observed_sample_sd": 4.745197572282881,
+          "observed_semantics": "output-token throughput",
+          "prediction": 4250.310278337183,
+          "prediction_interval": [
+            2293.0423951629105,
+            6207.5781615114565
+          ],
+          "prediction_interval_source": "throughput_tok_s",
+          "signed_prediction_error_pct": 5.174720276383521
+        },
+        "tpot_ms": {
+          "absolute_percentage_error_pct": 4.73144259850292,
+          "interval_covers_observed_median": true,
+          "observations": [
+            7.42,
+            7.41,
+            7.43
+          ],
+          "observed_cv_pct": 0.13477088948786775,
+          "observed_mad": 0.009999999999999787,
+          "observed_median": 7.42,
+          "observed_sample_sd": 0.009999999999999787,
+          "observed_semantics": "P95 TPOT per repeat, then median across repeats",
+          "prediction": 7.068926959191083,
+          "prediction_interval": [
+            3.813686094483589,
+            10.324167823898579
+          ],
+          "prediction_interval_source": "tpot_ms",
+          "signed_prediction_error_pct": -4.73144259850292
+        },
+        "ttft_ms": {
+          "absolute_percentage_error_pct": 9.259280544459022,
+          "interval_covers_observed_median": true,
+          "observations": [
+            220.14,
+            238.96,
+            224.5
+          ],
+          "observed_cv_pct": 4.323292145490627,
+          "observed_mad": 4.360000000000014,
+          "observed_median": 224.5,
+          "observed_sample_sd": 9.851341702191307,
+          "observed_semantics": "P95 TTFT per repeat, then median across repeats",
+          "prediction": 245.2870848223105,
+          "prediction_interval": [
+            132.33238226163652,
+            358.2417873829845
+          ],
+          "prediction_interval_source": "ttft_ms",
+          "signed_prediction_error_pct": 9.259280544459022
+        }
+      },
+      "prediction_created_at": "2026-08-04T17:31:19.366342+00:00",
+      "repeat_count": 3,
+      "workload": {
+        "concurrency": 32,
+        "input_tokens": 256,
+        "num_requests": 256,
+        "output_tokens": 128,
+        "request_rate_req_s": "inf"
+      },
+      "workload_id": "holdout-c256-o128-k32"
+    },
+    {
+      "dataset_split": "holdout",
+      "diagnostics": {
+        "avg_power_w": {
+          "absolute_percentage_error_pct": 11.596253544428054,
+          "interval_covers_observed_median": null,
+          "observations": [
+            415.6494644651683,
+            428.8257671257258,
+            420.48529689723284
+          ],
+          "observed_cv_pct": 1.5807716390849824,
+          "observed_mad": 4.835832432064535,
+          "observed_median": 420.48529689723284,
+          "observed_sample_sd": 6.665379093319939,
+          "observed_semantics": "DCGM active-window average GPU power",
+          "prediction": 469.24583804247703,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": 11.596253544428054
+        },
+        "duration_s": {
+          "absolute_percentage_error_pct": 11.476238592237598,
+          "interval_covers_observed_median": null,
+          "observations": [
+            6.39,
+            6.39,
+            6.39
+          ],
+          "observed_cv_pct": 0.0,
+          "observed_mad": 0.0,
+          "observed_median": 6.39,
+          "observed_sample_sd": 0.0,
+          "observed_semantics": "vLLM main benchmark duration",
+          "prediction": 5.656668353956017,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": -11.476238592237598
+        }
+      },
+      "first_measurement_created_at": "2026-08-04T17:37:46.684942+00:00",
+      "metrics": {
+        "energy_j_per_1k_output_tokens": {
+          "absolute_percentage_error_pct": 2.2058446459984933,
+          "interval_covers_observed_median": true,
+          "observations": [
+            2637.10546875,
+            2701.048828125,
+            2650.625
+          ],
+          "observed_cv_pct": 1.2655206805471448,
+          "observed_mad": 13.51953125,
+          "observed_median": 2650.625,
+          "observed_sample_sd": 33.6998847084073,
+          "observed_semantics": "GPU joules per 1,000 output tokens",
+          "prediction": 2592.1563303520024,
+          "prediction_interval": [
+            1416.6134345373694,
+            3767.6992261666355
+          ],
+          "prediction_interval_source": "energy_j_per_1k_output_tokens",
+          "signed_prediction_error_pct": -2.2058446459984933
+        },
+        "throughput_tok_s": {
+          "absolute_percentage_error_pct": 12.936106330033677,
+          "interval_covers_observed_median": true,
+          "observations": [
+            160.24,
+            160.29,
+            160.3
+          ],
+          "observed_cv_pct": 0.02005625847179282,
+          "observed_mad": 0.010000000000019327,
+          "observed_median": 160.29,
+          "observed_sample_sd": 0.032145502536640475,
+          "observed_semantics": "output-token throughput",
+          "prediction": 181.02528483641098,
+          "prediction_interval": [
+            98.93031816309859,
+            263.12025150972335
+          ],
+          "prediction_interval_source": "throughput_tok_s",
+          "signed_prediction_error_pct": 12.936106330033677
+        },
+        "tpot_ms": {
+          "absolute_percentage_error_pct": 11.9010800440063,
+          "interval_covers_observed_median": true,
+          "observations": [
+            6.11,
+            6.11,
+            6.11
+          ],
+          "observed_cv_pct": 0.0,
+          "observed_mad": 0.0,
+          "observed_median": 6.11,
+          "observed_sample_sd": 0.0,
+          "observed_semantics": "P95 TPOT per repeat, then median across repeats",
+          "prediction": 5.382844009311215,
+          "prediction_interval": [
+            2.941724251088579,
+            7.823963767533852
+          ],
+          "prediction_interval_source": "tpot_ms",
+          "signed_prediction_error_pct": -11.9010800440063
+        },
+        "ttft_ms": {
+          "absolute_percentage_error_pct": 58.663480041425,
+          "interval_covers_observed_median": true,
+          "observations": [
+            24.0,
+            24.09,
+            23.51
+          ],
+          "observed_cv_pct": 1.3078622747049644,
+          "observed_mad": 0.08999999999999986,
+          "observed_median": 24.0,
+          "observed_sample_sd": 0.31214312956291823,
+          "observed_semantics": "P95 TTFT per repeat, then median across repeats",
+          "prediction": 38.079235209942,
+          "prediction_interval": [
+            20.810302042233303,
+            55.348168377650694
+          ],
+          "prediction_interval_source": "ttft_ms",
+          "signed_prediction_error_pct": 58.663480041425
+        }
+      },
+      "prediction_created_at": "2026-08-04T17:31:19.366508+00:00",
+      "repeat_count": 3,
+      "workload": {
+        "concurrency": 1,
+        "input_tokens": 512,
+        "num_requests": 8,
+        "output_tokens": 128,
+        "request_rate_req_s": "inf"
+      },
+      "workload_id": "holdout-c512-o128-k1"
+    },
+    {
+      "dataset_split": "holdout",
+      "diagnostics": {
+        "avg_power_w": {
+          "absolute_percentage_error_pct": 3.3024948486452903,
+          "interval_covers_observed_median": null,
+          "observations": [
+            509.47839122588385,
+            515.8713466440986,
+            509.796118279792
+          ],
+          "observed_cv_pct": 0.7040553564713774,
+          "observed_mad": 0.31772705390812916,
+          "observed_median": 509.796118279792,
+          "observed_sample_sd": 3.602758876623624,
+          "observed_semantics": "DCGM active-window average GPU power",
+          "prediction": 526.6321088245758,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": 3.3024948486452903
+        },
+        "duration_s": {
+          "absolute_percentage_error_pct": 1.3759728454557316,
+          "interval_covers_observed_median": null,
+          "observations": [
+            8.06,
+            8.09,
+            8.1
+          ],
+          "observed_cv_pct": 0.25752569065559855,
+          "observed_mad": 0.009999999999999787,
+          "observed_median": 8.09,
+          "observed_sample_sd": 0.020816659994660883,
+          "observed_semantics": "vLLM main benchmark duration",
+          "prediction": 8.201316203197369,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": 1.3759728454557316
+        }
+      },
+      "first_measurement_created_at": "2026-08-04T17:38:08.421407+00:00",
+      "metrics": {
+        "energy_j_per_1k_output_tokens": {
+          "absolute_percentage_error_pct": 3.721303873714231,
+          "interval_covers_observed_median": true,
+          "observations": [
+            252.50067138671872,
+            256.680419921875,
+            254.15753173828125
+          ],
+          "observed_cv_pct": 0.8271981364910275,
+          "observed_mad": 1.6568603515625284,
+          "observed_median": 254.15753173828125,
+          "observed_sample_sd": 2.1047742883200065,
+          "observed_semantics": "GPU joules per 1,000 output tokens",
+          "prediction": 263.6155058121944,
+          "prediction_interval": [
+            156.98303371116174,
+            370.24797791322703
+          ],
+          "prediction_interval_source": "energy_j_per_1k_output_tokens",
+          "signed_prediction_error_pct": 3.721303873714231
+        },
+        "throughput_tok_s": {
+          "absolute_percentage_error_pct": 1.3496824793808795,
+          "interval_covers_observed_median": true,
+          "observations": [
+            2032.74,
+            2025.06,
+            2022.49
+          ],
+          "observed_cv_pct": 0.2631323399947218,
+          "observed_mad": 2.5699999999999363,
+          "observed_median": 2025.06,
+          "observed_sample_sd": 5.333069785155023,
+          "observed_semantics": "output-token throughput",
+          "prediction": 1997.7281199830495,
+          "prediction_interval": [
+            1189.647095449906,
+            2805.809144516193
+          ],
+          "prediction_interval_source": "throughput_tok_s",
+          "signed_prediction_error_pct": -1.3496824793808795
+        },
+        "tpot_ms": {
+          "absolute_percentage_error_pct": 1.5211655991591715,
+          "interval_covers_observed_median": true,
+          "observations": [
+            7.47,
+            7.47,
+            7.49
+          ],
+          "observed_cv_pct": 0.15444055350592217,
+          "observed_mad": 0.0,
+          "observed_median": 7.47,
+          "observed_sample_sd": 0.011547005383792781,
+          "observed_semantics": "P95 TPOT per repeat, then median across repeats",
+          "prediction": 7.58363107025719,
+          "prediction_interval": [
+            4.516052302338156,
+            10.651209838176223
+          ],
+          "prediction_interval_source": "tpot_ms",
+          "signed_prediction_error_pct": 1.5211655991591715
+        },
+        "ttft_ms": {
+          "absolute_percentage_error_pct": 7.215140706175389,
+          "interval_covers_observed_median": true,
+          "observations": [
+            206.95,
+            210.73,
+            203.7
+          ],
+          "observed_cv_pct": 1.6986360366348516,
+          "observed_mad": 3.25,
+          "observed_median": 206.95,
+          "observed_sample_sd": 3.5183282014805464,
+          "observed_semantics": "P95 TTFT per repeat, then median across repeats",
+          "prediction": 192.01826630857002,
+          "prediction_interval": [
+            114.34687758675344,
+            269.68965503038663
+          ],
+          "prediction_interval_source": "ttft_ms",
+          "signed_prediction_error_pct": -7.215140706175389
+        }
+      },
+      "prediction_created_at": "2026-08-04T17:31:19.366684+00:00",
+      "repeat_count": 3,
+      "workload": {
+        "concurrency": 16,
+        "input_tokens": 512,
+        "num_requests": 128,
+        "output_tokens": 128,
+        "request_rate_req_s": "inf"
+      },
+      "workload_id": "holdout-c512-o128-k16"
+    },
+    {
+      "dataset_split": "holdout",
+      "diagnostics": {
+        "avg_power_w": {
+          "absolute_percentage_error_pct": 3.335902957271996,
+          "interval_covers_observed_median": null,
+          "observations": [
+            487.3522046879467,
+            490.96669873806724,
+            484.8401068943837
+          ],
+          "observed_cv_pct": 0.6314655409225076,
+          "observed_mad": 2.5120977935629867,
+          "observed_median": 487.3522046879467,
+          "observed_sample_sd": 3.0797816530253694,
+          "observed_semantics": "DCGM active-window average GPU power",
+          "prediction": 503.6098012964622,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": 3.335902957271996
+        },
+        "duration_s": {
+          "absolute_percentage_error_pct": 0.017353605909539653,
+          "interval_covers_observed_median": null,
+          "observations": [
+            8.09,
+            8.22,
+            8.24
+          ],
+          "observed_cv_pct": 0.9952579814965912,
+          "observed_mad": 0.019999999999999574,
+          "observed_median": 8.22,
+          "observed_sample_sd": 0.08144527815247107,
+          "observed_semantics": "vLLM main benchmark duration",
+          "prediction": 8.218573533594236,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": -0.017353605909539653
+        }
+      },
+      "first_measurement_created_at": "2026-08-04T17:38:30.232430+00:00",
+      "metrics": {
+        "energy_j_per_1k_output_tokens": {
+          "absolute_percentage_error_pct": 2.7903756992258217,
+          "interval_covers_observed_median": true,
+          "observations": [
+            487.4156494140625,
+            496.35986328125,
+            491.5279541015625
+          ],
+          "observed_cv_pct": 0.9103745232051232,
+          "observed_mad": 4.1123046875,
+          "observed_median": 491.5279541015625,
+          "observed_sample_sd": 4.476928967226901,
+          "observed_semantics": "GPU joules per 1,000 output tokens",
+          "prediction": 505.24343068771435,
+          "prediction_interval": [
+            297.3357589597199,
+            713.1511024157088
+          ],
+          "prediction_interval_source": "energy_j_per_1k_output_tokens",
+          "signed_prediction_error_pct": 2.7903756992258217
+        },
+        "throughput_tok_s": {
+          "absolute_percentage_error_pct": 0.0026736081654437226,
+          "interval_covers_observed_median": true,
+          "observations": [
+            1012.91,
+            996.74,
+            994.41
+          ],
+          "observed_cv_pct": 1.0062325616777275,
+          "observed_mad": 2.330000000000041,
+          "observed_median": 996.74,
+          "observed_sample_sd": 10.075943297445313,
+          "observed_semantics": "output-token throughput",
+          "prediction": 996.7666489220283,
+          "prediction_interval": [
+            586.5971728906137,
+            1406.936124953443
+          ],
+          "prediction_interval_source": "throughput_tok_s",
+          "signed_prediction_error_pct": 0.0026736081654437226
+        },
+        "tpot_ms": {
+          "absolute_percentage_error_pct": 2.1947584865937153,
+          "interval_covers_observed_median": true,
+          "observations": [
+            7.45,
+            7.47,
+            7.46
+          ],
+          "observed_cv_pct": 0.1340482573726513,
+          "observed_mad": 0.009999999999999787,
+          "observed_median": 7.46,
+          "observed_sample_sd": 0.009999999999999787,
+          "observed_semantics": "P95 TPOT per repeat, then median across repeats",
+          "prediction": 7.623728983099891,
+          "prediction_interval": [
+            4.486564506554286,
+            10.760893459645496
+          ],
+          "prediction_interval_source": "tpot_ms",
+          "signed_prediction_error_pct": 2.1947584865937153
+        },
+        "ttft_ms": {
+          "absolute_percentage_error_pct": 14.163816131014043,
+          "interval_covers_observed_median": true,
+          "observations": [
+            224.53,
+            236.93,
+            222.74
+          ],
+          "observed_cv_pct": 3.3884275611984584,
+          "observed_mad": 1.789999999999992,
+          "observed_median": 224.53,
+          "observed_sample_sd": 7.7278737912399516,
+          "observed_semantics": "P95 TTFT per repeat, then median across repeats",
+          "prediction": 192.72798364103417,
+          "prediction_interval": [
+            113.42041837274861,
+            272.03554890931974
+          ],
+          "prediction_interval_source": "ttft_ms",
+          "signed_prediction_error_pct": -14.163816131014043
+        }
+      },
+      "prediction_created_at": "2026-08-04T17:31:19.366839+00:00",
+      "repeat_count": 3,
+      "workload": {
+        "concurrency": 8,
+        "input_tokens": 1024,
+        "num_requests": 64,
+        "output_tokens": 128,
+        "request_rate_req_s": "inf"
+      },
+      "workload_id": "holdout-c1024-o128-k8"
+    },
+    {
+      "dataset_split": "holdout",
+      "diagnostics": {
+        "avg_power_w": {
+          "absolute_percentage_error_pct": 1.9612071557274284,
+          "interval_covers_observed_median": null,
+          "observations": [
+            620.4679670478846,
+            623.6760841850825,
+            620.3178651458439
+          ],
+          "observed_cv_pct": 0.3052392454862728,
+          "observed_mad": 0.1501019020406602,
+          "observed_median": 620.4679670478846,
+          "observed_sample_sd": 1.8970231619778617,
+          "observed_semantics": "DCGM active-window average GPU power",
+          "prediction": 608.299304879145,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": -1.9612071557274284
+        },
+        "duration_s": {
+          "absolute_percentage_error_pct": 9.47253592887165,
+          "interval_covers_observed_median": null,
+          "observations": [
+            12.41,
+            12.43,
+            12.55
+          ],
+          "observed_cv_pct": 0.6075323183525333,
+          "observed_mad": 0.019999999999999574,
+          "observed_median": 12.43,
+          "observed_sample_sd": 0.07571877794400407,
+          "observed_semantics": "vLLM main benchmark duration",
+          "prediction": 13.607436215958746,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": 9.47253592887165
+        }
+      },
+      "first_measurement_created_at": "2026-08-04T17:38:57.408301+00:00",
+      "metrics": {
+        "energy_j_per_1k_output_tokens": {
+          "absolute_percentage_error_pct": 6.2633736476682165,
+          "interval_covers_observed_median": true,
+          "observations": [
+            236.26498413085938,
+            237.7169189453125,
+            239.74627685546875
+          ],
+          "observed_cv_pct": 0.7349896080061459,
+          "observed_mad": 1.451934814453125,
+          "observed_median": 237.7169189453125,
+          "observed_sample_sd": 1.7486093173029884,
+          "observed_semantics": "GPU joules per 1,000 output tokens",
+          "prediction": 252.60601780258202,
+          "prediction_interval": [
+            136.28094660449298,
+            368.9310890006711
+          ],
+          "prediction_interval_source": "energy_j_per_1k_output_tokens",
+          "signed_prediction_error_pct": 6.2633736476682165
+        },
+        "throughput_tok_s": {
+          "absolute_percentage_error_pct": 8.688123665186144,
+          "interval_covers_observed_median": true,
+          "observations": [
+            2640.1,
+            2637.22,
+            2610.01
+          ],
+          "observed_cv_pct": 0.6315310956825242,
+          "observed_mad": 2.880000000000109,
+          "observed_median": 2637.22,
+          "observed_sample_sd": 16.603647189698812,
+          "observed_semantics": "output-token throughput",
+          "prediction": 2408.095065076978,
+          "prediction_interval": [
+            1299.1672876090295,
+            3517.0228425449263
+          ],
+          "prediction_interval_source": "throughput_tok_s",
+          "signed_prediction_error_pct": -8.688123665186144
+        },
+        "tpot_ms": {
+          "absolute_percentage_error_pct": 7.970456788261325,
+          "interval_covers_observed_median": true,
+          "observations": [
+            11.55,
+            11.52,
+            11.54
+          ],
+          "observed_cv_pct": 0.13240611658353005,
+          "observed_mad": 0.010000000000001563,
+          "observed_median": 11.54,
+          "observed_sample_sd": 0.015275252316519916,
+          "observed_semantics": "P95 TPOT per repeat, then median across repeats",
+          "prediction": 12.459790713365356,
+          "prediction_interval": [
+            6.722057089860609,
+            18.197524336870103
+          ],
+          "prediction_interval_source": "tpot_ms",
+          "signed_prediction_error_pct": 7.970456788261325
+        },
+        "ttft_ms": {
+          "absolute_percentage_error_pct": 9.185724252534875,
+          "interval_covers_observed_median": true,
+          "observations": [
+            668.3,
+            654.33,
+            675.6
+          ],
+          "observed_cv_pct": 1.6226205398292357,
+          "observed_mad": 7.300000000000068,
+          "observed_median": 668.3,
+          "observed_sample_sd": 10.807896804343248,
+          "observed_semantics": "P95 TTFT per repeat, then median across repeats",
+          "prediction": 729.6881951796905,
+          "prediction_interval": [
+            393.666781299443,
+            1065.7096090599382
+          ],
+          "prediction_interval_source": "ttft_ms",
+          "signed_prediction_error_pct": 9.185724252534875
+        }
+      },
+      "prediction_created_at": "2026-08-04T17:31:19.366989+00:00",
+      "repeat_count": 3,
+      "workload": {
+        "concurrency": 32,
+        "input_tokens": 1024,
+        "num_requests": 256,
+        "output_tokens": 128,
+        "request_rate_req_s": "inf"
+      },
+      "workload_id": "holdout-c1024-o128-k32"
+    },
+    {
+      "dataset_split": "holdout",
+      "diagnostics": {
+        "avg_power_w": {
+          "absolute_percentage_error_pct": 32.86628412100871,
+          "interval_covers_observed_median": null,
+          "observations": [
+            436.6465001352884,
+            439.86210554307235,
+            443.70008263669394
+          ],
+          "observed_cv_pct": 0.8024559803437251,
+          "observed_mad": 3.215605407783926,
+          "observed_median": 439.86210554307235,
+          "observed_sample_sd": 3.5313645241338683,
+          "observed_semantics": "DCGM active-window average GPU power",
+          "prediction": 584.4284348915097,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": 32.86628412100871
+        },
+        "duration_s": {
+          "absolute_percentage_error_pct": 34.48964431548679,
+          "interval_covers_observed_median": null,
+          "observations": [
+            6.72,
+            6.73,
+            6.74
+          ],
+          "observed_cv_pct": 0.14858841010401533,
+          "observed_mad": 0.009999999999999787,
+          "observed_median": 6.73,
+          "observed_sample_sd": 0.010000000000000231,
+          "observed_semantics": "vLLM main benchmark duration",
+          "prediction": 4.4088469375677395,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": -34.48964431548679
+        }
+      },
+      "first_measurement_created_at": "2026-08-04T17:39:18.385765+00:00",
+      "metrics": {
+        "energy_j_per_1k_output_tokens": {
+          "absolute_percentage_error_pct": 13.771195213412543,
+          "interval_covers_observed_median": true,
+          "observations": [
+            2916.2841796875,
+            2918.1259765625,
+            2966.26953125
+          ],
+          "observed_cv_pct": 0.9661415167334866,
+          "observed_mad": 1.841796875,
+          "observed_median": 2918.1259765625,
+          "observed_sample_sd": 28.342340071889456,
+          "observed_semantics": "GPU joules per 1,000 output tokens",
+          "prediction": 2516.265151756777,
+          "prediction_interval": [
+            1216.6142008744018,
+            3815.916102639152
+          ],
+          "prediction_interval_source": "energy_j_per_1k_output_tokens",
+          "signed_prediction_error_pct": -13.771195213412543
+        },
+        "throughput_tok_s": {
+          "absolute_percentage_error_pct": 52.53186741433099,
+          "interval_covers_observed_median": true,
+          "observations": [
+            152.28,
+            152.27,
+            151.84
+          ],
+          "observed_cv_pct": 0.16512005110209071,
+          "observed_mad": 0.009999999999990905,
+          "observed_median": 152.27,
+          "observed_sample_sd": 0.2511971337416106,
+          "observed_semantics": "output-token throughput",
+          "prediction": 232.2602745118018,
+          "prediction_interval": [
+            112.29784272645618,
+            352.22270629714745
+          ],
+          "prediction_interval_source": "throughput_tok_s",
+          "signed_prediction_error_pct": 52.53186741433099
+        },
+        "tpot_ms": {
+          "absolute_percentage_error_pct": 33.1941676125029,
+          "interval_covers_observed_median": true,
+          "observations": [
+            6.14,
+            6.13,
+            6.13
+          ],
+          "observed_cv_pct": 0.09413319606352394,
+          "observed_mad": 0.0,
+          "observed_median": 6.13,
+          "observed_sample_sd": 0.005773502691896135,
+          "observed_semantics": "P95 TPOT per repeat, then median across repeats",
+          "prediction": 4.095197525353572,
+          "prediction_interval": [
+            1.9800280035084523,
+            6.210367047198692
+          ],
+          "prediction_interval_source": "tpot_ms",
+          "signed_prediction_error_pct": -33.1941676125029
+        },
+        "ttft_ms": {
+          "absolute_percentage_error_pct": 138.75489373981605,
+          "interval_covers_observed_median": false,
+          "observations": [
+            65.31,
+            64.95,
+            67.13
+          ],
+          "observed_cv_pct": 1.7761476368241027,
+          "observed_mad": 0.35999999999999943,
+          "observed_median": 65.31,
+          "observed_sample_sd": 1.168645940109032,
+          "observed_semantics": "P95 TTFT per repeat, then median across repeats",
+          "prediction": 155.93082110147387,
+          "prediction_interval": [
+            75.39255200256262,
+            236.46909020038512
+          ],
+          "prediction_interval_source": "ttft_ms",
+          "signed_prediction_error_pct": 138.75489373981605
+        }
+      },
+      "prediction_created_at": "2026-08-04T17:31:19.367142+00:00",
+      "repeat_count": 3,
+      "workload": {
+        "concurrency": 1,
+        "input_tokens": 2048,
+        "num_requests": 8,
+        "output_tokens": 128,
+        "request_rate_req_s": "inf"
+      },
+      "workload_id": "holdout-c2048-o128-k1"
+    },
+    {
+      "dataset_split": "holdout",
+      "diagnostics": {
+        "avg_power_w": {
+          "absolute_percentage_error_pct": 0.5107628614393269,
+          "interval_covers_observed_median": null,
+          "observations": [
+            600.7969951993075,
+            600.5174187847886,
+            602.1124668246417
+          ],
+          "observed_cv_pct": 0.14168758153391595,
+          "observed_mad": 0.27957641451894233,
+          "observed_median": 600.7969951993075,
+          "observed_sample_sd": 0.8517439773834791,
+          "observed_semantics": "DCGM active-window average GPU power",
+          "prediction": 603.865643123429,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": 0.5107628614393269
+        },
+        "duration_s": {
+          "absolute_percentage_error_pct": 1.297556299110513,
+          "interval_covers_observed_median": null,
+          "observations": [
+            12.48,
+            12.48,
+            12.53
+          ],
+          "observed_cv_pct": 0.23100170813134704,
+          "observed_mad": 0.0,
+          "observed_median": 12.48,
+          "observed_sample_sd": 0.028867513459480673,
+          "observed_semantics": "vLLM main benchmark duration",
+          "prediction": 12.641935026128992,
+          "prediction_interval": null,
+          "prediction_interval_source": null,
+          "signed_prediction_error_pct": 1.297556299110513
+        }
+      },
+      "first_measurement_created_at": "2026-08-04T17:39:45.504076+00:00",
+      "metrics": {
+        "energy_j_per_1k_output_tokens": {
+          "absolute_percentage_error_pct": 1.0280660107145312,
+          "interval_covers_observed_median": true,
+          "observations": [
+            460.0269775390625,
+            461.2027587890625,
+            462.5838623046875
+          ],
+          "observed_cv_pct": 0.27745404965122633,
+          "observed_mad": 1.17578125,
+          "observed_median": 461.2027587890625,
+          "observed_sample_sd": 1.2798156230103686,
+          "observed_semantics": "GPU joules per 1,000 output tokens",
+          "prediction": 465.9442275926506,
+          "prediction_interval": [
+            248.11530119308642,
+            683.7731539922147
+          ],
+          "prediction_interval_source": "energy_j_per_1k_output_tokens",
+          "signed_prediction_error_pct": 1.0280660107145312
+        },
+        "throughput_tok_s": {
+          "absolute_percentage_error_pct": 1.2906714193111999,
+          "interval_covers_observed_median": true,
+          "observations": [
+            1313.33,
+            1312.95,
+            1307.74
+          ],
+          "observed_cv_pct": 0.23818960972794892,
+          "observed_mad": 0.37999999999988177,
+          "observed_median": 1312.95,
+          "observed_sample_sd": 3.123475628206485,
+          "observed_semantics": "output-token throughput",
+          "prediction": 1296.0041296001536,
+          "prediction_interval": [
+            690.1221990120818,
+            1901.8860601882254
+          ],
+          "prediction_interval_source": "throughput_tok_s",
+          "signed_prediction_error_pct": -1.2906714193111999
+        },
+        "tpot_ms": {
+          "absolute_percentage_error_pct": 0.08600669220190828,
+          "interval_covers_observed_median": true,
+          "observations": [
+            11.63,
+            11.63,
+            11.63
+          ],
+          "observed_cv_pct": 0.0,
+          "observed_mad": 0.0,
+          "observed_median": 11.63,
+          "observed_sample_sd": 0.0,
+          "observed_semantics": "P95 TPOT per repeat, then median across repeats",
+          "prediction": 11.619997421696919,
+          "prediction_interval": [
+            6.187648627053609,
+            17.05234621634023
+          ],
+          "prediction_interval_source": "tpot_ms",
+          "signed_prediction_error_pct": -0.08600669220190828
+        },
+        "ttft_ms": {
+          "absolute_percentage_error_pct": 10.308617243997636,
+          "interval_covers_observed_median": true,
+          "observations": [
+            683.17,
+            685.25,
+            698.02
+          ],
+          "observed_cv_pct": 1.1673334294925044,
+          "observed_mad": 2.080000000000041,
+          "observed_median": 685.25,
+          "observed_sample_sd": 8.040748306801637,
+          "observed_semantics": "P95 TTFT per repeat, then median across repeats",
+          "prediction": 614.6102003355062,
+          "prediction_interval": [
+            327.279931678657,
+            901.9404689923554
+          ],
+          "prediction_interval_source": "ttft_ms",
+          "signed_prediction_error_pct": -10.308617243997636
+        }
+      },
+      "prediction_created_at": "2026-08-04T17:31:19.367288+00:00",
+      "repeat_count": 3,
+      "workload": {
+        "concurrency": 16,
+        "input_tokens": 2048,
+        "num_requests": 128,
+        "output_tokens": 128,
+        "request_rate_req_s": "inf"
+      },
+      "workload_id": "holdout-c2048-o128-k16"
+    }
+  ]
+}

@@ -1,0 +1,193 @@
+{
+  "summary": {
+    "calls": 90,
+    "raw_accuracy": 0.7333333333333333,
+    "guarded_accuracy": 1,
+    "intervention_rate": 0.26666666666666666,
+    "schema_fallback_rate": 0,
+    "publication_ready": false,
+    "warnings": [
+      "failed threshold: raw_expected_subgoal_rate"
+    ]
+  },
+  "by_category": [
+    {
+      "category": "cold_start_holdout",
+      "calls": 15,
+      "raw_accuracy": 1,
+      "guarded_accuracy": 1,
+      "intervention_rate": 0,
+      "typed_rate": 1
+    },
+    {
+      "category": "guard_challenge_holdout",
+      "calls": 15,
+      "raw_accuracy": 0.6,
+      "guarded_accuracy": 1,
+      "intervention_rate": 0.4,
+      "typed_rate": 1
+    },
+    {
+      "category": "repair_holdout",
+      "calls": 15,
+      "raw_accuracy": 1,
+      "guarded_accuracy": 1,
+      "intervention_rate": 0,
+      "typed_rate": 1
+    },
+    {
+      "category": "slo_boundary_holdout",
+      "calls": 15,
+      "raw_accuracy": 0.2,
+      "guarded_accuracy": 1,
+      "intervention_rate": 0.8,
+      "typed_rate": 1
+    },
+    {
+      "category": "steady_explore_holdout",
+      "calls": 15,
+      "raw_accuracy": 1,
+      "guarded_accuracy": 1,
+      "intervention_rate": 0,
+      "typed_rate": 1
+    },
+    {
+      "category": "topology_gap_holdout",
+      "calls": 15,
+      "raw_accuracy": 0.6,
+      "guarded_accuracy": 1,
+      "intervention_rate": 0.4,
+      "typed_rate": 1
+    }
+  ],
+  "interventions": [
+    {
+      "case_id": "v2-guard-candidate-02",
+      "category": "guard_challenge_holdout",
+      "expected": [
+        "resolve_slo"
+      ],
+      "proposed": "explore",
+      "admitted": "resolve_slo",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "guard_reason": "StateGuardReject: proposed explore but state-priority policy requires resolve_slo",
+      "raw_response": "{\n  \"subgoal\": \"explore\",\n  \"rationale\": \"Since last_action_failed is false, evidence_count is not 0, all_candidates_have_l0 is true but max_topology_gap is less than 0.5, and max_slo_boundary_probability is greater than 0.45, the default action is to explore.\"\n}"
+    },
+    {
+      "case_id": "v2-guard-skip-scale-04",
+      "category": "guard_challenge_holdout",
+      "expected": [
+        "calibrate_scale"
+      ],
+      "proposed": "resolve_slo",
+      "admitted": "calibrate_scale",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "guard_reason": "StateGuardReject: proposed resolve_slo but state-priority policy requires calibrate_scale",
+      "raw_response": "{\n  \"subgoal\": \"resolve_slo\",\n  \"rationale\": \"max_slo_boundary_probability is at least 0.45\"\n}"
+    },
+    {
+      "case_id": "v2-scale-evidence-03",
+      "category": "topology_gap_holdout",
+      "expected": [
+        "calibrate_scale"
+      ],
+      "proposed": "explore",
+      "admitted": "calibrate_scale",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "guard_reason": "StateGuardReject: proposed explore but state-priority policy requires calibrate_scale",
+      "raw_response": "{\n  \"subgoal\": \"explore\",\n  \"rationale\": \"Since the last action did not fail, evidence count is not 0, all candidates have L0, and the max topology gap is less than 0.5, and the max SLO boundary probability is greater than 0.45, the default action is to explore.\"\n}"
+    },
+    {
+      "case_id": "v2-scale-model-02",
+      "category": "topology_gap_holdout",
+      "expected": [
+        "calibrate_scale"
+      ],
+      "proposed": "resolve_slo",
+      "admitted": "calibrate_scale",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "guard_reason": "StateGuardReject: proposed resolve_slo but state-priority policy requires calibrate_scale",
+      "raw_response": "{\n  \"subgoal\": \"resolve_slo\",\n  \"rationale\": \"max_slo_boundary_probability is at least 0.45\"\n}"
+    },
+    {
+      "case_id": "v2-slo-chinese-05",
+      "category": "slo_boundary_holdout",
+      "expected": [
+        "resolve_slo"
+      ],
+      "proposed": "explore",
+      "admitted": "resolve_slo",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "guard_reason": "StateGuardReject: proposed explore but state-priority policy requires resolve_slo",
+      "raw_response": "{\n  \"subgoal\": \"explore\",\n  \"rationale\": \"Since last_action_failed is false, evidence_count is 17 (not 0), all_candidates_have_l0 is true, and max_topology_gap is less than 0.5, and max_slo_boundary_probability is greater than 0.45, the default action is to explore.\"\n}"
+    },
+    {
+      "case_id": "v2-slo-ranking-03",
+      "category": "slo_boundary_holdout",
+      "expected": [
+        "resolve_slo"
+      ],
+      "proposed": "explore",
+      "admitted": "resolve_slo",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "guard_reason": "StateGuardReject: proposed explore but state-priority policy requires resolve_slo",
+      "raw_response": "{\n  \"subgoal\": \"explore\",\n  \"rationale\": \"Since the last action did not fail, evidence count is not 0, all candidates have L0, and max SLO boundary probability is above 0.45 but below 0.5, the conditions for calibrate_scale or resolve_slo are not met. Therefore, explore is the appropriate subgoal.\"\n}"
+    },
+    {
+      "case_id": "v2-slo-release-02",
+      "category": "slo_boundary_holdout",
+      "expected": [
+        "resolve_slo"
+      ],
+      "proposed": "explore",
+      "admitted": "resolve_slo",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "guard_reason": "StateGuardReject: proposed explore but state-priority policy requires resolve_slo",
+      "raw_response": "{\n  \"subgoal\": \"explore\",\n  \"rationale\": \"Since the last action did not fail, evidence count is not 0, all candidates have L0, and the max topology gap is less than 0.5, and the max SLO boundary probability is greater than 0.45, the default action is to explore.\"\n}"
+    },
+    {
+      "case_id": "v2-slo-tail-01",
+      "category": "slo_boundary_holdout",
+      "expected": [
+        "resolve_slo"
+      ],
+      "proposed": "explore",
+      "admitted": "resolve_slo",
+      "repeats": [
+        0,
+        1,
+        2
+      ],
+      "guard_reason": "StateGuardReject: proposed explore but state-priority policy requires resolve_slo",
+      "raw_response": "{\n  \"subgoal\": \"explore\",\n  \"rationale\": \"Since the last action did not fail, evidence count is not 0, all candidates have L0, and max topology gap is less than 0.5, and max SLO boundary probability is greater than 0.45, the default action is to explore.\"\n}"
+    }
+  ]
+}

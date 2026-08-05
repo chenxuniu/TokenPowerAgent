@@ -29,6 +29,17 @@ The first real-hardware bring-up is the L1 CUDA GEMM campaign documented in
 measurement contract before adding vLLM, model weights, or request traces. It
 is a diagnostic, not the paper's primary experiment.
 
+The current H100 evidence has been exported to
+[`plot-data/`](plot-data/README.md) as analysis-ready CSV plus self-contained
+raw JSON/JSONL. Column semantics are documented in
+[`plot-data/DATA_DICTIONARY.md`](plot-data/DATA_DICTIONARY.md). Rebuild the
+tables after adding an archive with:
+
+```bash
+python experiments/analysis/export_plot_data.py \
+  --budget-report /path/to/config-search-v1-budget-sweep.json
+```
+
 The frozen research-question manifests are:
 
 - `rq1-sandbox-validity.json`: held-out prediction, ranking, and Pareto validity.
