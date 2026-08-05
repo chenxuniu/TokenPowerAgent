@@ -14,7 +14,7 @@ from tokenpoweragent.evidence import (
     EvidenceStore,
 )
 from tokenpoweragent.executors.base import ExecutionError, Executor
-from tokenpoweragent.executors.replay import ReplayExecutor
+from tokenpoweragent.executors.replay import BootstrapReplayExecutor, ReplayExecutor
 from tokenpoweragent.schema import EvidenceLevel, Scenario
 
 
@@ -170,3 +170,56 @@ def test_replay_episode_uses_one_matched_seed_for_every_action() -> None:
         if record.provenance.get("executor") == "replay"
     }
     assert replay_seeds == {7}
+
+
+def test_bootstrap_replay_samples_action_specific_common_random_numbers() -> None:
+    records = [
+        EvidenceRecord(
+            candidate_id=candidate_id,
+            level=EvidenceLevel.L1,
+            metrics={"energy": float(repeat + 1)},
+            gpu_hours=0.01,
+            kind=EvidenceKind.MEASURED,
+            provenance={"repeat": repeat},
+        )
+        for candidate_id in ("cfg-a", "cfg-b")
+        for repeat in range(3)
+    ]
+    scenario = Scenario.from_dict(
+        {
+            "name": "bootstrap-replay",
+            "intent": "test empirical replay sampling",
+            "model": "test/model",
+            "objectives": {"energy": "min"},
+            "slo": {},
+            "budget": {"gpu_hours": 1.0, "verify_top_k": 1},
+            "available_levels": ["L1", "L4"],
+            "level_cost_gpu_hours": {"L1": 0.01, "L4": 0.5},
+            "candidates": [
+                {"id": "cfg-a", "prior_metrics": {"energy": 1.0}},
+                {"id": "cfg-b", "prior_metrics": {"energy": 1.0}},
+            ],
+        }
+    )
+    first = BootstrapReplayExecutor(records)
+    second = BootstrapReplayExecutor(records)
+    observed_pairs = []
+    for seed in range(30):
+        a = first.execute(scenario.candidate("cfg-a"), EvidenceLevel.L1, seed)
+        b = first.execute(scenario.candidate("cfg-b"), EvidenceLevel.L1, seed)
+        a_again = second.execute(
+            scenario.candidate("cfg-a"), EvidenceLevel.L1, seed
+        )
+        assert a.metrics == a_again.metrics
+        assert a.provenance["replay_selection_key_sha256"] == (
+            a_again.provenance["replay_selection_key_sha256"]
+        )
+        observed_pairs.append(
+            (
+                a.provenance["replay_selection_index"],
+                b.provenance["replay_selection_index"],
+            )
+        )
+
+    assert len(set(observed_pairs)) > 3
+    assert any(a_index != b_index for a_index, b_index in observed_pairs)

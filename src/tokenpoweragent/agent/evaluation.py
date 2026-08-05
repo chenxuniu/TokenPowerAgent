@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
 from tokenpoweragent.agent.controller import AgentRun, TokenPowerAgent
 from tokenpoweragent.agent.planner import RuleBasedPlanner
 from tokenpoweragent.evidence import EvidenceRecord, EvidenceStatus
-from tokenpoweragent.executors.replay import ReplayExecutor
+from tokenpoweragent.executors.replay import BootstrapReplayExecutor
 from tokenpoweragent.pareto import pareto_front
 from tokenpoweragent.policy.ipig import (
     AcquisitionPolicy,
@@ -75,7 +75,7 @@ def evaluate_replay_policies(
             policy = build_policy(policy_name, seed=seed)
             report = TokenPowerAgent(
                 scenario=scenario,
-                executor=ReplayExecutor(list(records)),
+                executor=BootstrapReplayExecutor(list(records)),
                 planner=RuleBasedPlanner(),
                 policy=policy,
             ).run(
@@ -108,6 +108,11 @@ def evaluate_replay_policies(
             "policies": list(policy_names),
             "verification_required": True,
             "oracle_semantics": "median successful L4 metrics per candidate",
+            "episode_semantics": (
+                "candidate-level empirical bootstrap with common random numbers "
+                "across policies"
+            ),
+            "resampling_scheme": "sha256(seed,candidate_id,evidence_level)",
         },
         "oracle": {
             "pareto_ids": oracle_ids,
