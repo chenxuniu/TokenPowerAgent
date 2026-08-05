@@ -63,6 +63,26 @@ predeclared policy replay rather than counting those GPU-hours as agent savings.
 
 \input{tables/configuration-results}
 
+\subsubsection{Policy replay.}
+Table~\ref{tab:agent-results} reports the corrected common-random-number
+bootstrap.  \ipig{} reaches the unique median-L4 oracle in \IPIGOracleHit{} of
+episodes, \IPIGRandomHitGain{} more often than random, while using
+\IPIGRandomGPUSaving{} fewer total GPU-hours and reaching its first oracle hit
+\IPIGRandomFirstHitSaving{} earlier.  Its mean energy regret is
+\IPIGRandomRegretSaving{} lower.  Against cost-blind information gain, \ipig{}
+preserves the same hit rate and regret while using \IPIGCostBlindGPUSaving{}
+fewer GPU-hours, isolating the value of cost normalization.
+
+The strongest caveat is equally informative: cheapest-first reproduces
+\ipig{}'s verified decisions at \CheapestIPIGGPUSaving{} lower mean cost in
+this 12-candidate, single-GPU space.  The result supports \ipig{} over random
+and cost-blind acquisition under the declared 20-step budget, but not universal
+policy superiority.  It also motivates richer topology and placement spaces,
+where a static fidelity ladder has fewer opportunities to coincide with the
+agent.  No replay episode contains a failed action.
+
+\input{tables/agent-results}
+
 \subsection{RQ4: Bounded Runtime Behavior}
 
 All \AutomatedTests{} automated tests pass.  Injected executor failure becomes

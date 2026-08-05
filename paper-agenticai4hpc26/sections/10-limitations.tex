@@ -15,7 +15,11 @@ energy ranking must not be generalized to every metric.
 \textbf{Uncertainty and policy value.}  Prediction intervals are not calibrated
 across hardware generations; new kernels, engines, GPUs, arrival processes, or
 MoE routing may invalidate residual corrections.  The current \ipig{} estimator
-is an auditable proxy rather than exact Pareto mutual information.  The exhaustive
+is an auditable proxy rather than exact Pareto mutual information.  Its
+\PolicyEpisodes{} episodes per policy bootstrap only \PolicyHardwareRepeats{}
+real repeats per candidate--level key, so they measure sensitivity to observed
+run-to-run variation rather than independent production deployments.  \ipig{}
+beats random and cost-blind acquisition on the declared cost--success metrics
+but not cheapest-first in this small grid.  The exhaustive
 \ConfigurationTotalGPUHours{}-GPU-h corpus validates fidelity and supplies an
-oracle; only the sealed policy replay can attribute GPU-hour savings to the
-agent rather than to the surrogate itself.
+oracle; replay does not erase that offline data-collection cost.

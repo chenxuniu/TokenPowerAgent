@@ -19,5 +19,10 @@ same frozen model without refitting.
 Replay exposes a sealed row only after a policy requests its
 candidate--fidelity key.  Its oracle is formed from median successful L4
 metrics, never from simulated predictions.  Reports embed scenario and corpus
-hashes and retain failed episodes.  Simulated, extrapolated, measured, and
-verified evidence remain distinct machine-readable labels in every path.
+hashes and retain failed episodes.  Audit detected that the first replay runner
+globally coupled all actions to one of three repeat indices; that summary is
+retained but excluded.  Commit \texttt{c41d8a6} replaces it with an
+action-specific, cross-policy common-random-number bootstrap, and the corrected
+report is identified by SHA-256 in the artifact.  Simulated, extrapolated,
+measured, and verified evidence remain distinct machine-readable labels in
+every path.

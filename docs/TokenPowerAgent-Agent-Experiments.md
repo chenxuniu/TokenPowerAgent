@@ -60,7 +60,10 @@ tokenpoweragent benchmark-replay \
 The benchmark constructs its oracle from the median successful L4 metrics for
 every candidate. It reports Pareto recall and precision, primary-objective
 regret, GPU-hours to the first oracle hit, unnecessary L4 verifications,
-failed actions, and total GPU-hours.
+failed actions, and total GPU-hours. For each episode and candidate--fidelity
+key, a stable hash selects one empirical repeat; all policies share that mapping
+as common random numbers. These are bootstrap sensitivity episodes over the
+available repeats, not independent hardware runs.
 
 ### Routed Sandbox search
 

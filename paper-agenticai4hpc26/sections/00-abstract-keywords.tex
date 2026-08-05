@@ -21,6 +21,10 @@ ranking (Spearman \LzeroEnergySpearman{}) but reverses TTFT ranking
 energy, throughput, TPOT, and TTFT MAPE to \LoneEnergyMAPE{},
 \LoneThroughputMAPE{}, \LoneTPOTMAPE{}, and \LoneTTFTMAPE{}, recovering the
 true frontier with \LoneParetoRecall{} recall before L4 verification.  The
+corrected empirical replay reaches the median-L4 oracle in \IPIGOracleHit{} of
+\ipig{} episodes versus \RandomOracleHit{} for random while using
+\IPIGRandomGPUSaving{} fewer GPU-hours; a cheapest-first ladder matches
+\ipig{} at \CheapestIPIGGPUSaving{} lower cost, delimiting the policy claim.  The
 verified configuration uses \ParetoEnergyReduction{} less energy, delivers
 \ParetoThroughputGain{} higher throughput, and reduces TTFT by
 \ParetoTTFTReduction{} relative to the expert default.  These results show why

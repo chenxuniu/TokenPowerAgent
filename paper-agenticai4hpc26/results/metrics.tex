@@ -121,4 +121,33 @@
 \newcommand{\ParetoThroughputGain}{3.06\%}
 \newcommand{\ParetoTTFTReduction}{21.59\%}
 \newcommand{\ParetoTPOTReduction}{2.84\%}
-\newcommand{\AutomatedTests}{69}
+% Corrected common-random-number bootstrap over the sealed configuration corpus.
+% There are three real hardware repeats per candidate--level key; the 500
+% episodes per policy are empirical sensitivity resamples, not hardware runs.
+\newcommand{\PolicyEpisodes}{500}
+\newcommand{\PolicyTotalEpisodes}{2000}
+\newcommand{\PolicyHardwareRepeats}{3}
+\newcommand{\IPIGOracleHit}{63.6\%}
+\newcommand{\RandomOracleHit}{46.2\%}
+\newcommand{\CostBlindOracleHit}{63.6\%}
+\newcommand{\CheapestOracleHit}{63.6\%}
+\newcommand{\IPIGGPUHours}{0.0621}
+\newcommand{\RandomGPUHours}{0.0712}
+\newcommand{\CostBlindGPUHours}{0.0846}
+\newcommand{\CheapestGPUHours}{0.0596}
+\newcommand{\IPIGFirstHit}{0.0632}
+\newcommand{\RandomFirstHit}{0.0751}
+\newcommand{\CostBlindFirstHit}{0.0857}
+\newcommand{\CheapestFirstHit}{0.0607}
+\newcommand{\IPIGRegret}{0.253\%}
+\newcommand{\RandomRegret}{0.450\%}
+\newcommand{\CostBlindRegret}{0.253\%}
+\newcommand{\CheapestRegret}{0.253\%}
+\newcommand{\IPIGRandomHitGain}{17.4 points}
+\newcommand{\IPIGRandomGPUSaving}{12.7\%}
+\newcommand{\IPIGRandomFirstHitSaving}{15.8\%}
+\newcommand{\IPIGRandomRegretSaving}{43.7\%}
+\newcommand{\IPIGCostBlindGPUSaving}{26.6\%}
+\newcommand{\IPIGCostBlindFirstHitSaving}{26.2\%}
+\newcommand{\CheapestIPIGGPUSaving}{4.2\%}
+\newcommand{\AutomatedTests}{70}

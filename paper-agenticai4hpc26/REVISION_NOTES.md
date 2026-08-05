@@ -38,13 +38,21 @@ Pareto recall. L1 reaches 1.15% energy MAPE and recovers the true frontier with
 Pareto point; relative to the expert default it uses 1.04% less energy, delivers
 3.06% higher throughput, and reduces TTFT by 21.59%.
 
-## Remaining Workshop Analysis
+## Sealed Policy Result
 
-The frozen 84-row replay corpus is complete. Run IPIG, random, cost-blind, and
-cheapest-first for 500 seeded 20-step episodes under the same 0.12-GPU-h budget.
-The remaining headline is verified Pareto recall per GPU-hour, supported by
-regret, time to first oracle hit, and unnecessary L4 actions. Do not change the
-measured corpus after seeing policy results.
+The frozen 84-row replay corpus remains unchanged. A post-run audit found that
+the first runner globally coupled every action to the same repeat index, leaving
+only three distinct evidence worlds; that summary is retained for provenance
+and excluded from the paper. Commit `c41d8a6` implements action-specific
+empirical bootstrap sampling with common random numbers across policies.
+
+Across 500 corrected 20-step episodes per policy, IPIG reaches the oracle in
+63.6% of episodes versus 46.2% for random while using 12.7% fewer GPU-hours. It
+matches cost-blind information gain's hit rate at 26.6% lower cost. A static
+cheapest-first ladder matches IPIG's verified decisions at 4.2% lower cost, so
+the paper explicitly declines a universal IPIG-superiority claim. The 500
+episodes resample three hardware repeats per candidate--level key; they are not
+500 new hardware experiments.
 
 This experiment is intentionally narrower than the eventual MLSys study. TP,
 PP, placement, H200/B200 transfer, multi-node fidelity, nested-posterior IPIG,
@@ -55,7 +63,8 @@ and live scheduler integration remain MLSys extensions.
 - Do not call the Docker container itself a simulator; it is the isolated
   execution substrate.
 - Do not call L0 output measured or present a single H100 as a cluster model.
-- Do not claim IPIG wins until the frozen corpus produces that result.
+- Report the mixed policy result: IPIG improves on random and cost-blind but
+  does not beat cheapest-first in the measured search space.
 - Do not infer multi-node energy, communication, or scheduler behavior from
   the current single-GPU measurements.
 - Do not attribute causal benefit to the LLM without a planner ablation.

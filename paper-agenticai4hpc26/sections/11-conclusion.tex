@@ -11,6 +11,9 @@ why multiple fidelities are necessary: L0 preserves energy ranking but misses
 the frontier, L1 recovers the true candidate with \LoneParetoRecall{} recall,
 and L4 removes false positives.  The verified configuration improves energy by
 \ParetoEnergyReduction{}, throughput by \ParetoThroughputGain{}, and TTFT by
-\ParetoTTFTReduction{} over the expert default.  These results establish an
+\ParetoTTFTReduction{} over the expert default.  Corrected empirical replay
+also places the policy claim precisely: \ipig{} improves oracle-hit rate and
+GPU-hour cost over random and cost-blind acquisition, while cheapest-first
+remains slightly cheaper in this narrow search space.  These results establish an
 auditable CPU-first path from scarce HPC resources to measured configuration
 decisions; H100/H200/B200 and multi-node search remain the larger MLSys study.

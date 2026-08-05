@@ -45,8 +45,12 @@ These 51 runs validate the CPU-first workload model and release gate. A separate
 190 hash-verified raw artifacts. L0 preserves energy rank (0.884 Spearman) but
 misses the L4 frontier; L1 obtains 1.15% energy MAPE and 100% frontier recall;
 L4 verifies `seq32-bt2048-chunk` as the unique SLO-feasible Pareto point. The
-only unresolved paper result is the preregistered 500-episode acquisition-policy
-comparison running over the sealed 84-row replay corpus.
+corrected 500-episode-per-policy empirical replay reaches that oracle in 63.6%
+of IPIG episodes versus 46.2% for random while using 12.7% fewer GPU-hours.
+Cost-blind information gain matches IPIG's hit rate at 26.6% greater cost;
+cheapest-first also matches its decisions and is 4.2% cheaper. The replay
+episodes bootstrap three measured repeats per candidate--level key and are not
+additional hardware measurements.
 
 ## Directory Layout
 

@@ -1,3 +1,21 @@
-% Populated from the sealed benchmark-replay report after the preregistered
-% 500-episode CPU replay completes.  This file is intentionally not included
-% until every policy metric has been validated against the frozen corpus hash.
+\begin{table}[t]
+\centering
+\caption{Corrected empirical replay over the sealed H100 corpus.  Hit is recall
+of the unique median-L4 oracle point; first hit is median GPU-hours conditional
+on a hit.  Each row has \PolicyEpisodes{} bootstrap episodes.}
+\label{tab:agent-results}
+\footnotesize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{lrrrr}
+\toprule
+Policy & Hit & Mean GPU-h & First hit & Regret \\
+\midrule
+\ipig{} & \IPIGOracleHit{} & \IPIGGPUHours{} & \IPIGFirstHit{} & \IPIGRegret{} \\
+Random & \RandomOracleHit{} & \RandomGPUHours{} & \RandomFirstHit{} & \RandomRegret{} \\
+Cost-blind & \CostBlindOracleHit{} & \CostBlindGPUHours{} &
+\CostBlindFirstHit{} & \CostBlindRegret{} \\
+Cheapest-first & \CheapestOracleHit{} & \CheapestGPUHours{} &
+\CheapestFirstHit{} & \CheapestRegret{} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -9,6 +9,8 @@ these digests identify the immutable source bundles.
 | `tpa-qwen7b-holdout-v2-final-20260804.tar.gz` | `2d74179245392d44f2efd2fbc5601b4721e278f206e45970c5953481e12ecafb` |
 | `tpa-qwen7b-scope-v3-final-20260804.tar.gz` | `9a4dbfa5be8c703aea6104a8cb4ef8a890876603ee05a624780d6f43d22cd3fd` |
 | `tpa-qwen7b-config-search-v1-final-20260805.tar.gz` | `d157300787af4cf16379bd316e7138da00279463c381149bc99605d5af851b33` |
+| `tpa-qwen7b-policy-benchmark-v1-20260805.tar.gz` | `280e6fb95f0a159fc184cb5aa6b2350eb0fe250579e74ae0cea4d824b4ab32bc` |
+| `tpa-qwen7b-policy-bootstrap-v2-20260805.tar.gz` | `08eed18a5d1bb73f8042f4bb2a2f76e7f7634c90b49c7adf6bd9708de9d3293e` |
 
 ## Cross-Checked Headline Values
 
@@ -36,6 +38,23 @@ The preregistered scope decision is
 `support_latency_at_concurrency_ge_4_abstain_below_4`. Its supported TTFT MAPE
 is 9.273277% at concurrency four; the combined sparse-concurrency MAPE is
 64.804732%.
+
+## Policy Replay
+
+The four predeclared policies each run 500 20-step episodes against the same
+84-row corpus and 0.12-GPU-h online budget. Audit of the first sealed report
+(`f328dc50...`) found global `seed % 3` repeat aliasing, so that summary is
+retained but excluded. Corrective commit `c41d8a6` selects repeats using
+SHA-256 of `(seed, candidate_id, evidence_level)`, preserving common random
+numbers across policies while independently bootstrapping candidate--level
+measurement noise. The corrected report SHA-256 is
+`ba00f00b3710574e61b5f7beaaad9a530ee90637ec5f9b92110ce0fb42edf838`.
+
+IPIG reaches the unique median-L4 oracle in 63.6% of episodes versus 46.2% for
+random. Mean spent GPU-hours are 0.0621 and 0.0712, respectively. Cost-blind
+and cheapest-first also reach 63.6%; IPIG costs 26.6% less than cost-blind but
+4.2% more than cheapest-first. These are empirical bootstrap episodes over
+three hardware repeats per key, not independent hardware trials.
 
 The source archives contain the frozen predictions, measurement JSONL, raw
 100-ms DCGM telemetry, benchmark output, campaign and artifact manifests,

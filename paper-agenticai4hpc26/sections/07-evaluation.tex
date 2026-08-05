@@ -76,7 +76,12 @@ cost-blind information gain, and cheapest-first acquisition.  Metrics are
 verified Pareto precision/recall, regret, GPU-hours to first oracle hit, total
 GPU-hours, failed actions, and unnecessary L4 escalations.  The replay runner
 constructs its oracle only from sealed L4 records and embeds scenario and corpus
-hashes in the report.
+hashes in the report.  Each episode independently bootstraps the
+\PolicyHardwareRepeats{} measured repeats for every candidate--fidelity key via
+a stable hash of episode seed and action; the mapping is shared across policies
+as common random numbers.  Thus the \PolicyEpisodes{} episodes per policy are a
+sensitivity analysis over empirical repeats, not \PolicyEpisodes{} independent
+hardware experiments.
 
 \subsection{Reliability Tests}
 

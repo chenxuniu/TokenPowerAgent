@@ -59,8 +59,10 @@ the system is designed to manage: L0 ranks energy well but fails for TTFT and
 the Pareto decision, whereas L1 recovers the true L4 frontier with
 \LoneParetoRecall{} recall.  L4 then removes two false positives and verifies a
 configuration that improves energy, throughput, TTFT, and TPOT over the expert
-default.  The corpus is sealed before policy replay; its exhaustive cost is
-ground-truth construction, not an agent-savings claim.
+default.  In corrected empirical replay, \ipig{} improves oracle-hit rate and
+GPU-hour cost over random and cost-blind acquisition, but not over a static
+cheapest-first ladder.  The corpus is sealed before replay; its exhaustive cost
+is ground-truth construction, not an agent-savings claim.
 
 This paper makes four contributions:
 \begin{itemize}
@@ -79,5 +81,6 @@ This paper makes four contributions:
     \ConfigurationMeasuredRuns{}-run configuration corpus.  The measurements
     quantify when L0 is informative, when the agent must escalate to L1, and how
     L4 verification converts a three-candidate provisional frontier into one
-    verified configuration.
+    verified configuration; sealed replay then compares four acquisition
+    policies without spending additional GPU-hours.
 \end{itemize}
