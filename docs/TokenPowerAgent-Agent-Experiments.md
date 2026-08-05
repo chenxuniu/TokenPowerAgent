@@ -16,7 +16,7 @@ semantic planner: explore / resolve_slo / calibrate_scale / repair
         |
 deterministic action guard and acquisition policy
         |
-L0/L2 topology sandbox or L1/L3/L4 measured/replayed executor
+CPU Sandbox (L0) / short Probe (L1) / full Verify (L4)
         |
 evidence store + energy twin + Pareto update
         |
@@ -26,6 +26,8 @@ continue / stop / abstain / L4 verify
 The LLM planner cannot choose shell commands, bypass a budget, mark simulated
 evidence as measured, compute the Pareto set, or issue a final recommendation.
 Invalid planner output is recorded and falls back to the rule-based planner.
+The current Workshop path is single-GPU; `verify` is reserved for the
+deterministic release gate and is rejected if returned by the language model.
 
 ## Implemented Experiment Modes
 
@@ -65,7 +67,42 @@ key, a stable hash selects one empirical repeat; all policies share that mapping
 as common random numbers. These are bootstrap sensitivity episodes over the
 available repeats, not independent hardware runs.
 
-### Routed Sandbox search
+### Budget-response benchmark
+
+```bash
+tokenpoweragent benchmark-budget-sweep \
+  --scenario experiments/results/config-search-v1-scenario.json \
+  --records experiments/results/config-search-v1-replay-corpus.jsonl \
+  --protocol configs/benchmarks/qwen2.5-7b-h100-budget-sweep-v1.json \
+  --output experiments/results/config-search-v1-budget-sweep.json
+```
+
+The preregistered protocol evaluates 0.04, 0.06, 0.08, 0.10, and 0.12
+GPU-hour budgets with 500 matched-seed episodes per policy and budget. It
+checks the scenario and corpus SHA-256 before running, retains every episode,
+and reports success/recall/cost/regret at each budget plus normalized
+budget-response AUC. A curve need not be monotonic: additional noisy evidence
+can alter which candidate receives final verification.
+
+### Bounded planner conformance and overhead
+
+```bash
+tokenpoweragent benchmark-planner \
+  --protocol configs/benchmarks/qwen2.5-7b-planner-conformance-v1.json \
+  --planner-base-url http://127.0.0.1:8000/v1 \
+  --output experiments/results/planner-conformance-v1.json
+```
+
+The protocol freezes 30 natural-language cases over cold start, SLO-boundary,
+failure-repair, steady exploration, and guard-challenge states. Three repeats
+produce 90 planner calls. The report contains accepted typed-output rate, raw
+and guarded subgoal agreement, fallback and endpoint-error rates, forbidden
+subgoal acceptance, P50/P95 control-plane latency, token usage, model identity,
+and each raw response. Expected labels are frozen against the deterministic
+safety planner before any model call; this measures bounded conformance and
+overhead, not an energy benefit caused by the language model.
+
+### Routed Sandbox search extension
 
 ```bash
 tokenpoweragent agent-search \
@@ -77,19 +114,17 @@ tokenpoweragent agent-search \
   --output experiments/results/qwen2.5-7b-agent-search.json
 ```
 
-L0 and L2 actions are routed to the CPU topology sandbox. Available L1, L3,
-and L4 actions are routed to the sealed evidence corpus. Replacing replay with
-a live executor does not change the controller contract.
+This command exercises the broader topology extension retained for the MLSys
+study. It is not part of the single-GPU Workshop claim. The Workshop evaluation
+uses only L0 Sandbox predictions, L1 measured Probes, and L4 measured Verify
+records from the sealed corpus.
 
-## Next H100 Dataset
+## Sealed H100 Dataset
 
-The existing 51 blind H100 measurements validate workload transfer and scope
-gating under one fixed vLLM configuration. They establish the Sandbox as an
-evidence source but do not yet establish configuration-search efficiency.
-
-The next dataset must vary serving configurations while holding the workload
-fixed. Use one primary H100/Qwen2.5-7B-Instruct target workload for the
-Workshop corpus:
+The 51 blind H100 measurements validate workload transfer and scope gating
+under one fixed vLLM configuration. A separate sealed configuration corpus now
+establishes evidence fidelity and replayed search efficiency. It uses this
+primary H100/Qwen2.5-7B-Instruct target workload:
 
 | Dimension | Workshop value |
 |---|---|
@@ -104,22 +139,13 @@ Workshop corpus:
 | precision | BF16 |
 | TP/PP | 1/1 on the single-H100 campaign |
 
-Apply memory and geometry guards before measurement. Select 12 feasible,
-balanced configurations rather than measuring the full factorial. Collect a
-short L1 probe and a full L4 target run for every candidate, with three repeats
-per level in cyclically randomized candidate order. Freeze all L0 predictions,
-the candidate order, and the replay budget before the first GPU measurement.
-Within one replay episode, the episode seed selects the same replicate for a
-given candidate--fidelity pair under every policy, independent of when that
-policy requests the pair.
-
-The publication benchmark then treats the completed corpus as an oracle and
-runs at least 50 matched-seed replay episodes per policy. A smaller live run
-should independently confirm the configurations selected by the agent. A
-second workload (for example 512/128 at concurrency 8) is useful only after the
-primary corpus is sealed. H200, B200, TP, PP, and multi-node
-experiments belong to the MLSys expansion after this single-H100 protocol is
-stable.
+The completed corpus contains 12 feasible configurations, one frozen L0
+prediction per candidate, and three cyclically balanced repeats at both L1 and
+L4, for 72 measured runs. Within one replay episode, the episode seed selects
+the same replicate for a candidate--stage pair under every policy, independent
+of when that policy requests it. A second workload, for example 512/128 at
+concurrency eight, remains a useful optional Workshop extension. H200, B200,
+TP, PP, and multi-node experiments belong to the MLSys expansion.
 
 ## Claim Boundary
 

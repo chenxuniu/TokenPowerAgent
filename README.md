@@ -39,6 +39,9 @@ paper experiments.
   GPU-hour metrics. Policy benchmarks use action-specific empirical bootstrap
   sampling with common random numbers across policies; episode counts must not
   be interpreted as additional hardware measurements.
+- Preregistered budget-response and bounded-planner benchmarks with frozen
+  input hashes, per-call/per-episode records, control-plane latency, token
+  usage, fallback, and matched-budget policy metrics.
 - Pareto filtering, SLO checks, final L4-only recommendations, and tests.
 
 The bundled IPIG estimator is a transparent posterior-uncertainty proxy. The

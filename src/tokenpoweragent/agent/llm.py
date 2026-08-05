@@ -14,11 +14,26 @@ class PlannerClientError(RuntimeError):
 
 
 @dataclass(frozen=True)
+class PlannerCompletionResult:
+    """Text and reproducibility metadata returned by a planner endpoint."""
+
+    text: str
+    model: Optional[str] = None
+    response_id: Optional[str] = None
+    system_fingerprint: Optional[str] = None
+    prompt_tokens: Optional[int] = None
+    completion_tokens: Optional[int] = None
+    total_tokens: Optional[int] = None
+
+
+@dataclass(frozen=True)
 class OpenAICompatibleCompletion:
     base_url: str
     model: str
     api_key: Optional[str] = None
     timeout_seconds: float = 30.0
+    temperature: float = 0.0
+    max_tokens: int = 256
 
     def __post_init__(self) -> None:
         if not self.base_url.strip():
@@ -27,8 +42,15 @@ class OpenAICompatibleCompletion:
             raise ValueError("model cannot be empty")
         if self.timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be positive")
+        if self.temperature < 0:
+            raise ValueError("temperature cannot be negative")
+        if self.max_tokens < 1:
+            raise ValueError("max_tokens must be positive")
 
     def __call__(self, prompt: str) -> str:
+        return self.complete(prompt).text
+
+    def complete(self, prompt: str) -> PlannerCompletionResult:
         payload: Dict[str, Any] = {
             "model": self.model,
             "messages": [
@@ -41,8 +63,8 @@ class OpenAICompatibleCompletion:
                 },
                 {"role": "user", "content": prompt},
             ],
-            "temperature": 0,
-            "max_tokens": 256,
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
         }
         request = urllib.request.Request(
             self._endpoint(),
@@ -64,7 +86,18 @@ class OpenAICompatibleCompletion:
             raise PlannerClientError("planner response schema is invalid") from exc
         if not isinstance(content, str) or not content.strip():
             raise PlannerClientError("planner response content is empty")
-        return content
+        usage = body.get("usage")
+        if not isinstance(usage, dict):
+            usage = {}
+        return PlannerCompletionResult(
+            text=content,
+            model=_optional_text(body.get("model")),
+            response_id=_optional_text(body.get("id")),
+            system_fingerprint=_optional_text(body.get("system_fingerprint")),
+            prompt_tokens=_optional_int(usage.get("prompt_tokens")),
+            completion_tokens=_optional_int(usage.get("completion_tokens")),
+            total_tokens=_optional_int(usage.get("total_tokens")),
+        )
 
     def _endpoint(self) -> str:
         base = self.base_url.rstrip("/")
@@ -77,3 +110,16 @@ class OpenAICompatibleCompletion:
         if self.api_key:
             headers["Authorization"] = "Bearer " + self.api_key
         return headers
+
+
+def _optional_text(value: Any) -> Optional[str]:
+    return value if isinstance(value, str) and value else None
+
+
+def _optional_int(value: Any) -> Optional[int]:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None

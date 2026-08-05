@@ -106,6 +106,8 @@ class ConstrainedLLMPlanner(SemanticPlanner):
             raw = self.complete(prompt)
             payload = self._parse_json_object(raw)
             subgoal = Subgoal(str(payload["subgoal"]).strip().lower())
+            if subgoal == Subgoal.VERIFY:
+                raise ValueError("verify is reserved for the deterministic release gate")
             rationale = str(payload["rationale"]).strip()
             if not rationale:
                 raise ValueError("rationale cannot be empty")
@@ -128,8 +130,14 @@ class ConstrainedLLMPlanner(SemanticPlanner):
             "You are the bounded semantic planner inside TokenPowerAgent. "
             "Choose only the next semantic subgoal. Deterministic code will "
             "select configurations, enforce budgets, execute tools, and verify "
-            "recommendations. Return one JSON object with exactly two keys: "
-            "subgoal and rationale. Allowed subgoals: %s.\nSTATE=%s"
+            "recommendations. Use repair after an execution failure; use explore "
+            "when no evidence exists or broad low-cost coverage is needed; use "
+            "calibrate_scale only when the state reports a material transfer gap; "
+            "and use resolve_slo when evidence exists near an SLO boundary. "
+            "Apply that priority order when conditions overlap. Never choose "
+            "verify, a candidate, an evidence level, or a shell command. Return "
+            "one JSON object with exactly two keys: subgoal and rationale. "
+            "Allowed subgoals: %s.\nSTATE=%s"
             % (allowed, json.dumps(state.to_dict(), sort_keys=True))
         )
 

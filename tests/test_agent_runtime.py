@@ -75,6 +75,21 @@ def test_constrained_llm_planner_rejects_json_wrapped_in_prose() -> None:
     assert "JSONDecodeError" in str(plan.fallback_reason)
 
 
+def test_constrained_llm_planner_reserves_verify_for_deterministic_gate() -> None:
+    planner = ConstrainedLLMPlanner(
+        lambda prompt: (
+            '{"subgoal":"verify",'
+            '"rationale":"release the predicted candidate immediately"}'
+        )
+    )
+
+    plan = planner.plan(planning_state())
+
+    assert plan.subgoal == Subgoal.RESOLVE_SLO
+    assert plan.planner == "rule-fallback"
+    assert "deterministic release gate" in str(plan.fallback_reason)
+
+
 class FailFirstExecutor(Executor):
     def __init__(self) -> None:
         self.calls = 0

@@ -12,6 +12,11 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from tokenpoweragent.agent.controller import TokenPowerAgent
+from tokenpoweragent.agent.budget_sweep import (
+    BudgetSweepError,
+    BudgetSweepProtocol,
+    evaluate_budget_sweep,
+)
 from tokenpoweragent.agent.evaluation import (
     POLICY_NAMES,
     ReplayEvaluationError,
@@ -20,6 +25,11 @@ from tokenpoweragent.agent.evaluation import (
 )
 from tokenpoweragent.agent.llm import OpenAICompatibleCompletion
 from tokenpoweragent.agent.planner import ConstrainedLLMPlanner, RuleBasedPlanner
+from tokenpoweragent.agent.planner_evaluation import (
+    PlannerBenchmarkProtocol,
+    PlannerEvaluationError,
+    evaluate_planner_benchmark,
+)
 from tokenpoweragent.calibration import (
     CalibrationBuildError,
     build_serving_calibration_profile,
@@ -241,6 +251,34 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark.add_argument("--min-ipig-score", type=float, default=0.0)
     benchmark.add_argument("--frontier-patience", type=int, default=0)
     benchmark.add_argument("--output", type=Path, required=True)
+
+    budget_sweep = subparsers.add_parser(
+        "benchmark-budget-sweep",
+        help="run a preregistered matched-budget policy replay sweep",
+    )
+    budget_sweep.add_argument("--scenario", type=Path, required=True)
+    budget_sweep.add_argument("--records", type=Path, required=True)
+    budget_sweep.add_argument("--protocol", type=Path, required=True)
+    budget_sweep.add_argument("--output", type=Path, required=True)
+
+    planner_benchmark = subparsers.add_parser(
+        "benchmark-planner",
+        help="measure bounded LLM planner conformance, fallback, and overhead",
+    )
+    planner_benchmark.add_argument("--protocol", type=Path, required=True)
+    planner_benchmark.add_argument(
+        "--planner-base-url",
+        default=os.environ.get("TOKENPOWERAGENT_LLM_BASE_URL", ""),
+        help="OpenAI-compatible base URL ending in /v1",
+    )
+    planner_benchmark.add_argument(
+        "--planner-api-key-env",
+        default="TOKENPOWERAGENT_LLM_API_KEY",
+    )
+    planner_benchmark.add_argument(
+        "--planner-timeout-seconds", type=float, default=30.0
+    )
+    planner_benchmark.add_argument("--output", type=Path, required=True)
 
     render = subparsers.add_parser("render-slurm", help="render without submitting")
     render.add_argument("--scenario", type=Path, required=True)
@@ -552,6 +590,63 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command == "benchmark-planner":
+        if not args.planner_base_url:
+            raise SystemExit(
+                "benchmark-planner requires --planner-base-url or "
+                "TOKENPOWERAGENT_LLM_BASE_URL"
+            )
+        try:
+            protocol = PlannerBenchmarkProtocol.load(args.protocol)
+            completion = OpenAICompatibleCompletion(
+                base_url=args.planner_base_url,
+                model=protocol.planner_model,
+                api_key=os.environ.get(args.planner_api_key_env),
+                timeout_seconds=args.planner_timeout_seconds,
+                temperature=protocol.temperature,
+                max_tokens=protocol.max_tokens,
+            )
+            report = evaluate_planner_benchmark(
+                protocol=protocol,
+                completion=completion,
+                protocol_sha256=_sha256_file(args.protocol),
+                endpoint=args.planner_base_url,
+            )
+        except PlannerEvaluationError as exc:
+            raise SystemExit("cannot benchmark planner: %s" % exc) from exc
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(report, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        print(json.dumps(report["summary"], indent=2, sort_keys=True))
+        print("wrote planner benchmark to %s" % args.output)
+        return 0
+
+    if args.command == "benchmark-budget-sweep":
+        try:
+            scenario = Scenario.load(args.scenario)
+            records = EvidenceStore.read_jsonl(args.records).records
+            protocol = BudgetSweepProtocol.load(args.protocol)
+            report = evaluate_budget_sweep(
+                scenario=scenario,
+                records=records,
+                protocol=protocol,
+                source_sha256=_sha256_file(args.records),
+                scenario_sha256=_sha256_file(args.scenario),
+                protocol_sha256=_sha256_file(args.protocol),
+            )
+        except BudgetSweepError as exc:
+            raise SystemExit("cannot benchmark budget sweep: %s" % exc) from exc
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(report, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        print(json.dumps(report["budget_response"], indent=2, sort_keys=True))
+        print("wrote budget sweep to %s" % args.output)
+        return 0
+
     if args.command == "sandbox-smoke":
         if args.repeats < 1:
             raise SystemExit("--repeats must be positive")
