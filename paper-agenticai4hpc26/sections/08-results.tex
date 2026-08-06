@@ -79,7 +79,7 @@ while median paired TTFT falls \WinnerTTFTReduction{}.  This
 sealed-corpus selection within the same model, workload, and H100.
 
 \subsubsection{Policy replay.}
-Figure~\ref{fig:agent-evaluation}(a) reports the corrected
+The left panel of Fig.~\ref{fig:agent-evaluation} reports the corrected
 common-random-number bootstrap.  At 0.12 GPU-h, \ipig{} reaches the unique
 median verified oracle in
 \IPIGOracleHit{} of episodes, \IPIGRandomHitGain{} more often than random, while
@@ -107,8 +107,8 @@ nor monotone anytime behavior.  No replay episode contains a failed action.
 
 \subsection{RQ4: Bounded Runtime Behavior}
 
-Figure~\ref{fig:agent-evaluation}(b) separates LLM proposals from admitted
-subgoals.  On V1 development states, raw and
+The right panel of Fig.~\ref{fig:agent-evaluation} separates LLM proposals
+from admitted subgoals.  On V1 development states, raw and
 admitted agreement are
 \PlannerVoneRaw{} and \PlannerVoneAdmitted{}, with \PlannerVoneFallback{} schema
 fallback.  On the disjoint V2 holdout, all outputs are typed and endpoint,
