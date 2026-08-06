@@ -9,11 +9,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
-from tokenpoweragent.schema import Candidate, EvidenceLevel
+from tokenpoweragent.schema import Candidate
 from tokenpoweragent.twin.topology import (
     CalibrationError,
     CalibrationProfile,
     InferenceWorkload,
+    ProjectionBackend,
     TopologyProjector,
 )
 
@@ -205,7 +206,9 @@ class CandidateGrid:
                     target_nodes=nodes,
                 )
                 if projector is not None and workload is not None:
-                    estimate = projector.predict(candidate, workload, EvidenceLevel.L0)
+                    estimate = projector.predict(
+                        candidate, workload, ProjectionBackend.L0_A
+                    )
                     if not estimate.feasible:
                         rejected.append(
                             RejectedCandidate(

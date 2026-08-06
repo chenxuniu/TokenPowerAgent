@@ -12,6 +12,7 @@ from tokenpoweragent.schema import Candidate, EvidenceLevel
 from tokenpoweragent.twin.topology import (
     CalibrationProfile,
     InferenceWorkload,
+    ProjectionBackend,
     ProjectionError,
     TopologyProjector,
 )
@@ -22,16 +23,16 @@ class TopologySandboxError(ExecutionError):
 
 
 class TopologySandboxExecutor(Executor):
-    """Produce L0/L2 estimates without presenting them as hardware runs.
+    """Produce CPU-side L0 estimates without presenting them as hardware runs.
 
-    L0 omits communication terms and is labeled ``simulated``.  L2 enables
-    topology terms from the calibration profile and is labeled
-    ``extrapolated``.  Both cost zero incremental GPU-hours; the one-time cost
-    of collecting their calibration profile must be accounted for separately
-    by an experiment manifest.
+    L0-A omits communication terms and is labeled ``simulated``. L0-T enables
+    analytical topology terms and is labeled ``extrapolated``. Both remain L0
+    evidence and cost zero incremental GPU-hours; the one-time cost of
+    collecting their calibration profile must be accounted for separately.
+    L1--L4 are reserved for real hardware measurements.
     """
 
-    ESTIMATOR_VERSION = "topology-projector-v1"
+    ESTIMATOR_VERSION = "topology-projector-v2"
 
     def __init__(
         self,
@@ -40,6 +41,7 @@ class TopologySandboxExecutor(Executor):
         expected_model: str = "",
         profile_path: Optional[Path] = None,
         scenario_path: Optional[Path] = None,
+        backend: ProjectionBackend = ProjectionBackend.L0_A,
     ) -> None:
         if expected_model and profile.model.model_id != expected_model:
             raise TopologySandboxError(
@@ -48,24 +50,28 @@ class TopologySandboxExecutor(Executor):
             )
         self.profile = profile
         self.workload = workload
+        self.backend = ProjectionBackend.parse(backend)
         self.projector = TopologyProjector(profile)
         self.artifacts = self._artifact_provenance(profile_path, scenario_path)
 
     def execute(
         self, candidate: Candidate, level: EvidenceLevel, seed: int
     ) -> EvidenceRecord:
-        if level not in {EvidenceLevel.L0, EvidenceLevel.L2}:
+        if level != EvidenceLevel.L0:
             raise TopologySandboxError(
-                "TopologySandboxExecutor supports only L0 and L2"
+                "%s is reserved for measured hardware evidence; "
+                "TopologySandboxExecutor emits only L0" % level.name
             )
         try:
-            estimate = self.projector.predict(candidate, self.workload, level)
+            estimate = self.projector.predict(
+                candidate, self.workload, self.backend
+            )
         except (ProjectionError, ValueError) as exc:
             raise TopologySandboxError(str(exc)) from exc
 
         kind = (
             EvidenceKind.SIMULATED
-            if level == EvidenceLevel.L0
+            if self.backend is ProjectionBackend.L0_A
             else EvidenceKind.EXTRAPOLATED
         )
         source = next(
@@ -77,13 +83,16 @@ class TopologySandboxExecutor(Executor):
         provenance: Dict[str, Any] = {
             "executor": "topology-sandbox",
             "estimator_version": self.ESTIMATOR_VERSION,
+            "sandbox_backend": self.backend.display_name,
+            "projection_backend": self.backend.value,
             "deterministic": True,
             "seed_recorded_but_unused": seed,
             "evidence_semantics": (
-                "compute-only simulation"
-                if level == EvidenceLevel.L0
-                else "topology-aware extrapolation, not a serving measurement"
+                "L0-A analytical CPU projection, not a serving measurement"
+                if self.backend is ProjectionBackend.L0_A
+                else "L0-T topology-aware CPU extrapolation, not a serving measurement"
             ),
+            "evidence_level_contract": "all CPU predictions remain L0",
             "profile_id": self.profile.profile_id,
             "profile_schema_version": self.profile.schema_version,
             "profile_publication_eligible": self.profile.publication_eligible,

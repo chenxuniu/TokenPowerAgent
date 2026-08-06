@@ -10,6 +10,24 @@ The current code is an executable research scaffold. Simulated and
 extrapolated records are labeled as such and are never treated as completed
 paper experiments.
 
+## MLSys 2027 Target
+
+The active publication target is the MLSys 2027 Research Track. Project
+planning is split into three linked artifacts:
+
+- [complete execution plan](docs/MLSys-2027-Complete-Execution-Plan.md):
+  hardware, permissions, storage, models, inference engines, compute budget,
+  experiment matrix, decision gates, and calendar;
+- [architecture-aware experiment protocol](docs/MLSys-2027-Architecture-Aware-Experiment-Protocol.md):
+  research claim, L0-L4 evidence contract, baselines, metrics, and promotion
+  rules;
+- [`collect_cluster_inventory.sh`](experiments/mlsys27/collect_cluster_inventory.sh):
+  read-only preflight used to decide which nodes can enter a frozen campaign.
+
+MLSys 2027 rules are not yet public. The paper currently uses the official
+MLSys 2026 research format as a provisional planning envelope and must be
+updated when the 2027 CFP is released.
+
 ## What Runs Today
 
 - A versioned scenario and candidate schema.
@@ -134,7 +152,7 @@ tokenpoweragent build-calibration \
 tokenpoweragent sandbox-predict \
   --scenario configs/scenarios/topology_sandbox_demo.json \
   --calibration experiments/results/qwen2.5-7b-h100-l1-v1.json \
-  --level L2 \
+  --backend l0-t \
   --output experiments/results/qwen2.5-7b-topology-predictions.jsonl
 ```
 
@@ -192,7 +210,8 @@ they are replaced by measured data.
    pending.
 4. Live Slurm runner and telemetry verifier: boundary defined, cluster-specific
    integration pending.
-5. Topology-aware L0/L2 projection and candidate compiler: implemented.
+5. CPU-side L0-A/L0-T projection and candidate compiler: implemented; L1--L4
+   remain reserved for measured evidence.
 6. Single-H100 workload-transfer v2 and scope-confirmation v3: implemented
    with sealed final holdouts (51 blind measurements in total).
 7. H100/H200/B200 multi-GPU and multi-node validation: pending measured experiments.

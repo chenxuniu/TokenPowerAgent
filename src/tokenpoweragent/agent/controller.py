@@ -425,7 +425,7 @@ class TokenPowerAgent:
         kinds = {
             EvidenceLevel.L0: EvidenceKind.SIMULATED,
             EvidenceLevel.L1: EvidenceKind.MEASURED,
-            EvidenceLevel.L2: EvidenceKind.EXTRAPOLATED,
+            EvidenceLevel.L2: EvidenceKind.MEASURED,
             EvidenceLevel.L3: EvidenceKind.MEASURED,
             EvidenceLevel.L4: EvidenceKind.VERIFIED,
         }

@@ -7,13 +7,17 @@ from tokenpoweragent.agent.controller import TokenPowerAgent
 from tokenpoweragent.evidence import EvidenceKind, EvidenceRecord, EvidenceStatus
 from tokenpoweragent.executors.base import Executor, RoutedExecutor
 from tokenpoweragent.executors.replay import ReplayExecutor
-from tokenpoweragent.executors.topology import TopologySandboxExecutor
+from tokenpoweragent.executors.topology import (
+    TopologySandboxError,
+    TopologySandboxExecutor,
+)
 from tokenpoweragent.search_space import CandidateGrid
 from tokenpoweragent.schema import Candidate, EvidenceLevel, Scenario
 from tokenpoweragent.twin.topology import (
     CalibrationError,
     CalibrationProfile,
     InferenceWorkload,
+    ProjectionBackend,
     TopologyEnergyTwin,
     TopologyProjector,
 )
@@ -67,7 +71,7 @@ def candidate(
 def test_reference_projection_reproduces_single_gpu_anchor() -> None:
     profile = CalibrationProfile.load(PROFILE_PATH)
     estimate = TopologyProjector(profile).predict(
-        candidate(), reference_workload(), EvidenceLevel.L2
+        candidate(), reference_workload(), ProjectionBackend.L0_T
     )
 
     assert estimate.feasible
@@ -80,35 +84,59 @@ def test_reference_projection_reproduces_single_gpu_anchor() -> None:
     assert estimate.metrics["relative_uncertainty"] == pytest.approx(0.22)
 
 
-def test_l2_adds_tp_communication_that_l0_omits() -> None:
+def test_legacy_uncertainty_keys_remain_readable() -> None:
+    raw = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+    assumptions = raw["assumptions"]
+    assumptions["l0_relative_uncertainty"] = assumptions.pop(
+        "l0_a_relative_uncertainty"
+    )
+    assumptions["l2_relative_uncertainty"] = assumptions.pop(
+        "l0_t_relative_uncertainty"
+    )
+
+    profile = CalibrationProfile.from_mapping(raw)
+
+    assert profile.assumptions.l0_a_relative_uncertainty == pytest.approx(0.38)
+    assert profile.assumptions.l0_t_relative_uncertainty == pytest.approx(0.22)
+
+
+def test_l0_t_adds_tp_communication_that_l0_a_omits() -> None:
     profile = CalibrationProfile.load(PROFILE_PATH)
     projector = TopologyProjector(profile)
     target = candidate("tp4", tp=4)
 
-    l0 = projector.predict(target, reference_workload(), EvidenceLevel.L0)
-    l2 = projector.predict(target, reference_workload(), EvidenceLevel.L2)
+    l0_a = projector.predict(
+        target, reference_workload(), ProjectionBackend.L0_A
+    )
+    l0_t = projector.predict(
+        target, reference_workload(), ProjectionBackend.L0_T
+    )
 
-    assert l0.metrics["throughput_tok_s"] > l2.metrics["throughput_tok_s"]
-    assert l0.metrics["energy_j_per_1k_output_tokens_lower"] > 0
-    assert l0.metrics["energy_j_per_1k_output_tokens_upper"] > l0.metrics[
+    assert l0_a.metrics["throughput_tok_s"] > l0_t.metrics["throughput_tok_s"]
+    assert l0_a.metrics["energy_j_per_1k_output_tokens_lower"] > 0
+    assert l0_a.metrics["energy_j_per_1k_output_tokens_upper"] > l0_a.metrics[
         "energy_j_per_1k_output_tokens"
     ]
-    assert l0.relative_uncertainty > l2.relative_uncertainty
-    assert l0.decomposition["topology_terms_enabled"] is False
-    assert l2.decomposition["topology_terms_enabled"] is True
-    assert l2.decomposition["tp_communication_stage_ms"] > 0
+    assert l0_a.relative_uncertainty > l0_t.relative_uncertainty
+    assert l0_a.decomposition["topology_terms_enabled"] is False
+    assert l0_t.decomposition["topology_terms_enabled"] is True
+    assert l0_t.decomposition["tp_communication_stage_ms"] > 0
+    assert l0_a.decomposition["sandbox_backend"] == "L0-A"
+    assert l0_t.decomposition["sandbox_backend"] == "L0-T"
 
 
 def test_cross_node_projection_is_visible_and_more_uncertain() -> None:
     profile = CalibrationProfile.load(PROFILE_PATH)
     projector = TopologyProjector(profile)
     intra = projector.predict(
-        candidate("tp8", tp=8), reference_workload(), EvidenceLevel.L2
+        candidate("tp8", tp=8),
+        reference_workload(),
+        ProjectionBackend.L0_T,
     )
     cross = projector.predict(
         candidate("tp16", tp=16, nodes=2),
         reference_workload(),
-        EvidenceLevel.L2,
+        ProjectionBackend.L0_T,
     )
 
     assert cross.decomposition["tp_crosses_nodes"] is True
@@ -118,30 +146,47 @@ def test_cross_node_projection_is_visible_and_more_uncertain() -> None:
     assert cross.relative_uncertainty > intra.relative_uncertainty
 
 
-def test_executor_labels_simulation_and_extrapolation_distinctly() -> None:
+def test_executor_keeps_both_cpu_backends_at_l0() -> None:
     profile = CalibrationProfile.load(PROFILE_PATH)
-    executor = TopologySandboxExecutor(
+    analytical = TopologySandboxExecutor(
         profile,
         reference_workload(),
         expected_model="Qwen/Qwen2.5-7B-Instruct",
+        backend=ProjectionBackend.L0_A,
+    )
+    topology = TopologySandboxExecutor(
+        profile,
+        reference_workload(),
+        expected_model="Qwen/Qwen2.5-7B-Instruct",
+        backend=ProjectionBackend.L0_T,
     )
 
-    l0 = executor.execute(candidate(), EvidenceLevel.L0, seed=3)
-    l2 = executor.execute(candidate(), EvidenceLevel.L2, seed=3)
+    l0_a = analytical.execute(candidate(), EvidenceLevel.L0, seed=3)
+    l0_t = topology.execute(candidate(), EvidenceLevel.L0, seed=3)
 
-    assert l0.kind == EvidenceKind.SIMULATED
-    assert l2.kind == EvidenceKind.EXTRAPOLATED
-    assert l2.provenance["validation_required"] is True
-    assert l2.provenance["profile_publication_eligible"] is False
-    assert "not a serving measurement" in l2.provenance["evidence_semantics"]
+    assert l0_a.level == EvidenceLevel.L0
+    assert l0_t.level == EvidenceLevel.L0
+    assert l0_a.kind == EvidenceKind.SIMULATED
+    assert l0_t.kind == EvidenceKind.EXTRAPOLATED
+    assert l0_t.provenance["sandbox_backend"] == "L0-T"
+    assert l0_t.provenance["validation_required"] is True
+    assert l0_t.provenance["profile_publication_eligible"] is False
+    assert "not a serving measurement" in l0_t.provenance["evidence_semantics"]
+
+    with pytest.raises(TopologySandboxError, match="reserved for measured"):
+        topology.execute(candidate(), EvidenceLevel.L2, seed=3)
 
 
 def test_invalid_geometry_and_memory_are_failed_evidence() -> None:
     profile = CalibrationProfile.load(PROFILE_PATH)
-    executor = TopologySandboxExecutor(profile, reference_workload())
+    executor = TopologySandboxExecutor(
+        profile,
+        reference_workload(),
+        backend=ProjectionBackend.L0_T,
+    )
     geometry = executor.execute(
         candidate("bad-geometry", tp=4, required_gpus=2),
-        EvidenceLevel.L2,
+        EvidenceLevel.L0,
         seed=0,
     )
     huge_workload = InferenceWorkload(32768, 128, 4096, 4096)
@@ -236,7 +281,7 @@ def test_routed_executor_dispatches_by_fidelity() -> None:
                 kind=(
                     EvidenceKind.SIMULATED
                     if level == EvidenceLevel.L0
-                    else EvidenceKind.EXTRAPOLATED
+                    else EvidenceKind.MEASURED
                 ),
             )
 
@@ -270,8 +315,8 @@ def test_agent_uses_sandbox_then_requires_replayed_l4_verification() -> None:
             },
             "slo": {"ttft_ms": 1000, "tpot_ms": 100},
             "budget": {"gpu_hours": 1, "verify_top_k": 1},
-            "available_levels": ["L0", "L2", "L4"],
-            "level_cost_gpu_hours": {"L0": 0, "L2": 0, "L4": 1},
+            "available_levels": ["L0", "L4"],
+            "level_cost_gpu_hours": {"L0": 0, "L4": 1},
             "candidates": [
                 {
                     "id": "agent-candidate",
@@ -298,7 +343,6 @@ def test_agent_uses_sandbox_then_requires_replayed_l4_verification() -> None:
     router = RoutedExecutor(
         {
             EvidenceLevel.L0: sandbox,
-            EvidenceLevel.L2: sandbox,
             EvidenceLevel.L4: ReplayExecutor([verified]),
         }
     )

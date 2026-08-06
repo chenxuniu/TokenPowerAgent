@@ -22,6 +22,7 @@ from tokenpoweragent.twin.topology import (
     CalibrationError,
     CalibrationProfile,
     InferenceWorkload,
+    ProjectionBackend,
     ServingConfiguration,
 )
 
@@ -554,6 +555,7 @@ def freeze_configuration_campaign(
             expected_model=campaign.model_id,
             profile_path=calibration_path,
             scenario_path=campaign_path,
+            backend=ProjectionBackend.L0_A,
         )
     except TopologySandboxError as exc:
         raise ConfigurationCampaignError(
@@ -669,6 +671,7 @@ def freeze_configuration_campaign(
             if point.role == "expert-baseline"
         ),
         "l0_prediction_count": len(predictions.records),
+        "l0_sandbox_backend": ProjectionBackend.L0_A.display_name,
         "measurement_count": len(schedule["actions"]),
         "measurement_blocks": len(campaign.candidates) * campaign.repeats,
         "repeats_per_candidate_level": campaign.repeats,

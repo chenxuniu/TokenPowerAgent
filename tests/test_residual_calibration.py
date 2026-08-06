@@ -8,10 +8,11 @@ from tokenpoweragent.residual_calibration import (
     ResidualCalibrationError,
     build_workload_residual_profile,
 )
-from tokenpoweragent.schema import Candidate, EvidenceLevel
+from tokenpoweragent.schema import Candidate
 from tokenpoweragent.twin.topology import (
     CalibrationProfile,
     InferenceWorkload,
+    ProjectionBackend,
     TopologyProjector,
 )
 from tokenpoweragent.workload_campaign import WorkloadCampaign, sha256_file
@@ -56,7 +57,7 @@ def _write_development_report(tmp_path: Path) -> Path:
     workloads = []
     for point in campaign.workloads:
         estimate = projector.predict(
-            campaign.candidate(point), point.workload, EvidenceLevel.L0
+            campaign.candidate(point), point.workload, ProjectionBackend.L0_A
         )
         features = _features(point.workload, reference)
         factors = {
@@ -155,7 +156,7 @@ def test_fit_residual_profile_preserves_anchor_and_energy_identity(tmp_path) -> 
     )
 
     estimate = TopologyProjector(profile).predict(
-        reference_candidate, reference, EvidenceLevel.L0
+        reference_candidate, reference, ProjectionBackend.L0_A
     )
 
     assert profile.workload_residual_model is not None
@@ -176,10 +177,10 @@ def test_residual_model_improves_training_workload_and_is_scope_gated(tmp_path) 
     campaign = WorkloadCampaign.load(CAMPAIGN_PATH)
     point = campaign.workloads[0]
     base_estimate = TopologyProjector(base).predict(
-        campaign.candidate(point), point.workload, EvidenceLevel.L0
+        campaign.candidate(point), point.workload, ProjectionBackend.L0_A
     )
     fitted_estimate = TopologyProjector(fitted).predict(
-        campaign.candidate(point), point.workload, EvidenceLevel.L0
+        campaign.candidate(point), point.workload, ProjectionBackend.L0_A
     )
 
     assert fitted_estimate.decomposition["workload_residual"]["applied"] is True
@@ -197,7 +198,7 @@ def test_residual_model_improves_training_workload_and_is_scope_gated(tmp_path) 
         target_nodes=1,
     )
     scoped_out = TopologyProjector(fitted).predict(
-        tp2, point.workload, EvidenceLevel.L0
+        tp2, point.workload, ProjectionBackend.L0_A
     )
     assert scoped_out.decomposition["workload_residual"]["applied"] is False
     assert "one GPU" in scoped_out.decomposition["workload_residual"]["reason"]

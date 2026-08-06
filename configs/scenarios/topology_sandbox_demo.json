@@ -30,10 +30,9 @@
     "gpu_hours": 4,
     "verify_top_k": 1
   },
-  "available_levels": ["L0", "L2", "L4"],
+  "available_levels": ["L0", "L4"],
   "level_cost_gpu_hours": {
     "L0": 0,
-    "L2": 0,
     "L4": 1
   },
   "candidates": [

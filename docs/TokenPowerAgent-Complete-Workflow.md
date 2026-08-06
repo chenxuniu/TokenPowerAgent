@@ -89,13 +89,15 @@ flowchart LR
     H[TokenPowerBench History] --> E[Evidence Store]
     E --> T[Energy Twin]
 
-    A --> S0[L0 Replay and Simulation]
+    A --> S0A[L0-A Analytical CPU Projection]
+    A --> S0T[L0-T Topology-aware CPU Projection]
     A --> S1[L1 Single-GPU Probe]
     A --> S2[L2 Intra-node Probe]
     A --> S3[L3 Sparse Multi-node Probe]
     A --> S4[L4 Target-scale Verification]
 
-    S0 --> E
+    S0A --> E
+    S0T --> E
     S1 --> E
     S2 --> E
     S3 --> E
@@ -111,7 +113,8 @@ flowchart LR
 1. **Scenario Compiler**：将自然语言或 YAML 转换为结构化搜索任务。
 2. **Feasibility Checker**：检查显存、GPU 数量、TP/PP 组合和 engine 支持情况。
 3. **Evidence Store**：保存 TokenPowerBench 历史记录、模拟结果和新测量结果。
-4. **Lightweight Sandbox**：执行历史回放、解析模型和离散事件模拟。
+4. **Lightweight Sandbox**：在 CPU 上执行历史回放和解析投影；可在后续
+   接入经过验证的离散事件模拟器。
 5. **Energy Twin**：预测能耗、性能和不确定性。
 6. **Agent Controller**：先选择 Explore、ResolveSLO、CalibrateScale、Repair
    或 Verify 语义子目标，再由 IPIG 选择候选配置及其 evidence level。
@@ -148,16 +151,20 @@ Energy Twin 是一个经过真实测量校准、能够输出不确定性的灰�
 
 ### 4.2 轻量模型来源
 
-L0 可以组合以下模型：
+L0 可以组合以下模型。当前代码实现前两种确定性后端，并为其他模型保留
+统一接口：
 
-- TokenPowerBench phase-level lookup surfaces
-- Prefill/Decode regression model
-- Roofline 或解析计算模型
-- KV-cache memory model
-- Collective volume 和 topology-aware 通信模型
-- \(\alpha\)-\(\beta\) 网络延迟模型
-- Vidur-like serving discrete-event simulator
-- 从真实测量中学习的 residual model
+- **L0-A**：TokenPowerBench 校准锚点、Prefill/Decode 回归、解析计算、
+  KV-cache memory 和 residual model。
+- **L0-T**：在 L0-A 上增加 collective volume、链路带宽/延迟、TP/PP
+  placement 和 \(\alpha\)-\(\beta\) topology terms。
+- 可插拔的 phase-level lookup surfaces
+- 可插拔的 Roofline 模型
+- 未来可接入的 Vidur-like serving discrete-event simulator
+
+当前 CPU sandbox 是纯 Python 标准库实现的灰盒投影器，不依赖 Docker、
+SimPy 或 Vidur。Docker 只用于隔离真实 GPU serving/probe 任务，不是 CPU
+预测引擎本身。
 
 ### 4.3 不确定性
 
@@ -181,19 +188,26 @@ U(x)=U_{\mathrm{model}}(x)
 
 ## 5. L0-L4 Hierarchical Sandbox
 
-### 5.1 L0：Replay and Simulate
+### 5.1 L0：CPU Replay and Projection
 
 **资源成本：0 GPU。**
 
 主要操作：
 
 1. 从 TokenPowerBench 中检索相似模型、GPU、engine 和 workload。
-2. 使用解析或离散事件模型模拟全部可行候选。
+2. 使用 L0-A 或 L0-T 投影全部可行候选。
 3. 预测 energy、TTFT、TPOT 和 throughput。
 4. 标记 interpolation、extrapolation 和 topology distance。
 5. 删除明显被支配或无法满足 SLO 的候选。
 
-L0 的目标是大范围筛选和发现不确定性，不负责发布最终配置。
+L0 的目标是大范围筛选和发现不确定性，不负责发布最终配置：
+
+- **L0-A（Analytical）**：不包含通信项，输出 `kind=simulated`。
+- **L0-T（Topology-aware）**：加入解析通信和拓扑项，输出
+  `kind=extrapolated`。
+
+二者都输出 `level=L0`。L0-A/L0-T 是预测后端，不是 evidence level；
+L1-L4 只由真实硬件执行产生。
 
 ### 5.2 L1：Single-GPU Phase Probe
 
@@ -334,7 +348,7 @@ I\!\left(Y_a;\Omega_S\mid\mathcal D_t,S\right)
 ### Step 3：执行 L0
 
 1. 检索相似 TokenPowerBench 记录。
-2. 对候选进行 serving 和 energy simulation。
+2. 用 L0-A 生成解析基线，并按需用 L0-T 加入拓扑通信项。
 3. 生成均值预测、置信区间和 evidence label。
 4. 构造初始 probabilistic Pareto frontier。
 
@@ -357,9 +371,9 @@ Agent 聚合：
 4. 选择 Pareto information gain/GPU-hour 最高的 action。
 5. 对 L3/L4 action 请求人工批准或应用预算策略。
 
-### Step 6：执行 Sandbox Job
+### Step 6：执行真实 Probe / Verification Job
 
-Sandbox Executor：
+Measured Executor（L1-L4）：
 
 1. 从不可变模板生成运行配置。
 2. 固定容器、engine、driver 和 telemetry 参数。
@@ -411,7 +425,7 @@ Verifier 检查：
 - **simulated**：只由 L0 支持
 - **interpolated**：位于已测配置之间
 - **extrapolated**：跨 GPU、topology 或 node count 外推
-- **measured**：具有 L1-L4 telemetry
+- **measured**：具有 L1-L3 telemetry
 - **verified**：通过目标规模 L4 测量
 
 ---
@@ -515,7 +529,8 @@ return verified_set, provenance, runnable_configs
 
 1. Scenario Compiler 生成 FP16/FP8、TP=8/16、PP=1/2 和多个 power cap 候选。
 2. Feasibility Checker 删除显存不足和不受支持的组合。
-3. L0 检索 TokenPowerBench 中的 70B/H100 记录并模拟全部候选。
+3. L0-A 检索 TokenPowerBench 中的 70B/H100 锚点并投影全部候选，
+   L0-T 再加入两节点 topology terms。
 4. 多数高能耗配置被删除，但 TP=8 和 TP=16 的置信区间重叠。
 5. TP=8 接近 TPOT 边界，且跨节点通信项不确定。
 6. Agent 选择 L2 TP collective probe，而不是直接运行完整两节点 workload。
@@ -535,7 +550,7 @@ return verified_set, provenance, runnable_configs
 
 - 导入 TokenPowerBench JSON/telemetry summary
 - 实现 Scenario Compiler 和 Feasibility Checker
-- 实现 L0 phase lookup 和简单 serving simulator
+- 实现 L0-A analytical projector 和 L0-T topology-aware projector
 - 实现 Energy Twin prediction API
 - 实现 Pareto、semantic subgoal 和 IPIG loop
 

@@ -77,6 +77,7 @@ from tokenpoweragent.twin.topology import (
     CalibrationError,
     CalibrationProfile,
     InferenceWorkload,
+    ProjectionBackend,
     TopologyEnergyTwin,
 )
 from tokenpoweragent.validation import (
@@ -101,6 +102,40 @@ def _power_limits(value: str) -> tuple[int, ...]:
     if not limits or any(limit <= 0 for limit in limits) or len(limits) != len(set(limits)):
         raise argparse.ArgumentTypeError("power limits must be unique positive integers")
     return limits
+
+
+def _projection_backend(value: str) -> ProjectionBackend:
+    try:
+        return ProjectionBackend.parse(value)
+    except CalibrationError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
+def _resolve_projection_backend(
+    backend: Optional[ProjectionBackend],
+    legacy_level: Optional[EvidenceLevel],
+    default: ProjectionBackend,
+) -> ProjectionBackend:
+    if legacy_level is None:
+        return backend or default
+    if backend is not None:
+        raise SystemExit("--backend and deprecated --level cannot be combined")
+    mapping = {
+        EvidenceLevel.L0: ProjectionBackend.L0_A,
+        EvidenceLevel.L2: ProjectionBackend.L0_T,
+    }
+    try:
+        resolved = mapping[legacy_level]
+    except KeyError as exc:
+        raise SystemExit(
+            "deprecated --level accepts only L0 or L2; use --backend l0-a|l0-t"
+        ) from exc
+    print(
+        "warning: --level %s is deprecated; using --backend %s and emitting L0"
+        % (legacy_level.name, resolved.value),
+        file=sys.stderr,
+    )
+    return resolved
 
 
 def _campaign_schedule(
@@ -230,7 +265,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     agent_search = subparsers.add_parser(
         "agent-search",
-        help="run L0/L2 topology tools and replay higher-fidelity evidence",
+        help="run an L0 CPU projection and replay measured L1-L4 evidence",
     )
     agent_search.add_argument("--scenario", type=Path, required=True)
     agent_search.add_argument("--calibration", type=Path, required=True)
@@ -241,6 +276,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="sealed L1/L3/L4 evidence available to the routed executor",
     )
     agent_search.add_argument("--output", type=Path, required=True)
+    agent_search.add_argument(
+        "--sandbox-backend",
+        type=_projection_backend,
+        default=ProjectionBackend.L0_T,
+        help="CPU L0 backend: l0-a (analytical) or l0-t (topology-aware)",
+    )
     _add_agent_arguments(agent_search)
 
     benchmark = subparsers.add_parser(
@@ -376,8 +417,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     predict.add_argument("--scenario", type=Path, required=True)
     predict.add_argument("--calibration", type=Path, required=True)
-    predict.add_argument(
-        "--level", type=EvidenceLevel.parse, default=EvidenceLevel.L2
+    predict_backend = predict.add_mutually_exclusive_group()
+    predict_backend.add_argument(
+        "--backend",
+        type=_projection_backend,
+        help="CPU L0 backend: l0-a (analytical) or l0-t (topology-aware)",
+    )
+    predict_backend.add_argument(
+        "--level",
+        dest="legacy_projection_level",
+        type=EvidenceLevel.parse,
+        help=argparse.SUPPRESS,
     )
     predict.add_argument(
         "--candidate",
@@ -468,8 +518,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     freeze_campaign.add_argument("--campaign", type=Path, required=True)
     freeze_campaign.add_argument("--calibration", type=Path, required=True)
-    freeze_campaign.add_argument(
-        "--level", type=EvidenceLevel.parse, default=EvidenceLevel.L0
+    freeze_backend = freeze_campaign.add_mutually_exclusive_group()
+    freeze_backend.add_argument(
+        "--backend",
+        type=_projection_backend,
+        help="CPU L0 backend: l0-a (analytical) or l0-t (topology-aware)",
+    )
+    freeze_backend.add_argument(
+        "--level",
+        dest="legacy_projection_level",
+        type=EvidenceLevel.parse,
+        help=argparse.SUPPRESS,
     )
     freeze_campaign.add_argument("--output", type=Path, required=True)
     freeze_campaign.add_argument(
@@ -806,8 +865,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     if args.command == "sandbox-predict":
-        if args.level not in {EvidenceLevel.L0, EvidenceLevel.L2}:
-            raise SystemExit("--level must be L0 or L2")
+        backend = _resolve_projection_backend(
+            args.backend,
+            args.legacy_projection_level,
+            ProjectionBackend.L0_T,
+        )
         try:
             scenario = Scenario.load(args.scenario)
             profile = CalibrationProfile.load(args.calibration)
@@ -818,6 +880,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 expected_model=scenario.model,
                 profile_path=args.calibration,
                 scenario_path=args.scenario,
+                backend=backend,
             )
         except (CalibrationError, TopologySandboxError) as exc:
             raise SystemExit("invalid topology sandbox input: %s" % exc) from exc
@@ -834,7 +897,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         records = EvidenceStore()
         for candidate in candidates:
             try:
-                record = executor.execute(candidate, args.level, args.seed)
+                record = executor.execute(
+                    candidate, EvidenceLevel.L0, args.seed
+                )
             except TopologySandboxError as exc:
                 raise SystemExit(
                     "topology sandbox failed for %s: %s"
@@ -882,7 +947,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     "profile_id": profile.profile_id,
                     "profile_publication_eligible": profile.publication_eligible,
                     "uncertainty_calibrated": profile.uncertainty_calibrated,
-                    "level": args.level.name,
+                    "level": EvidenceLevel.L0.name,
+                    "sandbox_backend": backend.display_name,
+                    "projection_backend": backend.value,
                     "candidate_count": len(records.records),
                     "feasible_count": succeeded,
                     "slo_feasible_ids": [
@@ -1149,6 +1216,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     if args.command == "freeze-workload-campaign":
         summary_path = args.summary or args.output.with_suffix(".summary.json")
+        backend = _resolve_projection_backend(
+            args.backend,
+            args.legacy_projection_level,
+            ProjectionBackend.L0_A,
+        )
         try:
             summary = freeze_workload_campaign(
                 campaign_path=args.campaign,
@@ -1156,7 +1228,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 output_path=args.output,
                 summary_path=summary_path,
                 manifest_path=args.manifest,
-                level=args.level,
+                backend=backend,
             )
         except (WorkloadCampaignError, OSError) as exc:
             raise SystemExit("cannot freeze workload campaign: %s" % exc) from exc
@@ -1382,12 +1454,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 expected_model=scenario.model,
                 profile_path=args.calibration,
                 scenario_path=args.scenario,
+                backend=args.sandbox_backend,
             )
             replay_executor = ReplayExecutor.from_jsonl(args.records)
             routes = {
                 level: (
                     sandbox_executor
-                    if level in {EvidenceLevel.L0, EvidenceLevel.L2}
+                    if level == EvidenceLevel.L0
                     else replay_executor
                 )
                 for level in scenario.available_levels
@@ -1396,7 +1469,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 args,
                 scenario,
                 RoutedExecutor(routes),
-                twin=TopologyEnergyTwin(profile, workload),
+                twin=TopologyEnergyTwin(
+                    profile, workload, prior_backend=args.sandbox_backend
+                ),
             )
         except (CalibrationError, TopologySandboxError) as exc:
             raise SystemExit("cannot run agent search: %s" % exc) from exc

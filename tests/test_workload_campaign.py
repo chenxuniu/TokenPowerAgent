@@ -154,6 +154,9 @@ def test_freeze_campaign_writes_verified_immutable_artifacts(tmp_path) -> None:
     )
     assert len(prediction_hash) == 64
     assert rendered_summary["prediction_count"] == 6
+    assert rendered_summary["level"] == "L0"
+    assert rendered_summary["sandbox_backend"] == "L0-A"
+    assert rendered_summary["projection_backend"] == "l0-a"
 
     with pytest.raises(WorkloadCampaignError, match="refusing to overwrite"):
         freeze_workload_campaign(

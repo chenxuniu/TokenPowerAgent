@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import math
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
@@ -26,6 +27,48 @@ class CalibrationError(ValueError):
 
 class ProjectionError(RuntimeError):
     """Raised when a candidate cannot be projected by the declared model."""
+
+
+class ProjectionBackend(str, Enum):
+    """CPU-side L0 projection backends.
+
+    Both backends produce L0 evidence. L0-A omits communication terms, while
+    L0-T includes analytical topology terms. Evidence levels L1--L4 are
+    reserved for measurements on progressively more representative hardware.
+    """
+
+    L0_A = "l0-a"
+    L0_T = "l0-t"
+
+    @classmethod
+    def parse(cls, value: Any) -> "ProjectionBackend":
+        if isinstance(value, cls):
+            return value
+        normalized = str(value).strip().lower().replace("_", "-")
+        aliases = {
+            "l0-a": cls.L0_A,
+            "l0a": cls.L0_A,
+            "analytical": cls.L0_A,
+            "compute-only": cls.L0_A,
+            "l0-t": cls.L0_T,
+            "l0t": cls.L0_T,
+            "topology": cls.L0_T,
+            "topology-aware": cls.L0_T,
+        }
+        try:
+            return aliases[normalized]
+        except KeyError as exc:
+            raise CalibrationError(
+                "unknown projection backend %r; expected l0-a or l0-t" % value
+            ) from exc
+
+    @property
+    def display_name(self) -> str:
+        return self.value.upper()
+
+    @property
+    def topology_enabled(self) -> bool:
+        return self is ProjectionBackend.L0_T
 
 
 def _positive_float(raw: Mapping[str, Any], key: str) -> float:
@@ -359,8 +402,8 @@ class ProjectionAssumptions:
     allreduce_efficiency: float = 0.75
     point_to_point_efficiency: float = 0.80
     communication_power_fraction: float = 0.65
-    l0_relative_uncertainty: float = 0.38
-    l2_relative_uncertainty: float = 0.22
+    l0_a_relative_uncertainty: float = 0.38
+    l0_t_relative_uncertainty: float = 0.22
     workload_distance_weight: float = 0.07
     scale_distance_weight: float = 0.04
     cross_node_penalty: float = 0.12
@@ -372,7 +415,15 @@ class ProjectionAssumptions:
         defaults = cls()
         values: Dict[str, float] = {}
         for name in cls.__dataclass_fields__:
-            value = float(raw.get(name, getattr(defaults, name)))
+            legacy_name = {
+                "l0_a_relative_uncertainty": "l0_relative_uncertainty",
+                "l0_t_relative_uncertainty": "l2_relative_uncertainty",
+            }.get(name)
+            value = float(
+                raw.get(name, raw.get(legacy_name, getattr(defaults, name)))
+                if legacy_name is not None
+                else raw.get(name, getattr(defaults, name))
+            )
             if not math.isfinite(value) or value < 0:
                 raise CalibrationError("assumptions.%s must be non-negative" % name)
             values[name] = value
@@ -850,10 +901,12 @@ class TopologyProjector:
         self,
         candidate: Candidate,
         workload: InferenceWorkload,
-        level: EvidenceLevel,
+        backend: ProjectionBackend = ProjectionBackend.L0_A,
     ) -> SandboxEstimate:
-        if level not in {EvidenceLevel.L0, EvidenceLevel.L2}:
-            raise ProjectionError("topology projection supports only L0 and L2")
+        try:
+            backend = ProjectionBackend.parse(backend)
+        except CalibrationError as exc:
+            raise ProjectionError(str(exc)) from exc
         config = ServingConfiguration.from_mapping(candidate.config, workload)
         reference, calibration_distance = self.profile.nearest_point(workload, config)
         hardware = self.profile.hardware
@@ -876,6 +929,8 @@ class TopologyProjector:
                 decomposition={
                     "configuration": config.to_dict(),
                     "workload": workload.to_dict(),
+                    "sandbox_backend": backend.display_name,
+                    "projection_backend": backend.value,
                     **memory,
                 },
                 failure_reason=reason,
@@ -911,7 +966,7 @@ class TopologyProjector:
             * context_factor
         )
 
-        topology_enabled = level == EvidenceLevel.L2
+        topology_enabled = backend.topology_enabled
         placed_gpus_per_node = min(
             hardware.gpus_per_node,
             int(math.ceil(config.required_gpus / float(candidate.target_nodes))),
@@ -1063,7 +1118,7 @@ class TopologyProjector:
             total_tokens,
         )
         uncertainty = self._uncertainty(
-            level,
+            backend,
             calibration_distance,
             config,
             candidate.target_nodes,
@@ -1084,6 +1139,8 @@ class TopologyProjector:
             decomposition={
                 "configuration": config.to_dict(),
                 "workload": workload.to_dict(),
+                "sandbox_backend": backend.display_name,
+                "projection_backend": backend.value,
                 "reference_workload": reference.workload.to_dict(),
                 "reference_configuration": reference.configuration.to_dict(),
                 "reference_metrics": dict(reference.metrics),
@@ -1416,7 +1473,7 @@ class TopologyProjector:
 
     def _uncertainty(
         self,
-        level: EvidenceLevel,
+        backend: ProjectionBackend,
         calibration_distance: float,
         config: ServingConfiguration,
         target_nodes: int,
@@ -1424,9 +1481,9 @@ class TopologyProjector:
     ) -> float:
         assumptions = self.profile.assumptions
         base = (
-            assumptions.l0_relative_uncertainty
-            if level == EvidenceLevel.L0
-            else assumptions.l2_relative_uncertainty
+            assumptions.l0_a_relative_uncertainty
+            if backend is ProjectionBackend.L0_A
+            else assumptions.l0_t_relative_uncertainty
         )
         uncertainty = (
             base
@@ -1461,13 +1518,11 @@ class TopologyEnergyTwin(EnergyTwin):
         self,
         profile: CalibrationProfile,
         workload: InferenceWorkload,
-        prior_level: EvidenceLevel = EvidenceLevel.L0,
+        prior_backend: ProjectionBackend = ProjectionBackend.L0_A,
     ) -> None:
-        if prior_level not in {EvidenceLevel.L0, EvidenceLevel.L2}:
-            raise ValueError("TopologyEnergyTwin prior_level must be L0 or L2")
         self.projector = TopologyProjector(profile)
         self.workload = workload
-        self.prior_level = prior_level
+        self.prior_backend = ProjectionBackend.parse(prior_backend)
         self._records: Dict[str, List[EvidenceRecord]] = {}
 
     def update(self, evidence: EvidenceRecord) -> None:
@@ -1490,7 +1545,7 @@ class TopologyEnergyTwin(EnergyTwin):
             return Prediction(best.metrics, uncertainty, int(best.level))
 
         estimate = self.projector.predict(
-            candidate, self.workload, self.prior_level
+            candidate, self.workload, self.prior_backend
         )
         if not estimate.feasible:
             raise ValueError(
@@ -1500,5 +1555,5 @@ class TopologyEnergyTwin(EnergyTwin):
         return Prediction(
             estimate.metrics,
             estimate.relative_uncertainty,
-            int(self.prior_level),
+            int(EvidenceLevel.L0),
         )

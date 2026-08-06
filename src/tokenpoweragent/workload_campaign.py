@@ -21,6 +21,7 @@ from tokenpoweragent.twin.topology import (
     CalibrationError,
     CalibrationProfile,
     InferenceWorkload,
+    ProjectionBackend,
     ServingConfiguration,
 )
 
@@ -287,10 +288,12 @@ def freeze_workload_campaign(
     output_path: Path,
     summary_path: Path,
     manifest_path: Path,
-    level: EvidenceLevel = EvidenceLevel.L0,
+    backend: ProjectionBackend = ProjectionBackend.L0_A,
 ) -> Mapping[str, Any]:
-    if level not in {EvidenceLevel.L0, EvidenceLevel.L2}:
-        raise WorkloadCampaignError("campaign predictions must use L0 or L2")
+    try:
+        backend = ProjectionBackend.parse(backend)
+    except CalibrationError as exc:
+        raise WorkloadCampaignError(str(exc)) from exc
     for path in (output_path, summary_path, manifest_path):
         if Path(path).exists():
             raise WorkloadCampaignError(
@@ -313,8 +316,11 @@ def freeze_workload_campaign(
             expected_model=campaign.model_id,
             profile_path=calibration_path,
             scenario_path=campaign_path,
+            backend=backend,
         )
-        record = executor.execute(campaign.candidate(point), level, seed=0)
+        record = executor.execute(
+            campaign.candidate(point), EvidenceLevel.L0, seed=0
+        )
         if record.status != EvidenceStatus.SUCCEEDED:
             raise WorkloadCampaignError(
                 "cannot freeze failed prediction for %s: %s"
@@ -343,7 +349,9 @@ def freeze_workload_campaign(
         "profile_sha256": profile_hash,
         "profile_publication_eligible": profile.publication_eligible,
         "uncertainty_calibrated": profile.uncertainty_calibrated,
-        "level": level.name,
+        "level": EvidenceLevel.L0.name,
+        "sandbox_backend": backend.display_name,
+        "projection_backend": backend.value,
         "prediction_count": len(records.records),
         "workload_ids": [point.point_id for point in campaign.workloads],
         "dataset_splits": {

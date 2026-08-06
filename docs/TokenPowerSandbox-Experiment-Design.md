@@ -32,15 +32,17 @@ secondary appendix experiment; it is not the paper's independent variable.
 
 | Label | Acquired evidence | Output label | Permitted use |
 |---|---|---|---|
-| L0 | calibrated compute-only projection | `simulated` | cheap pruning; never a final result |
+| L0-A | calibrated analytical CPU projection without communication terms | `simulated`, `level=L0` | cheapest feasibility and configuration screening |
+| L0-T | topology-aware CPU projection with analytical communication terms | `extrapolated`, `level=L0` | multi-GPU what-if ranking; never a measurement |
 | L1 | real single-GPU vLLM + DCGM serving run | `measured` | phase/workload calibration |
-| L2 | L1 anchor plus measured intra-node collective/topology terms | `extrapolated` unless full serving is run | intra-node ranking and candidate selection |
-| L3 | sparse real multi-node serving runs | `measured` | cross-node correction and transfer tests |
+| L2 | real intra-node serving probe on 2--8 GPUs | `measured` | TP/PP, collective, and memory calibration |
+| L3 | sparse real multi-node serving run | `measured` | fabric, placement, and scale correction |
 | L4 | independent rerun on the exact target deployment | `verified` | reported recommendation and headline savings |
 
-`sandbox-predict --level L2` means an L2-informed extrapolation. Its evidence
-kind deliberately remains `extrapolated`; only a real serving executor may emit
-`measured`.
+`sandbox-predict --backend l0-t` enables topology-aware CPU extrapolation, but
+the resulting evidence remains L0. Evidence levels describe how a result was
+acquired, not how sophisticated its predictor is. L1--L4 therefore require
+real hardware execution.
 
 ## RQ1: Does the sandbox preserve real rankings?
 
@@ -143,7 +145,7 @@ independent L4 repetitions with zero failed requests.
 2. Complete the 36-point single-GPU design on H100 and freeze the 24/12 split.
 3. Measure NCCL all-reduce and point-to-point bandwidth/latency for every real
    topology and replace the example topology numbers.
-4. Produce and hash L0/L2 predictions for the blind multi-GPU points.
+4. Produce and hash paired L0-A/L0-T predictions for the blind multi-GPU points.
 5. Run the multi-GPU points, score RQ1, and inspect failure regimes.
 6. Only after RQ1 passes, run the 20-seed replay comparison for RQ2.
 7. Add H200/B200 adaptation points and perform RQ3 transfer tests.

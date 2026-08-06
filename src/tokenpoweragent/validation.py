@@ -227,14 +227,22 @@ def build_holdout_validation_report(
     prediction = predictions[0]
     if prediction.status != EvidenceStatus.SUCCEEDED:
         raise HoldoutValidationError("prediction did not succeed")
+    legacy_l2_prediction = prediction.level == EvidenceLevel.L2
     if prediction.level not in {EvidenceLevel.L0, EvidenceLevel.L2}:
-        raise HoldoutValidationError("prediction must be L0 or L2 evidence")
+        raise HoldoutValidationError("prediction must be CPU-side L0 evidence")
     if prediction.kind not in {
         EvidenceKind.SIMULATED,
         EvidenceKind.INTERPOLATED,
         EvidenceKind.EXTRAPOLATED,
     }:
         raise HoldoutValidationError("prediction has an invalid evidence kind")
+    if legacy_l2_prediction and not (
+        prediction.kind == EvidenceKind.EXTRAPOLATED
+        and prediction.provenance.get("executor") == "topology-sandbox"
+    ):
+        raise HoldoutValidationError(
+            "L2 predictions are accepted only as legacy topology-sandbox artifacts"
+        )
 
     for record in measurements:
         if record.status != EvidenceStatus.SUCCEEDED:
@@ -326,6 +334,11 @@ def build_holdout_validation_report(
         warnings.append(
             "Prediction intervals have not been calibrated on validation data."
         )
+    if legacy_l2_prediction:
+        warnings.append(
+            "Legacy CPU extrapolation used level=L2; new CPU predictions use "
+            "level=L0 with sandbox_backend=L0-T."
+        )
 
     first = measurements[0]
     return {
@@ -341,6 +354,7 @@ def build_holdout_validation_report(
             "measurement_sha256": _sha256(measurements_path),
             "freeze_manifest_sha256": _sha256(freeze_manifest_path),
             "repeat_count": len(measurements),
+            "legacy_l2_prediction_compatibility": legacy_l2_prediction,
         },
         "prediction": {
             "candidate_id": prediction.candidate_id,

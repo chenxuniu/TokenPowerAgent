@@ -5,6 +5,7 @@ from tokenpoweragent.twin.simple import EmpiricalEnergyTwin
 from tokenpoweragent.twin.topology import (
     CalibrationProfile,
     InferenceWorkload,
+    ProjectionBackend,
     ServingConfiguration,
     TopologyEnergyTwin,
     TopologyProjector,
@@ -16,6 +17,7 @@ __all__ = [
     "EmpiricalEnergyTwin",
     "CalibrationProfile",
     "InferenceWorkload",
+    "ProjectionBackend",
     "ServingConfiguration",
     "TopologyEnergyTwin",
     "TopologyProjector",

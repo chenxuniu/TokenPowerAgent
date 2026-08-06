@@ -198,21 +198,23 @@ tokenpoweragent expand-space \
   --output experiments/results/qwen2.5-7b-candidates.json
 ```
 
-Then obtain compute-only L0 or topology-informed L2 predictions:
+Then obtain an analytical `L0-A` or topology-aware `L0-T` prediction. Both
+backends run on CPU and emit evidence with `level=L0`:
 
 ```bash
 tokenpoweragent sandbox-predict \
   --scenario configs/scenarios/topology_sandbox_demo.json \
   --calibration experiments/results/qwen2.5-7b-h100-l1-v1.json \
-  --level L2 \
+  --backend l0-t \
   --output experiments/results/qwen2.5-7b-topology-predictions.jsonl
 ```
 
-These predictions are candidate rankings for selecting real runs. Their
-records have kind `simulated` or `extrapolated`, carry `validation_required`,
-and report GPU energy only. A sibling `.summary.json` records nominal and
-uncertainty-pessimistic SLO-feasible/Pareto IDs plus scenario and profile
-hashes. They are not target-scale measurements.
+`L0-A` omits communication terms and uses kind `simulated`; `L0-T` adds
+analytical bandwidth/latency terms and uses kind `extrapolated`. Their evidence
+level is still `L0`, they carry `validation_required`, and they report GPU
+energy only. A sibling `.summary.json` records the backend, nominal and
+uncertainty-pessimistic SLO-feasible/Pareto IDs, and artifact hashes. L1--L4
+are reserved for real hardware measurements.
 
 ## Validate a Frozen Holdout
 
@@ -246,7 +248,7 @@ validation points. Freeze all predictions before running any of them:
 tokenpoweragent freeze-workload-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-validation-v1.json \
   --calibration experiments/results/qwen2.5-7b-h100-l1-v1.json \
-  --level L0 \
+  --backend l0-a \
   --output experiments/results/workload-transfer-validation-v1-predictions.jsonl \
   --manifest experiments/results/workload-transfer-validation-v1-freeze.sha256
 ```
@@ -323,7 +325,7 @@ any of them:
 tokenpoweragent freeze-workload-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-holdout-v2.json \
   --calibration experiments/results/qwen2.5-7b-h100-workload-v2.json \
-  --level L0 \
+  --backend l0-a \
   --output experiments/results/workload-transfer-holdout-v2-predictions.jsonl \
   --summary experiments/results/workload-transfer-holdout-v2-predictions.summary.json \
   --manifest experiments/results/workload-transfer-holdout-v2-freeze.sha256
