@@ -37,18 +37,18 @@ Last checked against the official Workshop page: August 4, 2026.
       guard-admitted accuracy separately and retain the failed raw threshold.
 
 The 72-run corpus establishes the Sandbox/Probe/Verify result and verified
-frontier. Stable artifact identifiers remain L0/L1/L4. The corrected CPU replay
-is complete; remaining work is author, submission-system, and final artifact
-administration.
+frontier. Legacy `L0/L1/L4` values remain only in archived schemas for
+compatibility. The corrected CPU replay is complete; remaining work is author,
+submission-system, and final artifact administration.
 
 ## Reproducibility Gates
 
 - [x] H100 evidence uses frozen predictions, preregistered thresholds, three
       repeats, raw-artifact manifests, and nested SHA-256 provenance.
-- [x] The runtime records planner source, selected candidate and fidelity,
+- [x] The runtime records planner source, selected candidate and evidence stage,
       expected and realized cost, uncertainty/frontier snapshots, failure
       reason, and fallback behavior.
-- [x] Full Verify/L4 execution is deterministic and cannot be bypassed by the
+- [x] Full Verify execution is deterministic and cannot be bypassed by the
       LLM.
 - [x] All 82 automated tests pass.
 - [x] Archive the final configuration corpus and benchmark report locally and

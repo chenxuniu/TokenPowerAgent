@@ -5,7 +5,7 @@
 TokenPowerAgent does not use an LLM to predict energy or directly choose a
 deployment. It uses a bounded semantic planner to organize an auditable loop in
 which deterministic tools jointly select a serving configuration and the next
-evidence fidelity under a GPU-hour budget. A recommendation is released only
+evidence stage under a GPU-hour budget. A recommendation is returned only
 after full target-workload verification.
 
 ## Implemented System
@@ -17,8 +17,8 @@ after full target-workload verification.
   guard separately checks semantically valid proposals before admission.
 - IPIG selects a candidate--stage action using an auditable
   uncertainty-per-cost proxy conditioned on SLO and frontier terms.
-- The operational path is CPU Sandbox, short H100 Probe, and full H100 Verify;
-  stable artifact identifiers are L0, L1, and L4.
+- The operational path is CPU Sandbox, short H100 Probe, and full H100 Verify.
+  Archived JSON keeps legacy `L0/L1/L4` tags only for schema compatibility.
 - Failed executions become charged evidence records and drive a REPAIR state.
 - A reserved verification budget and independent verifier prevent unmeasured
   recommendations.
@@ -34,9 +34,9 @@ concurrency four from an unsupported sparse-concurrency region.
 
 A separate 12-candidate corpus contains 72 successful Probe/Verify runs. The
 Sandbox preserves
-energy rank (0.884 Spearman) but reverses TTFT rank (-0.968) and has zero L4
-Pareto recall. L1 reaches 1.15% energy MAPE and recovers the true frontier with
-100% recall and 33.3% precision. L4 verifies `seq32-bt2048-chunk` as the unique
+energy rank (0.884 Spearman) but reverses TTFT rank (-0.968) and has zero Verify
+Pareto recall. Probe reaches 1.15% energy MAPE and recovers the true frontier with
+100% recall and 33.3% precision. Verify confirms `seq32-bt2048-chunk` as the unique
 Pareto point; relative to the expert default it uses 1.04% less energy, delivers
 3.06% higher throughput, and reduces TTFT by 21.59%.
 
@@ -87,7 +87,7 @@ not autonomous LLM correctness or benefit over the rule planner.
 
 - Do not call the Docker container itself a simulator; it is the isolated
   execution substrate.
-- Do not call Sandbox/L0 output measured or present a single H100 as a cluster
+- Do not call Sandbox output measured or present a single H100 as a cluster
   model.
 - Report the mixed policy result: IPIG improves on random and cost-blind but
   does not beat cheapest-first in the measured search space.

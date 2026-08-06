@@ -37,14 +37,14 @@ workload-transfer holdouts:
   Spearman rank correlation;
 - 9 workloads and 27 blind measurements: 7.35% energy MAPE and 0.933
   Spearman rank correlation;
-- a preregistered latency release gate that supports TTFT at concurrency 4
+- a preregistered latency recommendation gate that supports TTFT at concurrency 4
   (9.27% MAPE) and abstains below concurrency 4 (64.80% MAPE).
 
-These 51 runs validate the CPU-first workload model and release gate. A separate
+These 51 runs validate the CPU-first workload model and recommendation gate. A separate
 12-candidate configuration corpus contains 72 balanced Probe/Verify measurements and
-190 hash-verified raw artifacts. L0 preserves energy rank (0.884 Spearman) but
-misses the L4 frontier; L1 obtains 1.15% energy MAPE and 100% frontier recall;
-L4 verifies `seq32-bt2048-chunk` as the unique SLO-feasible Pareto point. The
+190 hash-verified raw artifacts. Sandbox preserves energy rank (0.884 Spearman)
+but misses the Verify frontier; Probe obtains 1.15% energy MAPE and 100% frontier
+recall; Verify confirms `seq32-bt2048-chunk` as the unique SLO-feasible Pareto point. The
 locked winner is then evaluated in five new paired, alternating Verify repeats
 without refitting or reselection. It wins all five energy pairs, saves 1.39%
 energy on average (95% CI [1.19%, 1.59%]), and lowers median paired TTFT by
@@ -83,7 +83,7 @@ paper-agenticai4hpc26/
 ## Result-Figure Policy
 
 The 10-page paper uses plots for trends and decision geometry, while retaining
-tables where exact values or release thresholds matter:
+tables where exact values or recommendation thresholds matter:
 
 - `fig4_prediction_error.pdf` replaces the former evidence-summary table and
   exposes signed error for all 17 blind workload predictions against the
@@ -103,9 +103,8 @@ not answer the configuration-search research questions.
 
 ## Editing Rules
 
-1. Preserve the evidence boundary: Sandbox/L0 is simulated, Probe/L1 is
-   measured but provisional, and recommendations require successful full
-   Verify/L4 evidence.
+1. Preserve the evidence boundary: Sandbox is simulated, Probe is measured but
+   provisional, and recommendations require successful full Verify evidence.
 2. Populate agent-search macros only from the sealed H100 corpus and replay
    report. Never use the synthetic three-candidate demo as a paper result.
 3. Keep all policies on the same candidate corpus, seed set, and GPU-hour

@@ -40,10 +40,11 @@ physical identity
 \label{eq:energy-identity}
 \end{equation}
 For the present H100 study, one anchor cannot capture utilization transitions
-across context length $L$ and concurrency $k$.  Relative to anchor $(L_0,k_0)$,
-we therefore define
+across context length $\ell$ and concurrency $k$.  Relative to anchor
+$(\ell_0,k_0)$, we therefore define
 \begin{align}
-q&=\log_2\!\frac{L_{in}+0.5L_{out}}{L_{in,0}+0.5L_{out,0}}, &
+q&=\log_2\!\frac{\ell_{in}+0.5\ell_{out}}
+                         {\ell_{in,0}+0.5\ell_{out,0}}, &
 r&=\log_2\!\frac{k}{k_0},\\[-3pt]
 \phi&=[q,r,qr,r^2].&&
 \end{align}
@@ -66,19 +67,17 @@ templates, container/runtime hashes, explicit resource allocations, and fixed
 telemetry settings.  The current system exercises three operational stages:
 
 \begin{itemize}
-    \item \textbf{Sandbox (artifact L0):} retrieve compatible \bench{} records
+    \item \textbf{Sandbox:} retrieve compatible \bench{} records
     and run the CPU-resident predictor.  This stage consumes no target-GPU time
     and produces simulated evidence with uncertainty.
-    \item \textbf{Probe (artifact L1):} run a short, controlled workload on the
+    \item \textbf{Probe:} run a short, controlled workload on the
     target H100.  The configuration study uses 64 requests and directly measures
     energy, throughput, TTFT, and TPOT.
-    \item \textbf{Verify (artifact L4):} execute the preregistered 256-request
-    target workload for the top candidates and release only successful,
+    \item \textbf{Verify:} execute the preregistered 256-request
+    target workload for the top candidates and return only successful,
     SLO-feasible measured outcomes.
 \end{itemize}
 
-The noncontiguous artifact identifiers preserve the framework's versioned
-evidence schema; they are not five experimental stages claimed by this paper.
 The main text therefore uses the operational names Sandbox, Probe, and Verify.
 A result carries its highest supporting stage: Sandbox output is
 \emph{simulated}, Probe output is \emph{measured}, and only the target run is

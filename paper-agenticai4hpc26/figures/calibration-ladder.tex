@@ -10,7 +10,7 @@
   flow/.style={-{Stealth[length=2.4mm]},line width=0.95pt,draw=tpGray}
 ]
   \node[level,fill=tpGrayLight] (l0) at (2.35,0.50)
-    {\textbf{CPU Sandbox}\quad\textcolor{tpGray}{artifact L0}\\[3pt]
+    {\textbf{CPU Sandbox}\\[3pt]
      \textbf{Cost:} 0 target-GPU hours\\
      12 frozen predictions\\[2pt]
      energy $\rho=\LzeroEnergySpearman{}$;
@@ -21,7 +21,7 @@
   \node[guard] (g1) at (5.25,0.50) {SLO or\\ranking\\uncertain};
 
   \node[level,fill=tpBlueLight] (l1) at (8.16,0.50)
-    {\textbf{Short H100 Probe}\quad\textcolor{tpBlueDark}{artifact L1}\\[3pt]
+    {\textbf{Short H100 Probe}\\[3pt]
      \textbf{Cost:} 64 requests per run\\
      \ConfigurationLoneRuns{} measured runs\\[2pt]
      energy MAPE \LoneEnergyMAPE{}\\
@@ -31,7 +31,7 @@
   \node[guard] (g2) at (11.07,0.50) {top-$k$\\within\\budget};
 
   \node[level,fill=tpRoseLight] (l4) at (13.98,0.50)
-    {\textbf{Full H100 Verify}\quad\textcolor{tpRoseDark}{artifact L4}\\[3pt]
+    {\textbf{Full H100 Verify}\\[3pt]
      \textbf{Cost:} 256-request target run\\
      \ConfigurationLfourRuns{} measured runs\\[2pt]
      one verified Pareto configuration\\
@@ -44,11 +44,10 @@
   \draw[flow] (g2.east) -- (l4.west);
   \draw[-{Stealth[length=2.5mm]},very thick,tpRose]
     (0.12,-1.31) -- node[below,font=\scriptsize\bfseries,text=tpRoseDark]
-    {increasing fidelity and GPU-hour cost; decreasing release risk} (16.20,-1.31);
+    {increasing fidelity and GPU-hour cost; decreasing recommendation risk} (16.20,-1.31);
 \end{tikzpicture}
-\caption{The three operational stages evaluated on one H100.  Stable artifact
-identifiers L0, L1, and L4 preserve provenance, while the paper uses semantic
-stage names.  The Sandbox screens cheaply, the Probe avoids false negatives,
-and full verification removes false positives before release.}
+\caption{The three operational stages evaluated on one H100.  The Sandbox
+screens cheaply, the Probe avoids false negatives, and full verification
+removes false positives before recommendation.}
 \label{fig:calibration}
 \end{figure*}

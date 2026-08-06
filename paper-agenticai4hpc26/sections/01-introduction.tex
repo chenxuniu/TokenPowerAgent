@@ -41,8 +41,7 @@ on \bench{}.  A scenario specifies the model, workload, target GPU, serving
 runtime, SLOs, candidate knobs, and measurement budget.  \system{} compiles a
 typed feasible pool and selects actions $a=(x,e)$, where $x$ is a serving
 configuration and $e$ is \textsc{Sandbox}, \textsc{Probe}, or
-\textsc{Verify}.  These stages correspond to the artifact identifiers L0, L1,
-and L4; the semantic names describe the three-stage path exercised here.  Its
+\textsc{Verify}.  Its
 \emph{Intent-Conditioned Pareto Information Gain} (\ipig{}) interface scores the
 expected reduction in uncertainty about the verified SLO-feasible frontier per
 GPU-hour.  An LLM maps natural-language intent to a typed subgoal and explains

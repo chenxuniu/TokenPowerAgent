@@ -14,13 +14,14 @@ freeze, \WinnerConfirmationRuns{} measurements, and raw outputs.  Predictions
 precede measurements, raw evidence precedes analysis, and confirmation permits
 neither refitting nor reselection.
 
-Replay reveals a row only when its candidate--stage key is requested and forms
-the oracle solely from successful Verify metrics.  Audit found repeat aliasing
-in the first replay summary; that report remains archived but excluded, while
-commit \texttt{c41d8a6} supplies action-specific common random numbers.  L0,
-L1, and L4 retain distinct simulated, measured, and verified labels.
+Replay reveals rows only when their candidate--stage keys are requested and
+forms the oracle from successful Verify metrics.  An early aliased report is
+archived but excluded; commit \texttt{c41d8a6} supplies action-specific common
+random numbers.  Archived JSON keeps legacy \texttt{level} tags
+\texttt{L0/L1/L4} for compatibility; these are provenance identifiers, not
+stages.  We use Sandbox, Probe, and Verify throughout.
 
 The artifact also freezes the five-budget study and both planner protocols,
-including prompts, states, raw responses, admitted subgoals, latency, and guard
-interventions.  V1/V2 identifiers are disjoint, and V2 retains the failed raw
-accuracy gate.  Compact summaries accompany SHA-256-identified raw archives.
+including prompts, states, raw responses, decisions, latency, and guard
+interventions.  Disjoint V1/V2 identifiers preserve V2's failed raw gate;
+compact summaries accompany SHA-256-identified raw archives.
