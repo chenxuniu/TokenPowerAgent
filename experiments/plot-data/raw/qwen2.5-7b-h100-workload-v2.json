@@ -1,0 +1,242 @@
+{
+  "assumptions": {
+    "allreduce_efficiency": 0.75,
+    "batch_saturation_concurrency": 8,
+    "chunk_overhead_fraction": 0.04,
+    "communication_power_fraction": 0.65,
+    "cross_node_penalty": 0.12,
+    "decode_context_exponent": 0.18,
+    "interval_coverage_target": 0.8,
+    "l0_relative_uncertainty": 0.38,
+    "l2_relative_uncertainty": 0.22,
+    "pipeline_penalty": 0.04,
+    "point_to_point_efficiency": 0.8,
+    "prefill_length_exponent": 0.9,
+    "runtime_overhead_gib": 4,
+    "scale_distance_weight": 0.04,
+    "workload_distance_weight": 0.07
+  },
+  "calibration_points": [
+    {
+      "candidate_ids": [
+        "qwen7b-serving-pl700"
+      ],
+      "configuration": {
+        "chunked_prefill": true,
+        "data_parallel": 1,
+        "engine": "vllm",
+        "kv_cache_dtype": "bfloat16",
+        "max_num_batched_tokens": 8192,
+        "max_num_seqs": 256,
+        "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+        "pipeline_parallel": 1,
+        "power_limit_w": 700.0,
+        "precision": "bfloat16",
+        "prefix_caching": false,
+        "tensor_parallel": 1,
+        "tokenizer_revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+      },
+      "dispersion": {
+        "avg_power_w_mad": 0.5707576065718172,
+        "j_per_output_token_mad": 0.0018123779296875253,
+        "j_per_total_token_mad": 0.00036247558593750784,
+        "throughput_tok_s_mad": 6.009999999999991,
+        "tpot_ms_mad": 0.0,
+        "ttft_ms_mad": 2.039999999999992
+      },
+      "id": "l1-8e2e9a9d2acc",
+      "metrics": {
+        "avg_power_w": 466.239708447829,
+        "j_per_output_token": 0.4178887939453125,
+        "j_per_total_token": 0.0835777587890625,
+        "throughput_tok_s": 1133.29,
+        "tpot_ms": 6.74,
+        "ttft_ms": 108.87
+      },
+      "replicate_count": 3,
+      "source_artifact": "experiments/results/qwen7b-calibration-c512-o128-c8.jsonl@sha256:5ab2b1d39d86f6f90bcf1af1197b4872ba0912b9fc3f54f1457cc68412e5b42e#lines=1,2,3",
+      "source_record_lines": [
+        1,
+        2,
+        3
+      ],
+      "workload": {
+        "concurrency": 8,
+        "input_tokens": 512,
+        "num_requests": 64,
+        "output_tokens": 128,
+        "request_rate": "inf"
+      }
+    }
+  ],
+  "hardware": {
+    "active_power_w": 700,
+    "gpu_memory_gib": 79.65,
+    "gpu_name": "NVIDIA H100 80GB HBM3",
+    "gpus_per_node": 8,
+    "idle_power_w": 62,
+    "inter_node_bandwidth_gb_s": 50,
+    "inter_node_latency_us": 8,
+    "intra_node_bandwidth_gb_s": 450,
+    "intra_node_latency_us": 2,
+    "max_nodes": 2,
+    "memory_utilization": 0.9,
+    "topology_source": "synthetic-placeholder; replace with measured NCCL topology"
+  },
+  "metadata": {
+    "base_profile_id": "qwen2.5-7b-h100-c512-o128-c8-v1",
+    "base_profile_sha256": "47a9974af181d76aa887c4ae197740178fc9cfb872b5b759d00d6f79e9b85feb",
+    "calibration_groups": 1,
+    "development_campaign_id": "qwen2.5-7b-h100-workload-transfer-validation-v1",
+    "development_campaign_sha256": "6e780e4d6418dd7699412d0b05eef791fefda164bdc25cc2e1829aff93c31cc7",
+    "development_only": true,
+    "development_report_sha256": "3e2c99a89831b60bd88bce1e22597806691c2e0ac6f59ff68ee3bc59f943d558",
+    "final_holdout_required": true,
+    "fixed_power_limit_w": 700.0,
+    "generated_by": "tokenpoweragent fit-workload-residuals",
+    "insufficient_repeat_groups": [],
+    "matching_records": 3,
+    "minimum_repeats": 3,
+    "purpose": "Descriptor template for measured Qwen2.5-7B H100 L1 records",
+    "skipped_records": [],
+    "source_records": "experiments/results/qwen7b-calibration-c512-o128-c8.jsonl",
+    "source_records_sha256": "5ab2b1d39d86f6f90bcf1af1197b4872ba0912b9fc3f54f1457cc68412e5b42e",
+    "warning": "Replace synthetic topology values with measured NCCL results before publication"
+  },
+  "model_architecture": {
+    "activation_bytes_per_element": 2,
+    "hidden_size": 3584,
+    "kv_dtype_bytes": 2,
+    "model_id": "Qwen/Qwen2.5-7B-Instruct",
+    "num_attention_heads": 28,
+    "num_kv_heads": 4,
+    "num_layers": 28,
+    "parameter_count_b": 7.61,
+    "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "tp_collectives_per_layer": 2,
+    "weight_bytes_per_parameter": 2
+  },
+  "profile_id": "qwen2.5-7b-h100-workload-v2",
+  "publication_eligible": false,
+  "schema_version": "1.1",
+  "uncertainty_calibrated": false,
+  "workload_residual_model": {
+    "feature_names": [
+      "log2_context_ratio",
+      "log2_concurrency_ratio",
+      "context_concurrency_interaction",
+      "log2_concurrency_ratio_squared"
+    ],
+    "feature_scales": [
+      1.2454813087434475,
+      1.7795130420052185,
+      1.9186540907118759,
+      4.377975178854566
+    ],
+    "feature_schema": "context-concurrency-quadratic-log-residual-v1",
+    "metrics": {
+      "avg_power_w": {
+        "coefficients": [
+          0.10465937180698569,
+          -0.3893380116893672,
+          -0.02115160862150009,
+          0.279088915263937
+        ],
+        "development_loo_mape_pct": 3.95627800064308,
+        "development_loo_max_ape_pct": 7.548099857885848,
+        "ridge_lambda": 0.03
+      },
+      "throughput_tok_s": {
+        "coefficients": [
+          -0.018848436645705832,
+          0.3609807504517754,
+          -0.17450538813711508,
+          0.22227124876135074
+        ],
+        "development_loo_mape_pct": 12.825841580649382,
+        "development_loo_max_ape_pct": 24.202487746680923,
+        "ridge_lambda": 0.001
+      },
+      "tpot_ms": {
+        "coefficients": [
+          0.011847147152456994,
+          -0.3751158235862134,
+          0.17916023810538367,
+          -0.22396147200147873
+        ],
+        "development_loo_mape_pct": 12.505995957904497,
+        "development_loo_max_ape_pct": 23.65427043369508,
+        "ridge_lambda": 0.001
+      },
+      "ttft_ms": {
+        "coefficients": [
+          -0.07154562534581047,
+          0.34724435743813925,
+          -0.09203812785855307,
+          -0.033202482350108815
+        ],
+        "development_loo_mape_pct": 14.31411203415103,
+        "development_loo_max_ape_pct": 24.33070318972662,
+        "ridge_lambda": 0.3
+      }
+    },
+    "model_id": "qwen2.5-7b-h100-workload-v2-workload-residual",
+    "reference_workload": {
+      "concurrency": 8,
+      "input_tokens": 512,
+      "num_requests": 64,
+      "output_tokens": 128,
+      "request_rate_req_s": "inf"
+    },
+    "schema_version": "1.0",
+    "scope": {
+      "concurrency_log2_range": [
+        -3.0,
+        2.0
+      ],
+      "context_log2_range": [
+        -0.84799690655495,
+        1.8744691179161412
+      ],
+      "fixed_output_tokens": 128,
+      "request_rate": "inf",
+      "required_gpus": 1,
+      "serving_configuration": {
+        "chunked_prefill": true,
+        "data_parallel": 1,
+        "engine": "vllm",
+        "kv_cache_dtype": "bfloat16",
+        "max_num_batched_tokens": 8192,
+        "max_num_seqs": 256,
+        "pipeline_parallel": 1,
+        "precision": "bfloat16",
+        "prefix_caching": false,
+        "tensor_parallel": 1
+      },
+      "target_nodes": 1
+    },
+    "training": {
+      "client_image_id": "sha256:29fcf3ca9a7ef630571b9bd24150249db245f83fb5d0c817942e41c1036679b9",
+      "dataset_split": "validation",
+      "development_only": true,
+      "final_holdout_required": true,
+      "repeats_per_workload": 3,
+      "server_image_id": "sha256:6d8429e38e3747723ca07ee1b17972e09bb9c51c4032b266f24fb1cc3b22ed8f",
+      "source_campaign_sha256": "6e780e4d6418dd7699412d0b05eef791fefda164bdc25cc2e1829aff93c31cc7",
+      "source_measurement_sha256": "117cdbc9ec0ea4d92902c4dc2d83114e76bf0cbd998139547e622d0c0b8be445",
+      "source_prediction_sha256": "7cd266630db2d778d25419636b38ac71576d37e696f2c6eb72b308821f0b211b",
+      "source_profile_sha256": "47a9974af181d76aa887c4ae197740178fc9cfb872b5b759d00d6f79e9b85feb",
+      "source_raw_artifact_manifest_sha256": "6f11ed73f6f85fa335d1d57cde7e0fe379500bdb41345ddbeb1c2473d9c1ff0e",
+      "source_report_sha256": "3e2c99a89831b60bd88bce1e22597806691c2e0ac6f59ff68ee3bc59f943d558",
+      "workload_count": 6,
+      "workload_ids": [
+        "val-c256-o128-k1",
+        "val-c256-o128-k16",
+        "val-c512-o128-k32",
+        "val-c1024-o128-k4",
+        "val-c2048-o128-k8",
+        "val-c2048-o128-k32"
+      ]
+    }
+  }
+}

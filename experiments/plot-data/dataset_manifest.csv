@@ -1,0 +1,29 @@
+file,rows,bytes,sha256,description
+DATA_DICTIONARY.md,,6676,7cd97244321124773773cb09e38dd30035f1429c8b6cd7be78e96585d0ab6f25,"Column semantics, evidence levels, metric units, and null handling."
+README.md,,3905,af862baa3c125a59217dbf225458867c11359bcb33a9fe62836bc54fb1e0082a,"Data dictionary, inventory, plotting guidance, provenance, and known gaps."
+archive_members.csv,288,62763,c791050403b0044c7550921743491acec9e91b4e6be6c8ee67d2bae2300b95c5,Per-member size and SHA-256 for every selected archive.
+calibration_points.csv,1,1267,d23ba26fc1c9912dee7ed68ca543626326d74a6a2d383a289e616fa82a8c2a14,Measured calibration aggregate and dispersion retained in the fitted profile.
+config_candidate_summary.csv,12,5189,02c9d3727ab10ff5f48ef7a8baeb3d3c0570e0fb623dff245fe55ff404fb4d25,Wide L0/L1/L4 comparison with L0-vs-L4 errors and oracle Pareto label.
+config_search_evidence.csv,84,68790,f36b0c784d869e403b95432cb7872a95a8e0c072b4b35132128587d600217c99,All 84 L0/L1/L4 configuration-search evidence records.
+config_search_level_summary.csv,1200,185429,96ae5d92a5d80e3e4dafbd332f41a418d0b8445ef420da4c532435711a1e1e49,"Descriptive statistics for each candidate, evidence level, and metric."
+dcgm_telemetry.csv,19840,7708718,d1965eced172bec4f63dcf4d7d8a2156f2a2a93a2550bac5ddcfe514ab6789af,"All locally available per-sample DCGM power, clock, utilization, temperature, and energy traces."
+evidence_metrics_long.csv,6263,1525428,12d28290ca4d7fa44c1b466136806993ce2e1636d85fbad5203a0aa29ed00f98,Every numeric evidence metric in tidy long format.
+experiment_catalog.csv,11,1226,6d29705e290ede60557bb8940388703821736690f84c7c1178c979b427ffd8b0,One row per experiment with evidence semantics and record counts.
+gemm_trials.csv,9,3838,2c5051e99d7eb23616c231e60a8c4b26a67b06d17db0c5d85d476e343cb22e81,Nine repeat-level H100 cuBLAS GEMM power-cap trials.
+planner_calls.csv,180,168959,15c29bb6ceaa2c71093ce7f3c887dce7042b60b5cdfbf8c587bfe36dfc120a31,"All 180 planner calls with state, raw/guarded decisions, latency, and token usage."
+planner_summary.csv,13,6035,3d7271e30962eb80404cd098098c933b5158c4e5a433b9b668cf8a98ffb09ee6,Overall and per-category planner conformance summaries.
+policy_budget_response.csv,4,896,847b34aaa555bdee66c37748474a65753eb188a82f6804bce3d9e0c5dba1893a,Normalized budget-response AUC and monotonicity diagnostics.
+policy_episodes.csv,14000,3080456,421a82f29f5e19d32bf83724bc7861d4b7e993a265ddfb0bcf202666cc37a72d,"All 14,000 policy replay episodes from v1, bootstrap v2, and the five-budget sweep."
+policy_paired_ipig.csv,15,755,c8cc8d39703132af2155c7690131c9a98b85b478da9e208621bf2a55e22b090a,Matched-seed IPIG-versus-baseline success contingency counts by budget.
+policy_summary.csv,28,4361,1daa432851c6ce22cecd066c5e0eae2c0f9674aeeb3a25a949eb005bae0940df,Policy aggregate metrics by benchmark and budget.
+raw_file_manifest.csv,28,6142,bdb672760190f84f6b833e8ad128b75a00bf19294d99ec2272a1e4c44f6a2fa9,Hashes and origins for self-contained raw JSON/JSONL copies.
+residual_model_coefficients.csv,16,3252,76b8aab2e2334805540b7977dde08ea30d11eeb95688638bea305e885b4f25fb,"Workload-residual features, scales, coefficients, and development LOO errors."
+serving_predictions.csv,23,20338,e82c20dbc2d361cd2672dc49c311c0d9119b608f4ec5f4174c9e45b4838f440a,Frozen L0 workload predictions for the three validation campaigns.
+serving_trials.csv,79,59873,c356ca3a664c09376f35717e10e3608c1c0c46e565947117ea5f4bac03678c9e,All 69 repeat-level real Qwen serving measurements across three workload campaigns.
+serving_workload_summary.csv,795,116130,b07231df7a61276d08970b599755290c409aa419496d770668850a25de9b45e8,Long-format descriptive statistics by workload and metric.
+source_manifest.csv,14,3247,759b8c3e9ff8d444b5d7174a3272f5d9df47fce5fec0c19946dc365265b3de34,"All discovered evidence archives, hashes, selection status, and known missing raw artifacts."
+validation_aggregate.csv,12,3963,3aa4236557110113863e4abd91e3a74298f8c105cd2c8cfc5410959cd47c0222,"Campaign-level MAPE, rank correlation, pairwise accuracy, and interval coverage."
+winner_confirmation_candidates.csv,2,1056,ed4f07c1574bcd6d08d3b1fa123ab013c9f8779ed093c688a0e8919f65003ea1,Aggregate statistics for the locked expert baseline and selected winner.
+winner_confirmation_pairs.csv,5,2052,f57de970957d8641ad0591f7ca2ab856b4d4e652679d5f8289bb60095b8a6824,Five seed-matched L4 baseline-versus-winner pairs and per-metric improvements.
+winner_confirmation_summary.csv,4,1270,c2b018b398d679705c15acde666546d4742ecdae5acb7eba1a112f22ba4f61ea,"Paired effect sizes, confidence intervals, win rates, and exact sign tests."
+workload_validation.csv,138,43311,4f8c8d4c34f903ee373a944bc307e999f67409cfd863cfcadae437e4d4124be1,"Prediction, observed repeat values, error, and interval coverage by workload and metric."

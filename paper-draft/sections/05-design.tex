@@ -1,23 +1,28 @@
-\section{\system\ Design}
+\section{\system{}\ Design}
 
 \subsection{System Overview}
 
 Figure~\ref{fig:architecture} shows the closed-loop, multi-fidelity Pareto
-search.  The Scenario Compiler turns natural language or YAML into a typed
-specification and rejects infeasible candidates.  A language-model planner
+search and maps the requirements in Section~2 to concrete mechanisms.  The
+Scenario Compiler enforces scenario conditioning (R1) by turning natural
+language or YAML into a typed specification and rejecting infeasible
+candidates.  The evidence model and L0--L4 contracts preserve cross-scale
+uncertainty (R2).  \ipig{}\ allocates measurement cost to decision-relevant
+ambiguity (R3), while the guarded planner and Verifier bound semantic autonomy
+(R4).  A language-model planner
 observes the intent, a compact belief summary, remaining budget, failures, and
 provenance, then emits one structured subgoal from \{\textsc{Explore},
 \textsc{ResolveSLO}, \textsc{CalibrateScale}, \textsc{Repair},
-\textsc{Verify}\}.  Within that guarded subgoal, \ipig\ selects the numerical
+\textsc{Verify}\}.  Within that guarded subgoal, \ipig{}\ selects the numerical
 configuration--fidelity action.  The Tool Layer invokes serving simulation,
-\bench\ templates, telemetry readers, and the scheduler.  Observations update
+\bench{}\ templates, telemetry readers, and the scheduler.  Observations update
 the Energy Twin and a versioned Evidence Store; the Verifier reruns final
 Pareto candidates before scripts and recommendations are released.
 
 \input{figures/system-architecture}
 
-\bench\ and \system\ consequently have separate responsibilities.  \bench\
-defines and executes a measurement; \system\ decides which measurements are
+\bench{}\ and \system{}\ consequently have separate responsibilities.  \bench{}\
+defines and executes a measurement; \system{}\ decides which measurements are
 decision-relevant, what can be inferred between them, and whether the evidence
 supports a recommendation.  This separation also prevents circular claims:
 the same simulator is never treated as ground truth for its own accuracy.
@@ -81,7 +86,7 @@ hierarchical set of evidence levels by the new effects they expose.
 \input{figures/calibration-ladder}
 
 \begin{itemize}
-    \item \textbf{L0 -- replay/simulate (0 GPUs):} retrieve nearby \bench\
+    \item \textbf{L0 -- replay/simulate (0 GPUs):} retrieve nearby \bench{}\
     records and run analytic or discrete-event simulation.
     \item \textbf{L1 -- phase probes (1 GPU):} measure idle/warmup, length- and
     batch-bucketed prefill, controlled decode, and power-policy response.
@@ -101,18 +106,18 @@ cross-topology predictions are \emph{extrapolated}; and only L1--L4 telemetry
 is \emph{measured}.  This vocabulary is encoded in the artifact schema and
 used in every table and plot.
 
-\subsection{Hybrid Belief-State Policy and \ipig}
+\subsection{Hybrid Belief-State Policy and \ipig{}}
 
 The controller observes predictive uncertainty, Pareto ambiguity, distance to
 an SLO boundary, topology novelty, remaining budget, and run failures within
 the loop in Figure~\ref{fig:architecture}.  It rejects invalid candidates
 deterministically.  For each $x$, define high-fidelity feasibility and Pareto
 membership variables $Q_x=\mathbf 1[q_S(x)=1]$ and
-$P_x=\mathbf 1[x\in\mathcal X_S^*]$.  The intent-specific terminal decision is
+$P_x=\mathbf 1[x\in\mathcal P_S^*]$.  The intent-specific terminal decision is
 \begin{equation}
 \Omega_S=\{(Q_x,P_x):x\in\mathcal X_S\}.
 \end{equation}
-For an admissible action $a=(x,\ell)$ with possible observation $Y_a$, \ipig\
+For an admissible action $a=(x,\ell)$ with possible observation $Y_a$, \ipig{}\
 scores
 \begin{equation}
 \alpha_t(a\mid S)=
@@ -125,7 +130,10 @@ SLO-feasible Pareto decision, not generic prediction variance.  We estimate it
 with nested posterior sampling: samples of the L4 response surface induce
 discrete $\Omega_S$ states; possible outcomes at $(x,\ell)$ reweight those
 particles; and their empirical entropy reduction is averaged over outcomes.
-Consequently, \ipig\ assigns little value to precisely measuring a candidate
+To keep acquisition tractable, deterministic screening retains candidates
+whose feasibility or dominance probability is nontrivial, and actions that
+cannot fit the remaining budget are removed before posterior scoring.
+Consequently, \ipig{}\ assigns little value to precisely measuring a candidate
 that cannot change feasibility or dominance and may prefer a cheap L2 probe to
 an L3 run when both resolve the same ambiguity.
 

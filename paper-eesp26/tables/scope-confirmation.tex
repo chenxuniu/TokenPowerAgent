@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Preregistered scope confirmation without refitting.  Each row is
+MAPE over three unseen contexts and three real H100 repeats per context.}
+\label{tab:scope-confirmation}
+\scriptsize
+\setlength{\tabcolsep}{2.7pt}
+\begin{tabular}{@{}crrrrl@{}}
+\toprule
+$k$ & Energy & Throughput & TPOT & TTFT & Release gate \\
+\midrule
+1 & \KOneEnergyMAPE & \KOneThroughputMAPE & \KOneTPOTMAPE & \KOneTTFTMAPE & TTFT abstain \\
+2 & \KTwoEnergyMAPE & \KTwoThroughputMAPE & \KTwoTPOTMAPE & \KTwoTTFTMAPE & TTFT abstain \\
+4 & \KFourEnergyMAPE & \KFourThroughputMAPE & \KFourTPOTMAPE & \KFourTTFTMAPE & pass \\
+\midrule
+All & \ConfirmationEnergyMAPE & \ConfirmationThroughputMAPE & \ConfirmationTPOTMAPE & \ConfirmationTTFTMAPE & energy pass \\
+\bottomrule
+\end{tabular}
+\end{table}

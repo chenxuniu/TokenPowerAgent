@@ -1,0 +1,84 @@
+\section{Introduction}
+
+For a long-lived deployed AI service, repeated inference can dominate its
+operational energy, and the cost of each generated token depends strongly on
+the request profile and serving configuration
+\cite{samsi2023words,niu2025engines,fernandez2025energy}.  Batch and token
+limits, chunked prefill, prefix caching, precision, and power policy
+jointly determine throughput, time to first token (TTFT), time per output token
+(TPOT), and energy.  Long prompts emphasize prefill compute, long responses
+emphasize memory-intensive decode, and request concurrency changes batch
+occupancy and queueing.  Choosing the serving configuration is therefore an
+energy decision as well as a performance decision.
+
+The obvious solution, serving the workload under every candidate and measuring
+the result, is often unavailable.  H100/H200/B200 allocations are scarce,
+a dense sweep spends the most valuable evidence on configurations that a CPU
+model or short probe could have eliminated.  Yet cheap evidence is not hardware
+truth.  A CPU model can mispredict a latency boundary even when its energy
+ranking is useful, while a short run may not reproduce the batching and
+queueing behavior of the full target trace.  The central systems question is
+thus not merely
+\emph{which configuration is best?}, but \emph{which
+configuration--fidelity pair should be evaluated next under a GPU-hour budget?}
+
+The measurement path itself is increasingly mature.  \bench{} provides
+declarative, phase-aligned GPU, node, and system telemetry for inference
+\cite{niu2026tokenpowerbench}.  BEAM jointly controls
+batching and frequency using an offline energy--performance table, BOute applies
+multi-objective Bayesian optimization to deployment choices, and OptiKIT uses
+full hardware trials for serving tuning
+\cite{lee2026beam,jiang2026boute,santavas2026optikit}.  Charon and a Meta
+deployment study make broad search practical through calibrated simulation,
+while PROMPTS adds agent reasoning to distributed configuration recommendation
+\cite{yang2026charon,cho2026deployment,ding2026prompts}.  These systems optimize
+a configuration, runtime action, or agent proposal.  They do not jointly choose
+the cost and scale of the next observation while requiring measured evidence
+before releasing an energy--SLO recommendation.
+
+We present \system{}, an evidence-gated, multi-fidelity search framework built
+on \bench{}.  A scenario specifies the model, workload, target GPU, serving
+runtime, SLOs, candidate knobs, and measurement budget.  \system{} compiles a
+typed feasible pool and selects actions $a=(x,e)$, where $x$ is a serving
+configuration and $e$ is \textsc{Sandbox}, \textsc{Probe}, or
+\textsc{Verify}.  Its
+\emph{Intent-Conditioned Pareto Information Gain} (\ipig{}) interface scores the
+expected reduction in uncertainty about the verified SLO-feasible frontier per
+GPU-hour.  An LLM maps natural-language intent to a typed subgoal and explains
+failures; deterministic tools compile candidates, score actions, account for
+cost, ingest telemetry, compute Pareto sets, and enforce final verification.
+The LLM never generates energy estimates or receives release authority.
+
+We evaluate the evidence substrate, fidelity ladder, acquisition policy, and
+semantic planner on one H100.  A frozen CPU model is tested on
+\BlindMeasurements{} blind Qwen2.5-7B workload-transfer measurements.  A
+separate preregistered \ConfigurationCandidates{}-candidate serving grid then
+varies sequence capacity, batched-token limits, and chunked prefill.  Its
+\ConfigurationMeasuredRuns{} balanced Probe/Verify measurements show Sandbox
+missing the Pareto decision, Probe recovering it at \LoneParetoRecall{} recall,
+and Verify removing false positives.  A frozen \WinnerConfirmationPairs{}-pair
+follow-up independently confirms the locked winner.  Corrected replay compares
+four policies across five GPU-hour budgets, while two frozen
+\PlannerCallsPerSet{}-call protocols separate raw LLM proposals from admitted
+subgoals.  The corpus is sealed before replay, so its exhaustive collection
+cost establishes ground truth rather than an agent-savings claim.
+
+This paper makes four contributions:
+\begin{itemize}
+    \item We formulate energy-aware inference tuning as \emph{budgeted
+    configuration--fidelity co-selection}: recover an SLO-feasible
+    energy--performance frontier while minimizing real GPU-hours spent acquiring
+    and verifying evidence.
+    \item We design \sandbox{}, a three-stage evidence contract that combines
+    CPU-first projection, a short measured probe, uncertainty, immutable
+    provenance, and mandatory full-workload verification on one target GPU.
+    \item We implement a bounded hybrid agent with an \ipig{} policy interface,
+    typed executors, failure-aware reflection, a state-priority semantic guard,
+    hard budget enforcement, and a deterministic release gate.
+    \item We provide \BlindMeasurements{} blind workload-transfer runs and a
+    \ConfigurationMeasuredRuns{}-run configuration corpus plus an independent
+    \WinnerConfirmationPairs{}-pair winner confirmation.  They quantify when
+    Sandbox requires escalation; sealed replay compares four policies across
+    \BudgetLevels{} budgets without new measurements, and a disjoint planner
+    holdout measures proposal accuracy, guard intervention, and latency.
+\end{itemize}

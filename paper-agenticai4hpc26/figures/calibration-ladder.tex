@@ -1,0 +1,53 @@
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  x=1cm,y=1cm,
+  every node/.style={font=\sffamily},
+  level/.style={draw=tpGray,rounded corners=2pt,minimum height=2.72cm,
+    text width=4.12cm,align=center,inner sep=4pt,font=\scriptsize},
+  guard/.style={draw=tpGray!65,rounded corners=1.5pt,fill=white,
+    text width=1.24cm,align=center,inner sep=2pt,font=\scriptsize\bfseries},
+  flow/.style={-{Stealth[length=2.4mm]},line width=0.95pt,draw=tpGray}
+]
+  \node[level,fill=tpGrayLight] (l0) at (2.35,0.50)
+    {\textbf{CPU Sandbox}\\[3pt]
+     \textbf{Cost:} 0 target-GPU hours\\
+     12 frozen predictions\\[2pt]
+     energy $\rho=\LzeroEnergySpearman{}$;
+     TTFT $\rho=\LzeroTTFTSpearman{}$\\
+     \textcolor{tpRoseDark}{verified-Pareto recall: \LzeroParetoRecall{}}\\[2pt]
+     \emph{simulated; never releasable}};
+
+  \node[guard] (g1) at (5.25,0.50) {SLO or\\ranking\\uncertain};
+
+  \node[level,fill=tpBlueLight] (l1) at (8.16,0.50)
+    {\textbf{Short H100 Probe}\\[3pt]
+     \textbf{Cost:} 64 requests per run\\
+     \ConfigurationLoneRuns{} measured runs\\[2pt]
+     energy MAPE \LoneEnergyMAPE{}\\
+     \textcolor{tpTealDark}{verified-Pareto recall: \LoneParetoRecall{}}\\[2pt]
+     \emph{measured; provisional only}};
+
+  \node[guard] (g2) at (11.07,0.50) {top-$k$\\within\\budget};
+
+  \node[level,fill=tpRoseLight] (l4) at (13.98,0.50)
+    {\textbf{Full H100 Verify}\\[3pt]
+     \textbf{Cost:} 256-request target run\\
+     \ConfigurationLfourRuns{} measured runs\\[2pt]
+     one verified Pareto configuration\\
+     energy $-\ParetoEnergyReduction{}$ vs. expert\\[2pt]
+     \emph{verified; recommendation releasable}};
+
+  \draw[flow] (l0.east) -- (g1.west);
+  \draw[flow] (g1.east) -- (l1.west);
+  \draw[flow] (l1.east) -- (g2.west);
+  \draw[flow] (g2.east) -- (l4.west);
+  \draw[-{Stealth[length=2.5mm]},very thick,tpRose]
+    (0.12,-1.31) -- node[below,font=\scriptsize\bfseries,text=tpRoseDark]
+    {increasing fidelity and GPU-hour cost; decreasing recommendation risk} (16.20,-1.31);
+\end{tikzpicture}
+\caption{The three operational stages evaluated on one H100.  The Sandbox
+screens cheaply, the Probe avoids false negatives, and full verification
+removes false positives before recommendation.}
+\label{fig:calibration}
+\end{figure*}

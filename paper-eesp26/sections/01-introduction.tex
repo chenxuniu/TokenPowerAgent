@@ -1,0 +1,55 @@
+\section{Introduction}
+
+LLM inference is a continuous operational workload and increasingly dominates
+the lifecycle energy of deployed AI services.  Its energy cost is not fixed by
+model size alone: workload profiles---including token lengths, concurrency,
+and arrival rate---and serving configurations---including batching, KV-cache
+controls, precision, inference engine, power cap, and tensor/pipeline
+parallelism (TP/PP)---can materially change energy per token, throughput, time
+to first token (TTFT), and time per output token (TPOT)
+\cite{niu2026tokenpowerbench}.  Selecting an energy-efficient serving
+configuration for a target workload is therefore a central deployment
+decision.
+
+A direct search would instantiate each candidate on its target accelerator and
+measure both energy and service-level objectives (SLOs).  This is expensive on
+HPC clusters: H100-class GPU nodes are scarce and queue-delayed, each trial
+consumes accelerator time, and multi-GPU or multi-node configurations magnify
+the cost.  CPU allocations can instead execute deterministic projections
+without reserving accelerators, making them attractive for pre-screening.
+Their estimates, however, are not hardware evidence.
+
+Measurement systems establish what a completed run consumed
+\cite{samsi2023words,fernandez2025energy,chung2025mlenergy}; \bench{} adds
+phase-aligned device and node telemetry across LLM inference configurations
+\cite{niu2026tokenpowerbench}.  Serving simulators and learned recommendation
+systems reduce live experimentation \cite{agrawal2024vidur,lazuka2024llmpilot,
+yang2026charon}.  Pre-deployment energy modeling nevertheless has a separate
+trust question: does a cheap model preserve the energy--SLO ordering that drives
+the next experiment, and can its failure be detected before deployment?
+
+We ask: \emph{how can CPU-accessible projections and sparse real measurements
+support auditable screening of unseen workload profiles before an energy-aware
+serving search purchases target-GPU trials?}  \system{} is not a Docker image
+or a set of virtual GPUs.  It is a multi-fidelity workflow comprising a
+CPU-resident analytical model, a restricted real-GPU executor, and an evidence
+gate.  Docker isolates and pins measured execution; the sandbox is the larger
+HPC resource and evidence contract shown in Fig.~\ref{fig:sandbox-ladder}.
+
+This work makes three bounded contributions:
+\begin{itemize}
+  \item A CPU-first, GPU-verified evidence contract that separates workload
+  from deployment controls and rejects comparisons with mismatched provenance
+  or chronology.
+  \item An interpretable workload-transfer model that combines analytical
+  compute, memory, and power terms with a four-feature log-residual fitted only
+  on development workloads.
+  \item Two sealed H100/Qwen2.5-7B holdouts with \BlindMeasurements{} real
+  measurements: \CalibratedEnergyMAPE{} and \ConfirmationEnergyMAPE{} energy
+  MAPE, plus a preregistered decision that releases TTFT at concurrency four
+  and abstains below it.
+\end{itemize}
+
+The contribution is the evidence substrate, not yet an LLM agent, a GPU-queue
+scheduler, or a verified TP/PP simulator.  Search policies can consume it only
+where the measured scope gate permits.

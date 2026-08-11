@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "profile_id": "replaced-by-build-calibration",
+  "publication_eligible": false,
+  "uncertainty_calibrated": false,
+  "metadata": {
+    "purpose": "Descriptor template for measured Qwen2.5-7B H100 L1 records",
+    "warning": "Replace synthetic topology values with measured NCCL results before publication"
+  },
+  "model_architecture": {
+    "model_id": "Qwen/Qwen2.5-7B-Instruct",
+    "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "parameter_count_b": 7.61,
+    "num_layers": 28,
+    "hidden_size": 3584,
+    "num_attention_heads": 28,
+    "num_kv_heads": 4,
+    "weight_bytes_per_parameter": 2,
+    "activation_bytes_per_element": 2,
+    "kv_dtype_bytes": 2,
+    "tp_collectives_per_layer": 2
+  },
+  "hardware": {
+    "gpu_name": "NVIDIA H100 80GB HBM3",
+    "gpu_memory_gib": 79.65,
+    "gpus_per_node": 8,
+    "max_nodes": 2,
+    "intra_node_bandwidth_gb_s": 450,
+    "inter_node_bandwidth_gb_s": 50,
+    "intra_node_latency_us": 2,
+    "inter_node_latency_us": 8,
+    "idle_power_w": 62,
+    "active_power_w": 700,
+    "memory_utilization": 0.9,
+    "topology_source": "synthetic-placeholder; replace with measured NCCL topology"
+  },
+  "assumptions": {
+    "batch_saturation_concurrency": 8,
+    "prefill_length_exponent": 0.9,
+    "decode_context_exponent": 0.18,
+    "chunk_overhead_fraction": 0.04,
+    "runtime_overhead_gib": 4,
+    "allreduce_efficiency": 0.75,
+    "point_to_point_efficiency": 0.8,
+    "communication_power_fraction": 0.65,
+    "l0_a_relative_uncertainty": 0.38,
+    "l0_t_relative_uncertainty": 0.22,
+    "workload_distance_weight": 0.07,
+    "scale_distance_weight": 0.04,
+    "cross_node_penalty": 0.12,
+    "pipeline_penalty": 0.04,
+    "interval_coverage_target": 0.8
+  },
+  "calibration_points": []
+}

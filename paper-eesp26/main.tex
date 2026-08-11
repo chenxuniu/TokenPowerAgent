@@ -1,0 +1,63 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{balance}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,fit,positioning}
+\usepackage[hidelinks,hypertexnames=false]{hyperref}
+\vfuzz=2pt
+
+\definecolor{tpRose}{HTML}{C65A71}
+\definecolor{tpRoseLight}{HTML}{F7E4E9}
+\definecolor{tpRoseDark}{HTML}{8A3046}
+\definecolor{tpBlueLight}{HTML}{E4F0F5}
+\definecolor{tpTealLight}{HTML}{E1F1EC}
+\definecolor{tpTealDark}{HTML}{2E7065}
+\definecolor{tpGoldLight}{HTML}{F6EFD7}
+\definecolor{tpGray}{HTML}{53606A}
+\definecolor{tpGrayLight}{HTML}{EEF1F2}
+
+\newcommand{\system}{TokenPowerSandbox}
+\newcommand{\bench}{TokenPowerBench}
+\input{results/metrics.tex}
+
+\hypersetup{
+  pdftitle={TokenPowerSandbox: Evidence-Gated Multi-Fidelity Screening for Energy-Efficient LLM Inference on HPC Clusters},
+  pdfauthor={Anonymous Authors},
+  pdfsubject={SC EESP 2026 short paper},
+  pdfkeywords={LLM inference, energy efficiency, multi-fidelity screening, HPC clusters}
+}
+
+\title{\LARGE \system{}: Evidence-Gated Multi-Fidelity Screening\\
+for Energy-Efficient LLM Inference on HPC Clusters}
+
+\author{\IEEEauthorblockN{Anonymous Authors}}
+
+\begin{document}
+\maketitle
+
+\input{sections/00-abstract}
+\input{sections/01-introduction}
+\input{figures/sandbox-ladder}
+\input{sections/02-measurement-question}
+\input{sections/03-design}
+\input{sections/04-evaluation}
+\input{sections/04-artifact-roadmap}
+\input{sections/05-evaluation-criteria}
+\balance
+\input{sections/05-related-work}
+\input{sections/06-limitations-conclusion}
+\input{sections/99-ai-disclosure}
+
+\clearpage
+\nobalance
+\balance
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

@@ -1,0 +1,91 @@
+{
+  "schema_version": "2.0",
+  "status": "final blind holdout sealed; do not refit",
+  "platform": {
+    "host": "ipp2-0052",
+    "gpu": "NVIDIA H100 80GB HBM3",
+    "power_limit_w": 700,
+    "driver_version": "580.173.02",
+    "dcgm_version": "4.6.1"
+  },
+  "software": {
+    "vllm_version": "0.23.0",
+    "container_digest": "6d8429e38e3747723ca07ee1b17972e09bb9c51c4032b266f24fb1cc3b22ed8f",
+    "model_id": "Qwen/Qwen2.5-7B-Instruct",
+    "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "tokenizer_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "analysis_commit": "a9925bc30cd9fd82556a7f49b33f6760c4330d9a"
+  },
+  "artifacts": {
+    "campaign_sha256": "e24bfd51ed692e51cba69ffcbf2fdf89c484fd80e57e128755c2e940eda5b787",
+    "development_report_sha256": "3e2c99a89831b60bd88bce1e22597806691c2e0ac6f59ff68ee3bc59f943d558",
+    "v2_profile_sha256": "68c474085e5eb99717b4e1bb68a66bb937d8e142f8efaad456a480898cbdc4da",
+    "freeze_manifest_sha256": "4c8f42cdbbb335488b80d4a77ea5223ec20f79ac4542e20dd2d35bbab4b6a1d9",
+    "prediction_sha256": "e0f5e632e190a458d447027577e92595821fdd8eaeb234d92deddb7aaec23c41",
+    "measurement_sha256": "01c1a2bca6e583bb0d5e22a326ae1d79c49ca8ae393df37380d730504c85f973",
+    "raw_artifact_manifest_sha256": "6e387504865f040bf9253a7570aec8e6777115e2ef27ee136f1107e168c1ea38",
+    "validation_report_sha256": "45284cf91562fc9e1767ed1f283a3bfeac16319f0202ace4a49dcf1bb6d43ffb",
+    "archive_sha256": "2d74179245392d44f2efd2fbc5601b4721e278f206e45970c5953481e12ecafb"
+  },
+  "chronology": {
+    "last_prediction_created_at": "2026-08-04T17:31:19.367288+00:00",
+    "first_measurement_created_at": "2026-08-04T17:37:04.386723+00:00",
+    "prediction_precedes_measurements": true,
+    "prediction_manifest_verified": true,
+    "raw_artifact_manifest_verified": true
+  },
+  "protocol": {
+    "anchor_repeats": 3,
+    "development_workloads": 6,
+    "development_measurements": 18,
+    "holdout_workloads": 8,
+    "holdout_repeats_per_workload": 3,
+    "holdout_measurements": 24,
+    "raw_artifact_manifest_entries": 62,
+    "schedule": "cyclic-balanced",
+    "all_holdout_runs_succeeded": true,
+    "output_tokens": 128,
+    "request_rate": "inf"
+  },
+  "blind_holdout": {
+    "energy_j_per_1k_output_tokens": {
+      "base_mape_pct": 63.01334391070427,
+      "corrected_mape_pct": 6.227225029897492,
+      "corrected_median_ape_pct": 4.9619729637822605,
+      "corrected_max_ape_pct": 13.834999094595815,
+      "spearman_rank_correlation": 0.9761904761904762,
+      "pairwise_order_accuracy": 0.9642857142857143,
+      "pairwise_concordant_pairs": 27,
+      "pairwise_comparable_pairs": 28,
+      "median_repeat_cv_pct": 0.7810938722485867
+    },
+    "throughput_tok_s": {
+      "base_mape_pct": 23.9264574489843,
+      "corrected_mape_pct": 10.534481060057798,
+      "spearman_rank_correlation": 0.9761904761904762,
+      "pairwise_order_accuracy": 0.9642857142857143,
+      "median_repeat_cv_pct": 0.2016548304150198
+    },
+    "ttft_ms": {
+      "base_mape_pct": 73.43498210345372,
+      "corrected_mape_pct": 32.66912898967363,
+      "spearman_rank_correlation": 0.9523809523809523,
+      "pairwise_order_accuracy": 0.9285714285714286,
+      "median_repeat_cv_pct": 1.7373918367294772
+    },
+    "tpot_ms": {
+      "base_mape_pct": 34.28627348746721,
+      "corrected_mape_pct": 7.989273184695917,
+      "spearman_rank_correlation": 0.9285714285714286,
+      "pairwise_order_accuracy": 0.8928571428571429,
+      "median_repeat_cv_pct": 0.113269656323527
+    },
+    "diagnostics": {
+      "avg_power_mape_pct": 8.102847706024434,
+      "duration_mape_pct": 8.156178558502573,
+      "uncalibrated_interval_containment": "31/32",
+      "development_and_holdout_gpu_hours": 0.259183,
+      "holdout_gpu_hours": 0.1441018
+    }
+  }
+}

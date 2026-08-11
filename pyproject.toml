@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tokenpoweragent"
 version = "0.1.0"
-description = "Agentic multi-fidelity Pareto search for energy-efficient LLM inference"
+description = "Agentic multi-fidelity discovery of verified LLM deployment profiles"
 readme = "README.md"
 requires-python = ">=3.9"
-authors = [{name = "TokenPowerAgent Authors"}]
+authors = [{name = "ServeCompass Authors"}]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Science/Research",
@@ -23,6 +23,7 @@ yaml = ["PyYAML>=6"]
 
 [project.scripts]
 tokenpoweragent = "tokenpoweragent.cli:main"
+servecompass = "tokenpoweragent.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

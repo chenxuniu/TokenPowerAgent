@@ -1,0 +1,34 @@
+{
+  "campaign_id": "qwen2.5-7b-h100-scope-confirmation-v3",
+  "campaign_sha256": "ad0e80d60ba03c879c2b8481ea1ffc0a8e73856e7a48cf884d504a4837d11f98",
+  "dataset_splits": {
+    "confirm-c1536-o128-k1": "holdout",
+    "confirm-c1536-o128-k2": "holdout",
+    "confirm-c1536-o128-k4": "holdout",
+    "confirm-c384-o128-k1": "holdout",
+    "confirm-c384-o128-k2": "holdout",
+    "confirm-c384-o128-k4": "holdout",
+    "confirm-c768-o128-k1": "holdout",
+    "confirm-c768-o128-k2": "holdout",
+    "confirm-c768-o128-k4": "holdout"
+  },
+  "level": "L0",
+  "prediction_count": 9,
+  "profile_id": "qwen2.5-7b-h100-workload-v2",
+  "profile_publication_eligible": false,
+  "profile_sha256": "68c474085e5eb99717b4e1bb68a66bb937d8e142f8efaad456a480898cbdc4da",
+  "schema_version": "1.0",
+  "uncertainty_calibrated": false,
+  "validation_required": true,
+  "workload_ids": [
+    "confirm-c384-o128-k1",
+    "confirm-c384-o128-k2",
+    "confirm-c384-o128-k4",
+    "confirm-c768-o128-k1",
+    "confirm-c768-o128-k2",
+    "confirm-c768-o128-k4",
+    "confirm-c1536-o128-k1",
+    "confirm-c1536-o128-k2",
+    "confirm-c1536-o128-k4"
+  ]
+}

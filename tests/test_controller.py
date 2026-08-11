@@ -1,8 +1,13 @@
 from pathlib import Path
 
+from tokenpoweragent.agent import ServeCompass
 from tokenpoweragent.agent.controller import TokenPowerAgent
 from tokenpoweragent.executors.replay import ReplayExecutor
 from tokenpoweragent.schema import Scenario
+
+
+def test_servecompass_public_name_preserves_legacy_controller() -> None:
+    assert ServeCompass is TokenPowerAgent
 
 
 ROOT = Path(__file__).resolve().parents[1]

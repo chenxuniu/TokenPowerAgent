@@ -1,0 +1,16 @@
+experiment_id,budget_gpu_hours,baseline_policy,baseline_only_hit,both_hit,ipig_only_hit,neither_hit
+budget_sweep_v1,0.04,cheapest-first,0,0,0,500
+budget_sweep_v1,0.04,cost-blind,0,0,0,500
+budget_sweep_v1,0.04,random,0,0,0,500
+budget_sweep_v1,0.06,cheapest-first,0,0,0,500
+budget_sweep_v1,0.06,cost-blind,0,0,0,500
+budget_sweep_v1,0.06,random,6,0,0,494
+budget_sweep_v1,0.08,cheapest-first,106,274,44,76
+budget_sweep_v1,0.08,cost-blind,0,318,0,182
+budget_sweep_v1,0.08,random,23,68,250,159
+budget_sweep_v1,0.1,cheapest-first,0,318,0,182
+budget_sweep_v1,0.1,cost-blind,0,318,0,182
+budget_sweep_v1,0.1,random,22,174,144,160
+budget_sweep_v1,0.12,cheapest-first,0,318,0,182
+budget_sweep_v1,0.12,cost-blind,0,318,0,182
+budget_sweep_v1,0.12,random,19,212,106,163

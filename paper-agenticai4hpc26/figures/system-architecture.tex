@@ -1,0 +1,12 @@
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/results/fig2_system_overview.pdf}
+\caption{\system{} overview.  The scenario compiler freezes a typed candidate
+set and feasibility constraints.  The language model proposes an experiment
+subgoal, the state guard admits or repairs it, and \ipig{} selects a
+candidate--stage action.  The Energy Twin and deterministic tools produce
+CPU predictions or measured H100 evidence, update uncertainty and the Pareto
+set, and append telemetry and hashes to the evidence store.  Only full
+target-workload Verify evidence can authorize the final recommendation.}
+\label{fig:architecture}
+\end{figure*}

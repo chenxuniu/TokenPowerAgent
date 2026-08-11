@@ -1,0 +1,150 @@
+{
+  "by_concurrency": [
+    {
+      "concurrency": 1,
+      "energy_mape_pct": 5.775109206200527,
+      "throughput_mape_pct": 24.01524299785741,
+      "tpot_mape_pct": 18.250936392659604,
+      "ttft_mape_pct": 79.26677008987018,
+      "workload_count": 3
+    },
+    {
+      "concurrency": 2,
+      "energy_mape_pct": 9.151199911692467,
+      "throughput_mape_pct": 7.893532127253597,
+      "tpot_mape_pct": 6.89598967837272,
+      "ttft_mape_pct": 50.34269319056121,
+      "workload_count": 3
+    },
+    {
+      "concurrency": 4,
+      "energy_mape_pct": 7.118792317595691,
+      "throughput_mape_pct": 2.0139320704667716,
+      "tpot_mape_pct": 1.940749782273731,
+      "ttft_mape_pct": 9.273277434348701,
+      "workload_count": 3
+    }
+  ],
+  "evidence": {
+    "campaign_id": "qwen2.5-7b-h100-scope-confirmation-v3",
+    "campaign_sha256": "ad0e80d60ba03c879c2b8481ea1ffc0a8e73856e7a48cf884d504a4837d11f98",
+    "holdout_valid": true,
+    "measurement_count": 27,
+    "model_update_contract": "none",
+    "predictions_precede_measurements": true,
+    "raw_artifact_manifest_sha256": "a006d6017b7eb9c1a7213413fa46e635bec92ed78d2cc7d1b9e4d05b23b4ed5d",
+    "report_sha256": "aa4dca7e20538d2e9f4fb56a3a3c9dd38c88bafc31b70145614ea543c8b7d7fa",
+    "workload_count": 9
+  },
+  "latency_scope": {
+    "decision": "support_latency_at_concurrency_ge_4_abstain_below_4",
+    "metric": "ttft_ms",
+    "sparse_stratum": {
+      "abstention_threshold_mape_pct": 20.0,
+      "exceeds_threshold": true,
+      "maximum_ape_pct": 124.36171946720076,
+      "maximum_concurrency": 2,
+      "observed_mape_pct": 64.80473164021569,
+      "workload_count": 6
+    },
+    "supported_stratum": {
+      "concurrency": 4,
+      "maximum_ape_pct": 14.546312432787001,
+      "observed_mape_pct": 9.273277434348701,
+      "passed": true,
+      "threshold_mape_pct": 20.0,
+      "workload_count": 3
+    }
+  },
+  "per_workload": [
+    {
+      "concurrency": 1,
+      "context_tokens": 384,
+      "energy_ape_pct": 2.649430491261127,
+      "throughput_ape_pct": 7.339803915676157,
+      "tpot_ape_pct": 7.116764909547301,
+      "ttft_ape_pct": 30.908935494566187,
+      "workload_id": "confirm-c384-o128-k1"
+    },
+    {
+      "concurrency": 2,
+      "context_tokens": 384,
+      "energy_ape_pct": 9.375064274046817,
+      "throughput_ape_pct": 0.7523734144162141,
+      "tpot_ape_pct": 1.1851121001678944,
+      "ttft_ape_pct": 19.474185816397625,
+      "workload_id": "confirm-c384-o128-k2"
+    },
+    {
+      "concurrency": 4,
+      "context_tokens": 384,
+      "energy_ape_pct": 10.932856236244431,
+      "throughput_ape_pct": 0.9215799255104483,
+      "tpot_ape_pct": 1.1433456231830297,
+      "ttft_ape_pct": 1.5726850937782595,
+      "workload_id": "confirm-c384-o128-k4"
+    },
+    {
+      "concurrency": 1,
+      "context_tokens": 768,
+      "energy_ape_pct": 5.078159261564985,
+      "throughput_ape_pct": 22.365366279034745,
+      "tpot_ape_pct": 18.460977812932803,
+      "ttft_ape_pct": 82.5296553078436,
+      "workload_id": "confirm-c768-o128-k1"
+    },
+    {
+      "concurrency": 2,
+      "context_tokens": 768,
+      "energy_ape_pct": 8.427136693875358,
+      "throughput_ape_pct": 6.662414359923489,
+      "tpot_ape_pct": 6.014067706110151,
+      "ttft_ape_pct": 65.74926316728171,
+      "workload_id": "confirm-c768-o128-k2"
+    },
+    {
+      "concurrency": 4,
+      "context_tokens": 768,
+      "energy_ape_pct": 5.279815292729106,
+      "throughput_ape_pct": 1.030486017961738,
+      "tpot_ape_pct": 0.9094895496750518,
+      "ttft_ape_pct": 14.546312432787001,
+      "workload_id": "confirm-c768-o128-k4"
+    },
+    {
+      "concurrency": 1,
+      "context_tokens": 1536,
+      "energy_ape_pct": 9.59773786577547,
+      "throughput_ape_pct": 42.34055879886133,
+      "tpot_ape_pct": 29.175066455498712,
+      "ttft_ape_pct": 124.36171946720076,
+      "workload_id": "confirm-c1536-o128-k1"
+    },
+    {
+      "concurrency": 2,
+      "context_tokens": 1536,
+      "energy_ape_pct": 9.651398767155227,
+      "throughput_ape_pct": 16.26580860742109,
+      "tpot_ape_pct": 13.488789228840115,
+      "ttft_ape_pct": 65.80463058800429,
+      "workload_id": "confirm-c1536-o128-k2"
+    },
+    {
+      "concurrency": 4,
+      "context_tokens": 1536,
+      "energy_ape_pct": 5.143705423813537,
+      "throughput_ape_pct": 4.089730267928128,
+      "tpot_ape_pct": 3.7694141739631113,
+      "ttft_ape_pct": 11.700834776480844,
+      "workload_id": "confirm-c1536-o128-k4"
+    }
+  ],
+  "primary_endpoint": {
+    "metric": "energy_j_per_1k_output_tokens",
+    "observed_mape_pct": 7.348367145162895,
+    "passed": true,
+    "population": "all_workloads",
+    "threshold_mape_pct": 15.0
+  },
+  "schema_version": "1.0"
+}

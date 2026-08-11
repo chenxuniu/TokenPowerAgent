@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "rq2-agent-search-efficiency-v1",
+  "research_question": "Does fidelity selection recover the verified Pareto set with fewer GPU-hours?",
+  "claim_status": "preregistered-no-results",
+  "oracle": {
+    "source": "immutable held-out real serving sweep",
+    "visibility": "a record is revealed only after the policy purchases that action",
+    "final_recommendation": "independent L4 record only"
+  },
+  "methods": [
+    "random-search",
+    "uniform-grid",
+    "largest-fitting-batch-heuristic",
+    "single-fidelity-bo",
+    "qnehvi",
+    "tokenpoweragent-full",
+    "tokenpoweragent-no-uncertainty",
+    "tokenpoweragent-no-topology",
+    "tokenpoweragent-no-l1",
+    "tokenpoweragent-no-l2",
+    "tokenpoweragent-no-l4-gate"
+  ],
+  "policy_seeds": 20,
+  "budget_axis": "cumulative_gpu_hours_including_one_time_calibration",
+  "checkpoints_fraction_of_exhaustive_cost": [0.05, 0.1, 0.2, 0.4, 0.8, 1.0],
+  "metrics": [
+    "pareto_recall",
+    "pareto_precision",
+    "dominated_hypervolume_regret",
+    "energy_regret_at_slo",
+    "trials_to_first_feasible",
+    "gpu_hours_to_80_percent_pareto_recall",
+    "failed_action_rate"
+  ],
+  "primary_gate": {
+    "budget_fraction": 0.2,
+    "pareto_recall_min": 0.8,
+    "median_energy_regret_at_slo_max": 0.05
+  },
+  "statistics": {
+    "summary": "median and 95% bootstrap confidence interval over policy seeds",
+    "paired_comparison": "same oracle and seed schedule for every method"
+  }
+}

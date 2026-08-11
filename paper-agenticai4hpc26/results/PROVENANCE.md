@@ -1,0 +1,113 @@
+# Measured Result Provenance
+
+The Workshop metrics in `metrics.tex` were checked against the following sealed
+archives on August 4--5, 2026. Raw telemetry is intentionally kept out of Git;
+these digests identify the immutable source bundles.
+
+| Evidence bundle | SHA-256 |
+|---|---|
+| `tpa-qwen7b-holdout-v2-final-20260804.tar.gz` | `2d74179245392d44f2efd2fbc5601b4721e278f206e45970c5953481e12ecafb` |
+| `tpa-qwen7b-scope-v3-final-20260804.tar.gz` | `9a4dbfa5be8c703aea6104a8cb4ef8a890876603ee05a624780d6f43d22cd3fd` |
+| `tpa-qwen7b-config-search-v1-final-20260805.tar.gz` | `d157300787af4cf16379bd316e7138da00279463c381149bc99605d5af851b33` |
+| `tpa-qwen7b-policy-benchmark-v1-20260805.tar.gz` | `280e6fb95f0a159fc184cb5aa6b2350eb0fe250579e74ae0cea4d824b4ab32bc` |
+| `tpa-qwen7b-policy-bootstrap-v2-20260805.tar.gz` | `08eed18a5d1bb73f8042f4bb2a2f76e7f7634c90b49c7adf6bd9708de9d3293e` |
+| `tpa-qwen7b-planner-guard-v1-v2-20260805.tar.gz` | `6bee92c0c57d7311ea43a671f7e70d67415e3b065bea1c77240d44c532c340b9` |
+| `tpa-qwen7b-winner-confirmation-v1-final-20260805.tar.gz` | `f6e011f88cefbb884db77e885caaa6585b524cd8299ef001fe808b33296abc52` |
+
+## Cross-Checked Headline Values
+
+| Study | Workloads | Measurements | Energy MAPE | Spearman |
+|---|---:|---:|---:|---:|
+| Holdout v2 | 8 | 24 | 6.227225% | 0.976190 |
+| Scope confirmation v3 | 9 | 27 | 7.348367% | 0.933333 |
+
+## Configuration Corpus
+
+The preregistered grid contains 12 candidates and 72 successful measurements
+(36 L1 and 36 L4). L0 energy MAPE/rank correlation are 19.448074%/0.884060;
+L1 values are 1.153024%/0.874126. L0 has 0% L4-Pareto recall because TTFT rank
+correlation is -0.968427. L1 has 100% recall and 33.333% precision. Median L4
+measurements identify `seq32-bt2048-chunk` as the unique Pareto point.
+
+The bundle contains 196 entries and verifies 190 raw artifacts. Its internal
+measurement, report, and replay-corpus SHA-256 values are:
+
+- measurement: `4a6bac3b82117cd5265d0d66e57b412b966f071dcdf79e16f1504a60bea096f0`;
+- validation report: `b6aa51dc7e9c3912622e278718f7b1ea55fee9b0b387a5776fcb0af678dd447f`;
+- replay corpus: `2811f77938f349b95ec679804dcb0d262377fd0d7277d3740a73dd1815c8a471`.
+
+## Independent Winner Confirmation
+
+After locking `seq32-bt2048-chunk` as the selected configuration and
+`expert-seq256-bt8192-chunk` as the expert baseline, a separate alternating
+campaign ran five seed-matched L4 pairs without refitting or reselection. All
+10 runs succeeded and satisfied the frozen 1600-ms TTFT and 20-ms TPOT SLOs.
+The selected configuration won all five energy pairs and reduced energy by
+1.389010% on average (95% CI [1.192026%, 1.585894%], one-sided exact sign-test
+$p=0.03125$). Median paired TTFT reduction was 21.431332%; total confirmation
+cost was 0.095599 GPU-h.
+
+The independently checked internal identifiers are:
+
+- analysis commit: `42cf0d1694a239e21a4b4947d57c3cb538ec2307`;
+- campaign: `f34f7b080cd8ad6c1ec5edfffcad6f4070091d30ccc9d70ae53f8db20db9ddd6`;
+- measurements: `4333cad03da0b544b8a77177d31edee86748515ad221663c68fb28df7a3ce4a3`;
+- validation report: `abcea598179c4d64ea0a37f84a57e790441fd86950ab90534a17ac9b5a755a54`;
+- raw-artifact manifest: `20a77108cf3af3ec2f22cdf22b13d34a82694f5c1bbca64b67cbd4330e7889a5`.
+
+The preregistered scope decision is
+`support_latency_at_concurrency_ge_4_abstain_below_4`. Its supported TTFT MAPE
+is 9.273277% at concurrency four; the combined sparse-concurrency MAPE is
+64.804732%.
+
+## Policy Replay
+
+The four predeclared policies each run 500 20-step episodes against the same
+84-row corpus and 0.12-GPU-h online budget. Audit of the first sealed report
+(`f328dc50...`) found global `seed % 3` repeat aliasing, so that summary is
+retained but excluded. Corrective commit `c41d8a6` selects repeats using
+SHA-256 of `(seed, candidate_id, evidence_level)`, preserving common random
+numbers across policies while independently bootstrapping candidate--level
+measurement noise. The corrected report SHA-256 is
+`ba00f00b3710574e61b5f7beaaad9a530ee90637ec5f9b92110ce0fb42edf838`.
+
+IPIG reaches the unique median verified oracle in 63.6% of episodes versus 46.2% for
+random. Mean spent GPU-hours are 0.0621 and 0.0712, respectively. Cost-blind
+and cheapest-first also reach 63.6%; IPIG costs 26.6% less than cost-blind but
+4.2% more than cheapest-first. These are empirical bootstrap episodes over
+three hardware repeats per key, not independent hardware trials.
+
+The preregistered budget sweep evaluates five budgets from 0.04 to 0.12 GPU-h,
+500 matched empirical-bootstrap episodes per policy and budget, and 10,000
+episodes total. Its protocol, full-report, and compact-summary SHA-256 values
+are:
+
+- protocol: `7a559d7f3c4b0ac1653a01efb8f04674044aa8e6810e21724f2979e5386e944b`;
+- full report: `0133a7f388c04b90786fdedccff1e990250645a7b05545007f6754ac332fa1b2`;
+- compact summary: `dd78e130d1baf870feb082962bf6513be49bc47cee0eb94c6d8874d4ea34f44a`.
+
+Normalized success AUC is 39.75% for IPIG, 20.425% for random, 39.75% for
+cost-blind, and 42.85% for cheapest-first. Cheapest-first peaks at 76.0% at
+0.08 GPU-h and drops by 12.4 percentage points at the next budget, so the paper
+does not claim monotone anytime behavior.
+
+## Planner Conformance
+
+V1 development and V2 disjoint holdout each contain 30 frozen cases with three
+temperature-zero repeats (90 calls). V1 obtains 83.33% raw and 86.67% admitted
+expected-subgoal agreement. V2 obtains 73.33% raw and 100% admitted agreement;
+the state guard intervenes on 24 calls representing eight unique cases. V2 has
+zero schema fallbacks, endpoint/completion errors, and forbidden-subgoal
+acceptances. Its raw score misses the frozen 90% acceptance threshold.
+
+Planner protocol/report SHA-256 values are:
+
+- V1 protocol: `35c176158c07e3d6a24a434a1f006aea5dac127a57ab85f2f8f972ca3a367f76`;
+- V1 report: `4464c7cad782c59e685391638ae7c56f2707da2001fbde8bbb066dcdd30096b0`;
+- V2 protocol: `49bee50977bc112dacf223da7ca2692cc82d3fa942d199bdbc0f2cc894a6274f`;
+- V2 report: `4a59ec3d5dfcfbeb2e2c2be03eb3b9a4930973c285e9692b63985e730e39791a`.
+
+The source archives contain the frozen predictions, measurement JSONL, raw
+100-ms DCGM telemetry, benchmark output, campaign and artifact manifests,
+validation reports, decision report, Git commit identifiers, and nested
+analysis checksums.

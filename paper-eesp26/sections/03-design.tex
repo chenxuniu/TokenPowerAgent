@@ -1,0 +1,50 @@
+\section{TokenPowerSandbox}
+
+\subsection{CPU-Resident Analytical Core}
+
+The base projector rejects memory-infeasible candidates, then scales a measured
+anchor using token geometry, batch saturation, and declared topology.  It
+separates prefill and decode, estimates active power between measured idle and
+active bounds, and derives device energy as $\widehat E=\widehat P\widehat t$.
+Its output includes energy per 1,000 output tokens, throughput, TTFT, TPOT, and
+a term-by-term decomposition.
+
+One anchor cannot learn utilization transitions.  We therefore fit a small,
+auditable correction after a development campaign.  Relative to anchor
+workload $(L_0,k_0)$, define
+\begin{align}
+q&=\log_2\!\frac{L_{in}+0.5L_{out}}{L_{in,0}+0.5L_{out,0}},
+&r&=\log_2\!\frac{k}{k_0},\\[-3pt]
+\phi&=[q,r,qr,r^2].&&
+\end{align}
+For metric $m$, ridge regression fits
+$\log(y_m/\widehat y_m^{base})=\beta_m^T\phi$.  The ridge strength is selected
+per metric by leave-one-workload-out MAPE over the development set.  We correct
+throughput, power, TTFT, and TPOT; energy is never independently fitted, but is
+recomputed from corrected power and duration.  This keeps the correction
+sparse and the energy identity explicit.
+
+\subsection{Measured GPU Path}
+
+The L1 executor runs a digest-pinned vLLM server and CPU-only benchmark client
+in restricted Docker containers.  Prefix caching is disabled; temperature,
+seed, and output length are fixed.  A READY/GO/DONE handshake places DCGM
+cumulative-energy reads around the measured request window, excluding model
+loading, graph capture, and warmup.  Each record retains 100-ms telemetry,
+stdout/stderr, model and tokenizer revisions, image digests, server controls,
+and power-limit readback.  Repeated points are summarized by median and MAD,
+without discarding their raw traces.  Docker fixes this measured path; it does
+not emulate GPU performance.
+
+\subsection{Scope and Release Gate}
+
+The CPU correction applies only to the exact measured model, runtime, serving
+configuration, output length, request regime, GPU count, and bounded
+context/concurrency envelope.  Outside it, the executor abstains instead of
+extrapolating silently.  A second gate may narrow release inside that envelope:
+our confirmation campaign preregisters an occupancy-stratified TTFT rule,
+applies it without refitting, and writes the resulting pass/abstain decision to
+a hashed artifact.  Even in scope, predictions can prioritize expensive runs
+but cannot certify themselves.  Uncalibrated intervals and placeholder
+topology terms remain machine-labeled as requiring validation; a later random,
+Bayesian, or agentic policy cannot alter those evidence semantics.

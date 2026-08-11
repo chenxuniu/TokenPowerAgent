@@ -1,0 +1,5 @@
+experiment_id,policy,normalized_success_auc,maximum_success_rate,first_budget_at_50pct_success_gpu_hours,first_budget_at_maximum_success_gpu_hours,largest_success_rate_drop,normalized_conditional_regret_auc,normalized_mean_spent_gpu_hours_auc,normalized_precision_auc,normalized_recall_auc,point_count,success_monotonic_nondecreasing,success_rate_decrease_count
+budget_sweep_v1,cheapest-first,0.42850000000000005,0.76,0.08,0.08,0.124,0.5484208575161583,0.04086000882750296,0.42850000000000005,0.42850000000000005,5,false,1
+budget_sweep_v1,cost-blind,0.3975,0.636,0.08,0.08,0.0,0.4308503913512844,0.04678206923153339,0.3975,0.3975,5,true,0
+budget_sweep_v1,ipig,0.3975,0.636,0.08,0.08,0.0,0.552578771722996,0.041801861322361356,0.3975,0.3975,5,true,0
+budget_sweep_v1,random,0.20425000000000004,0.462,,0.12,0.0,0.7699805009874768,0.04323891641232146,0.20425000000000004,0.20425000000000004,5,true,0

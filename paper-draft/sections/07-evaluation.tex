@@ -1,71 +1,141 @@
-\section{Evaluation Methodology}
+\section{Evaluation Methodology and Evidence Status}
 
-The evaluation separates belief accuracy, evidence allocation, agent value,
-and final deployment validity rather than reporting only an energy predictor.
+The complete evaluation is organized around claims rather than components.  It
+first tests whether cheap evidence predicts the target decision, then whether
+\ipig{} spends real GPU-hours more efficiently than strong search algorithms,
+and only then whether the resulting configuration saves measured energy under
+the same SLO.  Agent quality and safety are evaluated separately from optimizer
+quality.  At the current artifact snapshot, the end-to-end L0/L1 path and one
+blind workload-transfer pilot are complete; L2--L4, Pareto-search, transfer,
+and agent-comparison results remain to be collected.
 
 \subsection{Research Questions}
 
-\textbf{RQ1 -- Cross-fidelity calibration:} Do L0--L3 observations yield
-calibrated predictions of unseen L4 energy, latency, and SLO feasibility, and
-how many sparse scale probes repair an unseen-node-count shift?
+\textbf{RQ1 -- Evidence validity.}  How accurately and calibratably do L0--L3
+observations predict unseen L4 energy, tail latency, SLO feasibility, and
+Pareto membership across workload, hardware, and node-count shifts?
 
-\textbf{RQ2 -- Decision efficiency:} At equal real GPU-hours, how quickly does
-\ipig\ recover the measured SLO-feasible Pareto set relative to random,
-single-fidelity, multi-fidelity, fixed-ladder, and simulator-only search?
+\textbf{RQ2 -- Search efficiency.}  At equal cumulative GPU-hours, does \ipig{}
+recover more of the L4 SLO-feasible frontier than random search, full-fidelity
+qNEHVI, generic multi-fidelity MOBO, a fixed calibration ladder, and
+simulator-only ranking?
 
-\textbf{RQ3 -- Agent contribution:} Does semantic subgoal selection and failure
-repair improve success, cost, or reliability beyond an optimizer-only fixed
-state machine, and does deterministic acquisition improve on an LLM-only agent?
+\textbf{RQ3 -- Transfer and scale.}  What evidence can be reused across H100,
+H200, and B200 systems, and how many same-hardware L2/L3 probes are required
+before target-scale recommendations are reliable?
 
-\textbf{RQ4 -- Verified benefit:} Do L4 runs confirm lower energy than runtime
-defaults and the strongest optimizer baseline at matched TTFT/TPOT SLOs?
+\textbf{RQ4 -- Agent value and reliability.}  Does the semantic planner improve
+search success or recovery over an optimizer-only state machine, and does the
+deterministic acquisition policy improve on an LLM-only tool user?
 
-\subsection{Campaign and Ground Truth}
+\textbf{RQ5 -- Deployment benefit.}  At matched TTFT/TPOT SLOs, do independent
+L4 reruns confirm lower energy than the vLLM default, an expert-tuned
+configuration, and the strongest search baseline?
 
-Table~\ref{tab:evaluation-matrix} defines a campaign sized for dense evidence at
-cheap levels and sparse evidence at expensive levels.  Llama-3.1-8B supplies
-single-GPU phase coverage; Llama-3.1-70B supplies one-node and two-node
-parallelism.  The primary runtime is vLLM, with one cross-runtime or precision
-slice when allocation permits.  Prefill-heavy and decode-heavy token buckets
-are complemented by Poisson/bursty arrival traces for L4.
+\subsection{Current Single-H100 Blind Pilot}
+
+The pilot uses one H100 80GB at 700 W and Qwen2.5-7B-Instruct with a
+digest-pinned vLLM 0.23.0 image.  The fixed configuration is BF16,
+TP$=$PP$=$DP$=$1, 256 maximum sequences, 8192 batched tokens, chunked prefill,
+and no prefix caching.  Random fixed-length requests use temperature zero,
+ignore EOS, and arrive at unbounded offered rate.  P95 TTFT and TPOT are
+computed per repeat, then summarized with the median and MAD.
+
+Three L1 calibration repeats use 512 input and 128 output tokens, concurrency
+8, and 64 requests.  Before holdout execution, the resulting profile predicts
+1,024 input and 128 output tokens, concurrency 16, and 128 requests; its file
+and manifest are frozen before three L1 repeats.  DCGM device energy is read
+around vLLM's main benchmark interval, excluding loading and warmups.  The
+validator checks temporal order, split, workload, configuration, power, and
+artifact identity.  This pilot tests repeatability, protocol integrity, and
+within-GPU workload transfer only.  A separate six-workload, 18-run validation
+campaign is frozen but unmeasured; it will calibrate intervals before the final
+holdout.
+
+\subsection{Hardware, Models, Workloads, and Search Space}
+
+Table~\ref{tab:evaluation-matrix} summarizes the planned campaign beyond the
+pilot.  Single-GPU H100, H200, and B200 measurements establish hardware
+transfer; multi-GPU and selected two-node runs expose intra- and inter-node
+effects where allocations permit.  Qwen2.5-7B and Llama-3.1-8B provide dense
+coverage, while a 32B or 70B slice stresses tensor parallelism and placement.
+The primary engine is vLLM.  A stable FP8 or second-runtime slice is a transfer
+test rather than part of every sweep.
 
 \input{tables/evaluation-matrix}
 
-Ground truth is collected by \bench\ with synchronized phase timestamps and
-GPU, CPU/DRAM, and node telemetry.  Broad L1--L3 points use at least three
-post-warmup repetitions; final L4 comparisons use at least five matched-trace
-repetitions and bootstrap confidence intervals.  Run order is randomized to
-reduce thermal and temporal bias.  PDU or external-meter measurements are used
-on a representative subset when available.
+Controlled token buckets isolate short chat, prefill-heavy, decode-heavy, and
+long-context regimes.  A ShareGPT-derived mixed-length trace is replayed under
+Poisson and bursty arrivals for online SLO evaluation.  The candidate space
+varies maximum concurrent sequences, batched-token limit, chunked prefill,
+precision, tensor/pipeline parallelism, placement, and GPU power cap.  Every
+method receives the same compiled candidate set; infeasible memory and
+parallelism combinations are removed before search.  When precision varies,
+the corresponding model-quality check is fixed across methods and treated as a
+feasibility constraint.
 
-We construct replay environments from dense sweeps.  Hidden rows act as L4
-truth, while measured subsets, simulator outputs, and explicit cross-scale
-masks expose L0--L3 evidence with actual or normalized GPU-hour cost.  Splits
-are fixed before fitting, so history retrieval cannot reveal hidden L4 rows.
-The protocols hold out (i) random configurations, (ii) a token/batch region,
-(iii) one GPU or node count, and (iv) a model/runtime slice.  Replay supports
-many controlled policy episodes and an exhaustive oracle; top recommendations
-are then submitted through the unchanged ClusterExecutor.
+\subsection{Ground Truth and Replay Protocol}
 
-\subsection{Baselines, Ablations, and Metrics}
+The full study uses two complementary spaces.  In an \emph{oracle subspace}, a bounded grid
+is measured densely enough to compute the L4 feasible Pareto set and exact
+hypervolume regret.  In a larger \emph{deployment space}, search is not assumed
+exhaustive; all returned candidates and a random holdout are measured at L4.
+This distinction prevents a simulator or surrogate from defining its own
+ground truth.
 
-Search curves compare random search, single-fidelity qNEHVI
-\cite{daulton2021qnehvi}, MF-OSEMO \cite{belakaria2020mfosemo}, constrained
-MF-JESMOC \cite{fernandezsanchez2025mfjesmoc}, a fixed L0--L4 ladder, and a
-simulator-only policy.  Every method receives identical initial evidence,
-candidate pools, fidelity costs, random seeds, and L4 reserve.  Deployment
-comparisons use the runtime default, the strongest optimizer recommendation,
-and \system.  Agent ablations compare the full hybrid agent with an
-optimizer-only fixed state machine and an LLM-only tool user.  Failure episodes
-cover unsupported configurations, out-of-memory, preemption, telemetry loss,
-and budget exhaustion.
+\bench{} will record synchronized phase timestamps and GPU, CPU/DRAM, and node
+telemetry.  Broad calibration points will use at least three post-warmup
+repetitions; final L4 comparisons will use at least five matched-trace
+repetitions.  Run order is
+randomized within blocks of hardware, model, and workload, with temperature,
+clock state, and idle baseline recorded.  Device-energy results are integrated
+from DCGM/NVML samples; node-meter results are reported separately on the
+systems where they are available.
 
-Prediction metrics are MAPE/MAE, rank correlation, interval coverage, and SLO
-calibration.  Decision metrics are feasible Pareto precision/recall, normalized
-hypervolume regret, GPU-hours to a target regret, and L4 query count.
-Deployment metrics include J/token, J/request, TTFT/TPOT percentiles,
-throughput, and goodput.  Reliability metrics count invalid actions, recovery,
-unnecessary escalation, provenance violations, unverified recommendations,
-planner latency, and LLM tokens.  Primary curves use cumulative GPU-hours,
-with paired nonparametric tests across matched scenarios and all failed
-episodes retained.
+Dense sweeps will be converted into hidden replay environments.  A policy sees
+only its selected rows, their realized duration and GPU count, simulator
+outputs, and compatible historical records.  Held-out protocols mask (i)
+random configurations, (ii) one token/batch region, (iii) one GPU or node
+count, (iv) one hardware generation, and (v) a later trace window.  The same
+policy is then run through the live ClusterExecutor, and its top candidates are
+independently remeasured.  Replay enables repeated policy trials; live runs
+test whether replay conclusions survive real execution.
+
+\subsection{Baselines and Ablations}
+
+The completed study will compare three baseline classes.  \emph{Operational
+baselines} are the vLLM
+default and a documented expert-tuned configuration.  \emph{Search baselines}
+are random L4 search, TPE at L4, noisy constrained qNEHVI
+\cite{daulton2021qnehvi}, generic multi-fidelity MOBO (MF-OSEMO and
+MF-JESMOC) \cite{belakaria2020mfosemo,fernandezsanchez2025mfjesmoc}, a fixed
+L0$\rightarrow$L4 ladder, and simulator-only ranking.  An exhaustive grid is
+an oracle only in the bounded subspaces.  All adaptive methods receive
+identical initial evidence, candidate pools, fidelity costs, random seeds, and
+verification reserves.
+
+Mechanism ablations remove, one at a time, topology-aware uncertainty, \ipig{}
+in favor of generic variance-per-cost, the LLM planner, failure repair, and the
+L4 verification gate.  Agent baselines include an optimizer-only deterministic
+state machine and an LLM-only tool user that selects actions from the same
+guarded pool.  We also compare cold-start search with H100$\rightarrow$H200,
+H200$\rightarrow$B200, and same-hardware cross-node transfer.
+
+\subsection{Metrics and Statistical Method}
+
+Prediction metrics are MAE/MAPE, Spearman rank correlation, interval coverage,
+SLO calibration error, and Pareto-membership AUROC.  Decision metrics are
+feasible Pareto precision/recall, normalized hypervolume regret, GPU-hours to
+95\% of oracle hypervolume, L4 query count, and false-feasible recommendation
+rate.  Deployment metrics are joules/token, joules/request, TTFT/TPOT
+percentiles, throughput, goodput, and the fixed quality metric for any
+precision-changing configuration.  Agent metrics include invalid actions,
+recovery rate, unnecessary escalation, provenance violations, planner latency,
+and LLM tokens; these costs are reported separately from GPU-hours.
+
+Search results will be paired by scenario, initial evidence, and seed.  We will
+report means with 95\% bootstrap confidence intervals, retain failed trials, and use
+paired nonparametric tests with effect sizes for headline comparisons.  A
+configuration counts as an energy improvement only when its independent L4
+run passes the same latency, throughput, and quality constraints as the
+baseline.

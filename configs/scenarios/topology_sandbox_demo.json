@@ -1,0 +1,128 @@
+{
+  "schema_version": "1.0",
+  "name": "qwen2.5-7b-topology-sandbox-demo",
+  "intent": "Use CPU-first topology evidence to identify an energy-efficient TP/PP and batching configuration under the latency SLO, then require target-scale verification before recommendation.",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "hardware": {
+    "gpu": "H100-80GB",
+    "gpus_per_node": 8,
+    "max_nodes": 2,
+    "interconnect": "NVLink plus InfiniBand"
+  },
+  "workload": {
+    "input_tokens": 1024,
+    "output_tokens": 128,
+    "concurrency": 16,
+    "num_requests": 128,
+    "request_rate": "inf"
+  },
+  "objectives": {
+    "energy_j_per_1k_tokens": "min",
+    "ttft_ms": "min",
+    "tpot_ms": "min",
+    "throughput_tok_s": "max"
+  },
+  "slo": {
+    "ttft_ms": 1000,
+    "tpot_ms": 50
+  },
+  "budget": {
+    "gpu_hours": 4,
+    "verify_top_k": 1
+  },
+  "available_levels": ["L0", "L4"],
+  "level_cost_gpu_hours": {
+    "L0": 0,
+    "L4": 1
+  },
+  "candidates": [
+    {
+      "id": "tp1-pp1-seq8",
+      "required_gpus": 1,
+      "target_nodes": 1,
+      "config": {
+        "engine": "vllm",
+        "precision": "bfloat16",
+        "kv_cache_dtype": "bfloat16",
+        "tensor_parallel": 1,
+        "pipeline_parallel": 1,
+        "data_parallel": 1,
+        "max_num_seqs": 8,
+        "max_num_batched_tokens": 4096,
+        "chunked_prefill": true
+      },
+      "prior_metrics": {
+        "energy_j_per_1k_tokens": 500,
+        "ttft_ms": 500,
+        "tpot_ms": 20,
+        "throughput_tok_s": 1000
+      }
+    },
+    {
+      "id": "tp2-pp1-seq16",
+      "required_gpus": 2,
+      "target_nodes": 1,
+      "config": {
+        "engine": "vllm",
+        "precision": "bfloat16",
+        "kv_cache_dtype": "bfloat16",
+        "tensor_parallel": 2,
+        "pipeline_parallel": 1,
+        "data_parallel": 1,
+        "max_num_seqs": 16,
+        "max_num_batched_tokens": 8192,
+        "chunked_prefill": true
+      },
+      "prior_metrics": {
+        "energy_j_per_1k_tokens": 600,
+        "ttft_ms": 300,
+        "tpot_ms": 12,
+        "throughput_tok_s": 1800
+      }
+    },
+    {
+      "id": "tp4-pp1-seq16",
+      "required_gpus": 4,
+      "target_nodes": 1,
+      "config": {
+        "engine": "vllm",
+        "precision": "bfloat16",
+        "kv_cache_dtype": "bfloat16",
+        "tensor_parallel": 4,
+        "pipeline_parallel": 1,
+        "data_parallel": 1,
+        "max_num_seqs": 16,
+        "max_num_batched_tokens": 8192,
+        "chunked_prefill": true
+      },
+      "prior_metrics": {
+        "energy_j_per_1k_tokens": 800,
+        "ttft_ms": 200,
+        "tpot_ms": 8,
+        "throughput_tok_s": 2800
+      }
+    },
+    {
+      "id": "tp8-pp2-seq32-two-node",
+      "required_gpus": 16,
+      "target_nodes": 2,
+      "config": {
+        "engine": "vllm",
+        "precision": "bfloat16",
+        "kv_cache_dtype": "bfloat16",
+        "tensor_parallel": 8,
+        "pipeline_parallel": 2,
+        "data_parallel": 1,
+        "max_num_seqs": 32,
+        "max_num_batched_tokens": 16384,
+        "chunked_prefill": true
+      },
+      "prior_metrics": {
+        "energy_j_per_1k_tokens": 1200,
+        "ttft_ms": 150,
+        "tpot_ms": 6,
+        "throughput_tok_s": 5000
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+\begin{figure}[t]
+\centering
+\resizebox{0.98\columnwidth}{!}{%
+\begin{tikzpicture}[x=0.040cm,y=0.48cm,font=\sffamily\scriptsize]
+  \draw[->,draw=tpGray,line width=0.7pt] (0,0) -- (132,0)
+    node[right,font=\tiny] {MAPE (\%)};
+  \foreach \x in {0,20,40,60,80,100,120} {
+    \draw[draw=tpGray] (\x,-0.10) -- (\x,0.10);
+    \node[below,font=\tiny,text=tpGray] at (\x,-0.12) {\x};
+  }
+  \draw[densely dashed,draw=tpTealDark] (15,0.18) -- (15,7.20);
+  \node[anchor=west,font=\tiny,text=tpTealDark] at (16,7.03) {energy gate};
+  \draw[densely dashed,draw=tpRoseDark] (20,0.18) -- (20,6.65);
+  \node[anchor=west,font=\tiny,text=tpRoseDark] at (21,6.47) {TTFT gate};
+
+  \foreach \kk/\yy/\energy/\ttft in {
+    1/5.4/5.78/79.27,
+    2/3.5/9.15/50.34,
+    4/1.6/7.12/9.27
+  } {
+    \node[anchor=east,font=\scriptsize] at (-3,\yy-0.10) {$k=\kk$};
+    \fill[tpTealDark] (0,\yy+0.05) rectangle (\energy,\yy+0.38);
+    \fill[tpRose,draw=tpRoseDark,line width=0.20pt]
+      (0,\yy-0.42) rectangle (\ttft,\yy-0.09);
+    \node[anchor=west,font=\tiny,text=tpTealDark]
+      at (\energy+1,\yy+0.21) {\energy};
+    \node[anchor=west,font=\tiny,text=tpRoseDark]
+      at (\ttft+1,\yy-0.25) {\ttft};
+  }
+
+  \fill[tpTealDark] (78,6.88) rectangle (84,7.18);
+  \node[anchor=west,font=\tiny] at (86,7.03) {energy};
+  \fill[tpRose,draw=tpRoseDark,line width=0.20pt]
+    (103,6.88) rectangle (109,7.18);
+  \node[anchor=west,font=\tiny] at (111,7.03) {TTFT};
+\end{tikzpicture}%
+}
+\caption{The no-refit confirmation passes its all-workload 15\% energy-MAPE
+endpoint, with every concurrency stratum below 15\%.  TTFT passes its 20\%
+gate at $k=4$ but fails below it, triggering explicit abstention.}
+\label{fig:scope-gate}
+\end{figure}

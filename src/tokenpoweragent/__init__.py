@@ -1,4 +1,4 @@
-"""TokenPowerAgent research framework."""
+"""ServeCompass research framework with a legacy ``tokenpoweragent`` namespace."""
 
 from tokenpoweragent.schema import Candidate, EvidenceLevel, Scenario
 

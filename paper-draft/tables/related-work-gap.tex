@@ -1,30 +1,35 @@
 \begin{table*}[t]
 \centering
-\caption{Closest research directions and the capability gap.  \cmark: primary
-capability; \pmark: partial or system-specific; \xmark: absent/not primary.}
+\caption{Scope comparison with the closest MLSys'26 systems.
+\cmark: primary system capability; \pmark: partial, indirect, or
+system-specific; \xmark: absent or not a primary objective.}
 \label{tab:gap}
 \scriptsize
-\setlength{\tabcolsep}{4.0pt}
+\setlength{\tabcolsep}{3.2pt}
 \renewcommand{\arraystretch}{1.12}
 \begin{tabular}{p{0.19\textwidth}
->{\centering\arraybackslash}p{0.083\textwidth}
->{\centering\arraybackslash}p{0.083\textwidth}
->{\centering\arraybackslash}p{0.083\textwidth}
->{\centering\arraybackslash}p{0.083\textwidth}
->{\centering\arraybackslash}p{0.083\textwidth}
-p{0.245\textwidth}}
+>{\centering\arraybackslash}p{0.085\textwidth}
+>{\centering\arraybackslash}p{0.085\textwidth}
+>{\centering\arraybackslash}p{0.075\textwidth}
+>{\centering\arraybackslash}p{0.075\textwidth}
+>{\centering\arraybackslash}p{0.12\textwidth}
+>{\centering\arraybackslash}p{0.115\textwidth}
+>{\centering\arraybackslash}p{0.105\textwidth}}
 \toprule
-Approach & Energy telemetry & Serving dynamics & Multi-node effects & Active evidence & Agentic verification & Primary boundary \\
+System & \shortstack{LLM-agent\\reasoning} &
+\shortstack{Measured\\energy} & SLO & Pareto &
+\shortstack{Config.--fidelity\\co-selection} &
+\shortstack{Real-GPU\\cost objective} &
+\shortstack{Target\\evidence} \\
 \midrule
-Energy measurement benchmarks & \cmark & \pmark & \pmark & \xmark & \xmark & Measures configurations selected by the experimenter \\
-Energy and carbon predictors & \cmark & \pmark & \pmark & \xmark & \xmark & Predicts from a fixed training set \\
-Serving simulators & \xmark & \cmark & \cmark & \xmark & \xmark & Energy/provenance is not the central objective \\
-Energy-aware serving controllers & \cmark & \cmark & \pmark & \pmark & \xmark & Runtime- and control-policy-specific \\
-Surrogate energy autotuning & \cmark & \pmark & \pmark & \cmark & \xmark & Not token/serving/topology aware \\
-Multi-fidelity MOBO & \xmark & \xmark & \xmark & \cmark & \xmark & Generic black-box fidelity and objective models \\
-Agentic HPC workflows & \xmark & \xmark & \pmark & \cmark & \cmark & Do not optimize LLM inference energy \\
+BEAM \cite{lee2026beam} & \xmark & \cmark & \cmark & \pmark & \xmark & \xmark & \cmark \\
+BOute \cite{jiang2026boute} & \xmark & \xmark & \cmark & \cmark & \xmark & \xmark & \pmark \\
+PROMPTS \cite{ding2026prompts} & \cmark & \xmark & \xmark & \xmark & \xmark & \pmark & \pmark \\
+Meta deployment study \cite{cho2026deployment} & \xmark & \pmark & \cmark & \pmark & \xmark & \xmark & \pmark \\
+Charon \cite{yang2026charon} & \xmark & \xmark & \cmark & \cmark & \xmark & \pmark & \pmark \\
+OptiKIT \cite{santavas2026optikit} & \xmark & \xmark & \cmark & \xmark & \pmark & \pmark & \cmark \\
 \rowcolor{tpTealLight}
-\textbf{\system} & \cmark & \cmark & \cmark & \cmark & \cmark & Agentic multi-fidelity Pareto search with measured verification \\
+\textbf{\system{}} & \cmark & \cmark & \cmark & \cmark & \cmark & \cmark & \cmark \\
 \bottomrule
 \end{tabular}
 \end{table*}

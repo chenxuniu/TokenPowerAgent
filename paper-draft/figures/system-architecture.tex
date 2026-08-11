@@ -15,7 +15,7 @@
   \node[stage,fill=tpBlueLight,text width=2.28cm] (compiler) at (4.15,0.55)
     {\textbf{Scenario Compiler}\\[2pt]typed search space\\memory / support\\feasibility filter};
   \node[stage,fill=tpGoldLight,text width=2.72cm] (agent) at (7.35,0.55)
-    {\textbf{Hybrid Agent}\\[2pt]semantic subgoal\\\ipig\ action selection\\
+    {\textbf{Hybrid Agent}\\[2pt]semantic subgoal\\\ipig{}\ action selection\\
      reflect / repair};
   \node[stage,fill=tpTealLight,text width=3.00cm] (twin) at (11.05,0.55)
     {\textbf{Energy Twin + Tools}\\[2pt]serving schedule\\phase + communication energy\\uncertainty + Pareto search};
@@ -28,7 +28,7 @@
   \draw[flow] (twin) -- (output);
 
   \node[memory,fill=tpGrayLight,text width=3.15cm] (history) at (5.15,-1.68)
-    {\textbf{Historical \bench}\quad measured priors};
+    {\textbf{Historical \bench{}}\quad measured priors};
   \node[memory,fill=tpBlueLight,text width=3.55cm] (sandbox) at (9.20,-1.68)
     {\textbf{Multi-Fidelity Sandbox}\quad L0--L4 evidence};
   \node[memory,fill=tpTealLight,text width=3.30cm] (store) at (13.35,-1.68)
@@ -46,12 +46,12 @@
   \node[draw=tpGray!50,rounded corners=2pt,fit=(scenario)(compiler)(agent)(twin)(output)(history)(store),
     inner sep=7pt] (frame) {};
   \node[anchor=west,font=\small\bfseries,text=tpGray] at (frame.north west)
-    {\system};
+    {\system{}};
 \end{tikzpicture}
-\caption{\system\ overview.  The language model selects a typed experiment
-subgoal, while \ipig\ chooses a candidate--fidelity action.  Deterministic tools
+\caption{\system{}\ overview.  The language model selects a typed experiment
+subgoal, while \ipig{}\ chooses a candidate--fidelity action.  Deterministic tools
 perform feasibility checking, simulation, telemetry integration, surrogate
-fitting, and Pareto analysis; target-scale \bench\ evidence gates every
+fitting, and Pareto analysis; target-scale \bench{}\ evidence gates every
 recommendation.}
 \label{fig:architecture}
 \end{figure*}

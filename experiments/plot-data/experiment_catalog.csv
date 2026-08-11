@@ -1,0 +1,12 @@
+experiment_id,category,evidence,record_count,unique_items,notes
+gemm_power_sweep,hardware_smoke,real_H100,9,3,FP16 cuBLAS GEMM at 350/500/700 W
+workload_transfer_v1,workload_validation,real_H100,18,6,Development workload-transfer campaign
+workload_holdout_v2,blind_holdout,real_H100,24,8,Preregistered final workload holdout
+scope_confirmation_v3,scope_holdout,real_H100,27,9,Preregistered scope and abstention confirmation
+winner_confirmation_v1,independent_configuration_confirmation,paired_real_H100_L4,10,5,Five locked alternating pairs; no refit or reselection
+config_search_v1,serving_configuration_search,L0_prediction_and_real_H100,84,12,12 candidates; 12 L0 plus 36 L1 and 36 L4 records
+policy_benchmark_v1,agent_policy_replay,empirical_replay,2000,4,Initial fixed-budget replay
+policy_bootstrap_v2,agent_policy_replay,candidate_level_bootstrap,2000,4,Candidate-level empirical bootstrap
+budget_sweep_v1,agent_budget_response,deterministic_empirical_replay,10000,5,Five budgets and four policies
+planner_conformance_v1_development,planner_conformance,real_Qwen_planner,90,5,Development protocol
+planner_conformance_v2_holdout,planner_conformance,real_Qwen_planner,90,6,Disjoint holdout with deterministic state guard

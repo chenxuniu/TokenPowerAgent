@@ -1,0 +1,12 @@
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/results/fig1_decision_problem.pdf}
+\caption{The bounded single-GPU decision problem.  A frozen model, workload,
+SLO, and online budget define 12 immutable serving candidates: nine chunked
+combinations from three sequence limits and three batched-token limits, two
+no-chunk controls, and one expert default.  A full sweep pays target-GPU cost
+for every candidate; \system{} instead screens all candidates in the CPU
+Sandbox, escalates selected configurations to a short H100 Probe, and allows a
+recommendation only after full target-workload verification.}
+\label{fig:motivation}
+\end{figure*}

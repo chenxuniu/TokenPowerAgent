@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "rq3-transfer-and-adaptation-v1",
+  "research_question": "When does calibration transfer, and does uncertainty trigger the right adaptation measurement?",
+  "claim_status": "preregistered-no-results",
+  "leave_one_domain_out_tests": [
+    {
+      "name": "long-context",
+      "train": "input_tokens<=2048",
+      "test": "input_tokens>=8192"
+    },
+    {
+      "name": "parallel-scale",
+      "train": "TP<=2 and PP=1",
+      "test": "TP in {4,8} or PP=2"
+    },
+    {
+      "name": "cross-node-topology",
+      "train": "single-node",
+      "test": "multi-node"
+    },
+    {
+      "name": "gpu-generation",
+      "train": "H100",
+      "test": "H200 and B200"
+    },
+    {
+      "name": "model-scale",
+      "train": "Qwen2.5-7B",
+      "test": "larger Qwen model fixed before execution"
+    }
+  ],
+  "adaptation_budgets": [0, 1, 3, 5],
+  "adaptation_selection": [
+    "random",
+    "maximum-predictive-uncertainty",
+    "tokenpoweragent-information-per-gpu-hour"
+  ],
+  "metrics": [
+    "mape_before_after_adaptation",
+    "rank_correlation_before_after_adaptation",
+    "interval_coverage",
+    "uncertainty-error-correlation",
+    "pareto_recall",
+    "adaptation_gpu_hours"
+  ],
+  "reporting_rule": "Report every held-out domain, including negative transfer"
+}

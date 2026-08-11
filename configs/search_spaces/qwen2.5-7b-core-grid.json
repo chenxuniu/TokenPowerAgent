@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "grid_id": "qwen2.5-7b-context-batching-tp-pp-core",
+  "gpus_per_node": 8,
+  "max_nodes": 2,
+  "max_candidates": 500,
+  "fixed": {
+    "engine": "vllm",
+    "precision": "bfloat16",
+    "kv_cache_dtype": "bfloat16"
+  },
+  "grid": {
+    "tensor_parallel": [1, 2, 4, 8],
+    "pipeline_parallel": [1, 2],
+    "data_parallel": [1],
+    "max_num_seqs": [8, 16, 32],
+    "max_num_batched_tokens": [4096, 8192, 16384],
+    "chunked_prefill": [true, false],
+    "target_nodes": [1, 2]
+  }
+}

@@ -1,0 +1,73 @@
+\section{Evaluation}
+
+\subsection{Platform and Frozen Protocol}
+
+We test workload transfer on one NVIDIA H100 80GB at a 700-W limit (driver
+580.173.02, DCGM 4.6.1).  A digest-pinned vLLM 0.23.0 container serves the
+pinned Qwen2.5-7B-Instruct revision in BF16.  The server uses
+TP$=$PP$=$DP$=$1, 256 maximum sequences, 8192 maximum batched tokens, chunked
+prefill, and disabled prefix caching.  Every workload generates 128 output
+tokens at unbounded offered rate; request count is eight times concurrency.
+
+The protocol has four chronological stages.  First, \AnchorRepeats{} runs at
+512 input tokens and concurrency 8 form the L1 anchor.  Second,
+\DevelopmentWorkloads{} workloads spanning 256--2,048 input tokens and
+concurrency 1--32, with three repeats each, fit the residual model; its
+leave-one-workload-out energy MAPE is \DevelopmentLOOEnergyMAPE{}.  Third, we
+freeze \HoldoutWorkloads{} disjoint context/concurrency predictions before
+collecting \HoldoutMeasurements{} cyclically balanced H100 measurements.  The
+validator verifies chronology and 62 raw/configuration artifacts.  Finally,
+without refitting, we preregister and freeze a second $3\times3$ grid:
+$L_{in}\in\{384,768,1536\}$ and $k\in\{1,2,4\}$.  Its
+\ConfirmationMeasurements{} runs and 61 artifacts test an all-workload energy
+MAPE threshold of 15\% and a TTFT release boundary at $k=4$.
+
+\subsection{Blind Holdout}
+
+Table~\ref{tab:holdout-validation} reports the first holdout.  The correction
+lowers energy MAPE from \BaseEnergyMAPE{} to \CalibratedEnergyMAPE{}; median
+and maximum energy APE are \EnergyMedianAPE{} and \EnergyMaxAPE{}.  Rank
+correlation is $\rho=\EnergySpearman{}$, and \EnergyPairwise{} workload pairs
+are correctly ordered.  Throughput and TPOT improve to
+\CalibratedThroughputMAPE{} and \CalibratedTPOTMAPE{} MAPE.  TTFT remains the
+weakest metric at \CalibratedTTFTMAPE{}.  At the worst sparse point, opposing
+power and duration errors leave energy within 13.77\% while TTFT misses by
+138.8\%; energy accuracy alone therefore cannot certify the decomposition.
+
+\input{tables/holdout-validation}
+
+\subsection{No-Refit Scope Confirmation}
+
+The second holdout passes its preregistered primary endpoint: energy MAPE is
+\ConfirmationEnergyMAPE{}, maximum APE is \ConfirmationEnergyMaxAPE{},
+$\rho=\ConfirmationEnergySpearman{}$, and \ConfirmationEnergyPairwise{} pairs
+are correctly ordered.  The predicted and measured minimum-energy workload
+also match.  This is replication with the unchanged v2 profile, not a model
+selected after viewing the first holdout.
+
+\input{tables/scope-confirmation}
+
+\input{figures/scope-gate}
+
+The occupancy rule is equally decisive.  At $k=4$, TTFT MAPE is
+\KFourTTFTMAPE{} and no point exceeds \SupportedTTFTMaxAPE{}, passing the 20\%
+gate; throughput and TPOT MAPE are only \KFourThroughputMAPE{} and
+\KFourTPOTMAPE{}.  Across $k\leq2$, TTFT MAPE is \SparseTTFTMAPE{} and the
+maximum APE is 124.36\%, so the preregistered result is to withhold TTFT below
+four.  Energy remains below 10\% MAPE in every stratum, but the $k=1$
+throughput and TPOT errors (\KOneThroughputMAPE{} and \KOneTPOTMAPE{}) again
+warn that this may partly reflect component-error cancellation.
+
+\subsection{Repeatability, Provenance, and Cost}
+
+Median energy repeat CV is \EnergyRepeatCV{} in the first holdout and
+\ConfirmationEnergyRepeatCV{} in the confirmation.  All \BlindMeasurements{}
+blind runs succeeded; each prediction preceded measurement and every client
+output and DCGM trace passed its manifest hash.  Excluding the three anchor
+runs, \MeasuredRunsExcludingAnchors{} development/holdout measurements consumed
+\TotalCampaignGPUHours{} H100-hours; v3 alone consumed
+\ConfirmationGPUHours{} H100-hours.  Frozen intervals contain 31/32 and 35/36
+metric--workload medians in the two studies, but were not independently
+calibrated, so we make no statistical coverage claim.  The final archive
+digests are \texttt{2d741792...12ecafb} and
+\texttt{9a4dbfa5...22cd3fd}.

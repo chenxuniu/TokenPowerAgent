@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Discovery-corpus median Verify outcomes for the preregistered expert
+and unique SLO-feasible Pareto configuration.}
+\label{tab:configuration-results}
+\footnotesize
+\setlength{\tabcolsep}{3.0pt}
+\begin{tabular}{lrrr}
+\toprule
+Metric & Expert & Pareto & Change \\
+\midrule
+Energy (J/1k out.) & \ExpertEnergy{} & \ParetoEnergy{} & $-\ParetoEnergyReduction{}$ \\
+Throughput (tok/s) & \ExpertThroughput{} & \ParetoThroughput{} & $+\ParetoThroughputGain{}$ \\
+TTFT (ms) & \ExpertTTFT{} & \ParetoTTFT{} & $-\ParetoTTFTReduction{}$ \\
+TPOT (ms) & \ExpertTPOT{} & \ParetoTPOT{} & $-\ParetoTPOTReduction{}$ \\
+Power (W) & \ExpertPower{} & \ParetoPower{} & $+\ParetoPowerIncrease{}$ \\
+\bottomrule
+\end{tabular}
+\end{table}

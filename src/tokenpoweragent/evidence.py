@@ -100,6 +100,18 @@ class EvidenceStore:
             for record in self._records
         )
 
+    def has_successful(self, candidate_id: str, level: EvidenceLevel) -> bool:
+        return any(
+            record.candidate_id == candidate_id
+            and record.level == level
+            and record.status == EvidenceStatus.SUCCEEDED
+            for record in self._records
+        )
+
+    @property
+    def latest(self) -> Optional[EvidenceRecord]:
+        return self._records[-1] if self._records else None
+
     def write_jsonl(self, path: Path) -> None:
         rows = [json.dumps(record.to_dict(), sort_keys=True) for record in self._records]
         Path(path).write_text("\n".join(rows) + ("\n" if rows else ""), encoding="utf-8")

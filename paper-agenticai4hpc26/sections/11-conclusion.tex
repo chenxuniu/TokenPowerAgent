@@ -1,0 +1,15 @@
+\section{Conclusion}
+
+\system{} makes inference tuning a bounded loop that selects configuration and
+evidence stage, then verifies before recommendation.  Across
+\BlindMeasurements{} blind H100 runs, CPU-first energy MAPE is \CalibratedEnergyMAPE{}/
+\ConfirmationEnergyMAPE{}, with a low-concurrency TTFT abstention boundary.
+The \ConfigurationMeasuredRuns{}-run corpus shows Sandbox missing the frontier,
+Probe recovering it at \LoneParetoRecall{} recall, and Verify removing false
+positives.  The locked \WinnerConfirmationPairs{}-pair follow-up confirms
+\WinnerEnergySaving{} energy saving (95\% CI [\WinnerEnergyCILower{},
+\WinnerEnergyCIUpper{}]) and \WinnerTTFTReduction{} lower TTFT.  Replay favors
+\ipig{} over random and cost-blind acquisition but not cheapest-first, while
+\PlannerVtwoRaw{} raw versus 100\% guard-admitted planner accuracy bounds the
+LLM's role.  The result is an auditable CPU-first path to measured single-GPU
+decisions; cross-hardware and distributed search remain future work.

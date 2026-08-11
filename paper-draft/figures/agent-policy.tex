@@ -12,7 +12,7 @@
   \node[input] (left) at (1.2,1.28) {model uncertainty\\Pareto ambiguity};
   \node[draw=tpGoldDark,rounded corners=2pt,fill=tpGoldLight,
     minimum height=1.15cm,text width=2.15cm,align=center,font=\scriptsize\bfseries]
-    (controller) at (4.10,1.28) {Semantic Subgoal\\+ \ipig\ Selection};
+    (controller) at (4.10,1.28) {Semantic Subgoal\\+ \ipig{}\ Selection};
   \node[input] (right) at (7.0,1.28) {SLO risk + topology gap\\remaining budget};
   \draw[flow] (left) -- (controller);
   \draw[flow] (right) -- (controller);
@@ -30,7 +30,7 @@
     {telemetry update} (sim.south);
 \end{tikzpicture}
 \caption{Hybrid belief-state policy.  The language model chooses a typed
-subgoal; \ipig\ selects the candidate--fidelity action; deterministic checks
+subgoal; \ipig{}\ selects the candidate--fidelity action; deterministic checks
 reject infeasible points and target-scale telemetry gates every release.}
 \label{fig:agent-policy}
 \end{figure}

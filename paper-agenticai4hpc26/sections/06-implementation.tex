@@ -1,0 +1,96 @@
+\section{Reference Implementation}
+
+\subsection{Scenario and Evidence Interfaces}
+
+The prototype accepts a versioned JSON or YAML scenario containing model,
+workload, target GPU, objectives, SLO, candidate serving knobs, available
+evidence stages, stage costs, and verification budget.  The compiler expands
+knob lists into immutable candidates and checks resource requirements before
+search.  Each evidence record stores scenario/candidate hashes, realized token
+histograms, software versions, GPU identity, phase timestamps, power streams,
+latency/goodput, evidence stage, status, and raw-data checksum.  Existing
+\bench{} records are imported read-only; new jobs use the same configuration
+vocabulary.
+
+\subsection{Implemented Evidence Path}
+
+The Probe/Verify path uses a digest-pinned vLLM server and a read-only client on
+an internal Docker network.  Workload-transfer trials keep the server
+persistent; configuration campaigns restart it from a pinned template when
+knobs change.  The path disables prefix caching, fixes temperature at zero, and
+ignores EOS.  A two-FIFO \texttt{READY/GO/DONE/ACK} handshake places host-side
+reads of DCGM's cumulative device-energy counter around the main benchmark
+interval, excluding loading, health checks, warmups, and result formatting.
+The calibration builder aggregates compatible Probe repeats by their median
+and records dispersion and source SHA-256.  The CPU Sandbox retains uncertainty
+and scope labels; freeze and validation tools reject modified or late
+predictions, mismatched repeats, and split leakage.
+
+\subsection{Component Architecture and Status}
+
+Five typed boundaries expose the \textbf{scenario compiler}, \textbf{history
+retrieval}, \textbf{Energy Twin}, \textbf{executor}, and
+\textbf{planner/policy}.  CPU prediction, replay, Probe/Verify serving
+execution, balanced configuration campaigns, evidence freezing, blind
+validation, corpus construction, and policy benchmarking are implemented.  The
+constrained planner calls an OpenAI-compatible endpoint and accepts only a JSON
+subgoal and rationale.  Schema failure invokes a deterministic fallback; a
+separate state-priority guard compares every valid proposal with the required
+subgoal and records any replacement.  Candidate selection and every
+safety-critical state transition remain outside the language model.
+
+All executors share a typed interface keyed by candidate, evidence stage, and
+seed.  Replay returns a hidden sealed row only after an action requests it; the
+CPU Sandbox returns a scoped prediction; and the serving executor performs the
+short Probe or full Verify run.  All three return the same evidence object, so
+the planner, guard, policy, and belief update remain backend-independent.
+
+\subsection{Closed-Loop Search}
+
+Algorithm~\ref{alg:search} specifies the implemented controller.  It reserves
+top-$k$ Verify cost, then chooses a candidate--stage action whose uncertainty
+can change feasibility or dominance.  Failed jobs consume budget and update the
+evidence state rather than disappearing from analysis.  Every event stores
+uncertainty and predicted-frontier snapshots before and after observation,
+cumulative and remaining GPU-hours, evidence kind, planner source, and any
+fallback reason.
+
+\begin{algorithm}[t]
+\caption{Evidence-gated single-GPU Pareto search}
+\label{alg:search}
+\footnotesize
+\begin{algorithmic}[1]
+\REQUIRE scenario $S$, history $\mathcal D_0$, budget $B_m$, verify count $k$
+\STATE $\mathcal X\gets\textsc{CompileAndValidate}(S)$
+\STATE $\mathcal D\gets\mathcal D_0$; $\mathcal T\gets\textsc{FitTwin}(\mathcal D_0,S)$
+\STATE $(B_s,B_v)\gets\textsc{ReserveVerification}(B_m,S,k)$
+\WHILE{$B_s>0$}
+  \STATE $(\widetilde g_t,g_t)\gets\textsc{ProposeAndGuard}(S,\mathcal T,\mathcal D,B_s)$
+  \STATE $\mathcal A_s\gets\textsc{GuardAvailableStages}(g_t,\mathcal X,B_s)$
+  \STATE $(x^*,e^*)\gets\arg\max_{(x,e)\in\mathcal A_s}
+  \alpha_t((x,e)\mid S)$
+  \IF{$\alpha_t(x^*,e^*)<\tau_A$ or frontier stable for $p$ steps}
+    \STATE \textbf{break}
+  \ENDIF
+  \STATE $y\gets\textsc{AcquireEvidence}(x^*,e^*)$
+  \STATE $\mathcal D\gets\mathcal D\cup\{y\}$; $B_s\gets B_s-c(x^*,e^*)$
+  \STATE $\mathcal T\gets\textsc{UpdateTwin}(\mathcal T,y)$
+\ENDWHILE
+\STATE $(\hat{\mathbf f},\mathbf U)\gets\textsc{Predict}(\mathcal T,\mathcal X)$
+\STATE $\hat{\mathcal P}\gets\textsc{SLOFeasiblePareto}(\hat{\mathbf f},\mathbf U)$
+\STATE $\mathcal P_v\gets\textsc{VerifyTopK}(\hat{\mathcal P},S,k,B_v)$
+\STATE \textbf{return} $\mathcal P_v$, provenance, and runnable scripts
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Execution Isolation and Failure Handling}
+
+The measurement controller changes one frozen serving template at a time,
+waits for a health check, performs an unmeasured warmup, and then opens the
+energy boundary.  The client has no external network route, the container is
+read-only apart from bounded temporary storage, and every configuration restart
+is logged.  The executor distinguishes launch failure, timeout, out-of-memory,
+telemetry loss, malformed output, and SLO failure.  Recoverable failures can be
+retried from the deterministic template; configuration changes create a new
+hash and evidence record.  A failed action is charged its declared upper-bound
+cost and can trigger \textsc{Repair}, but it cannot be removed from accounting.

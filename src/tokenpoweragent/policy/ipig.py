@@ -7,6 +7,7 @@ should inject the nested-posterior Pareto-set mutual-information estimator.
 
 from __future__ import annotations
 
+import random
 from dataclasses import dataclass
 from typing import Dict, Iterable, Mapping, Protocol
 
@@ -32,6 +33,19 @@ class InformationGainEstimator(Protocol):
     def estimate(
         self, action: Action, belief: CandidateBelief, subgoal: str
     ) -> float:
+        pass
+
+
+class AcquisitionPolicy(Protocol):
+    name: str
+    uses_semantic_guard: bool
+
+    def select(
+        self,
+        actions: Iterable[Action],
+        beliefs: Mapping[str, CandidateBelief],
+        subgoal: str,
+    ) -> "PolicyDecision":
         pass
 
 
@@ -70,6 +84,9 @@ class PolicyDecision:
 
 
 class IPIGPolicy:
+    name = "ipig"
+    uses_semantic_guard = True
+
     def __init__(
         self,
         estimator: InformationGainEstimator = PosteriorUncertaintyProxy(),
@@ -123,5 +140,124 @@ class IPIGPolicy:
                     information,
                     action.expected_gpu_hours,
                 )
+            ),
+        )
+
+
+class CostBlindInformationPolicy:
+    """Select the largest estimated gain without normalizing by GPU cost."""
+
+    name = "cost-blind"
+    uses_semantic_guard = True
+
+    def __init__(
+        self, estimator: InformationGainEstimator = PosteriorUncertaintyProxy()
+    ) -> None:
+        self.estimator = estimator
+
+    def select(
+        self,
+        actions: Iterable[Action],
+        beliefs: Mapping[str, CandidateBelief],
+        subgoal: str,
+    ) -> PolicyDecision:
+        materialized = list(actions)
+        if not materialized:
+            raise ValueError("CostBlindInformationPolicy requires at least one action")
+        ranked = [
+            (
+                self.estimator.estimate(
+                    action, beliefs[action.candidate_id], subgoal
+                ),
+                action,
+            )
+            for action in materialized
+        ]
+        information, action = max(
+            ranked,
+            key=lambda item: (
+                item[0],
+                int(item[1].level),
+                item[1].candidate_id,
+            ),
+        )
+        return PolicyDecision(
+            action=action,
+            score=information,
+            information_gain=information,
+            rationale=(
+                "%s selected %s/%s by cost-blind information gain %.4f"
+                % (
+                    subgoal,
+                    action.candidate_id,
+                    action.level.name,
+                    information,
+                )
+            ),
+        )
+
+
+class CheapestFirstPolicy:
+    """Static low-cost acquisition ladder used as a non-agent baseline."""
+
+    name = "cheapest-first"
+    uses_semantic_guard = False
+
+    def select(
+        self,
+        actions: Iterable[Action],
+        beliefs: Mapping[str, CandidateBelief],
+        subgoal: str,
+    ) -> PolicyDecision:
+        del beliefs
+        materialized = list(actions)
+        if not materialized:
+            raise ValueError("CheapestFirstPolicy requires at least one action")
+        action = min(
+            materialized,
+            key=lambda item: (
+                item.expected_gpu_hours,
+                int(item.level),
+                item.candidate_id,
+            ),
+        )
+        return PolicyDecision(
+            action=action,
+            score=1.0 / (action.expected_gpu_hours + 1e-6),
+            information_gain=0.0,
+            rationale=(
+                "%s selected %s/%s by the fixed cheapest-first ladder"
+                % (subgoal, action.candidate_id, action.level.name)
+            ),
+        )
+
+
+class RandomPolicy:
+    """Seeded random acquisition used as a reproducible baseline."""
+
+    name = "random"
+    uses_semantic_guard = False
+
+    def __init__(self, seed: int = 0) -> None:
+        self._rng = random.Random(seed)
+
+    def select(
+        self,
+        actions: Iterable[Action],
+        beliefs: Mapping[str, CandidateBelief],
+        subgoal: str,
+    ) -> PolicyDecision:
+        del beliefs
+        materialized = list(actions)
+        if not materialized:
+            raise ValueError("RandomPolicy requires at least one action")
+        action = self._rng.choice(materialized)
+        return PolicyDecision(
+            action=action,
+            score=1.0,
+            information_gain=0.0,
+            rationale=(
+                "%s selected %s/%s by seeded random acquisition"
+                % (subgoal, action.candidate_id, action.level.name)
             ),
         )

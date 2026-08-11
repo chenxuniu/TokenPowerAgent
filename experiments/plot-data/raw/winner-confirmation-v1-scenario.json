@@ -1,0 +1,145 @@
+{
+  "available_levels": [
+    "L0",
+    "L1",
+    "L4"
+  ],
+  "budget": {
+    "gpu_hours": 0.2,
+    "verify_top_k": 2
+  },
+  "candidates": [
+    {
+      "config": {
+        "chunked_prefill": true,
+        "data_parallel": 1,
+        "engine": "vllm",
+        "kv_cache_dtype": "bfloat16",
+        "max_num_batched_tokens": 2048,
+        "max_num_seqs": 32,
+        "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+        "pipeline_parallel": 1,
+        "power_limit_w": 700.0,
+        "precision": "bfloat16",
+        "prefix_caching": false,
+        "tensor_parallel": 1,
+        "tokenizer_revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+      },
+      "id": "seq32-bt2048-chunk",
+      "prior_metrics": {
+        "avg_power_per_gpu_w": 689.7849919306933,
+        "avg_power_w": 689.7849919306933,
+        "capacity_tok_s": 1392.977675332623,
+        "duration_s": 23.523707938948466,
+        "energy_j": 16226.300690847553,
+        "energy_j_per_1k_output_tokens": 495.1873990126817,
+        "energy_j_per_1k_output_tokens_lower": 234.22363973299844,
+        "energy_j_per_1k_output_tokens_upper": 756.151158292365,
+        "energy_j_per_1k_tokens": 495.1873990126817,
+        "energy_j_per_1k_tokens_lower": 234.22363973299844,
+        "energy_j_per_1k_tokens_upper": 756.151158292365,
+        "energy_j_per_1k_total_tokens": 29.128670530157745,
+        "estimated_memory_gib": 21.893479585647583,
+        "gpu_energy_j": 16226.300690847553,
+        "j_per_output_token": 0.49518739901268166,
+        "j_per_total_token": 0.029128670530157746,
+        "relative_uncertainty": 0.527,
+        "request_throughput_req_s": 10.882638088536117,
+        "throughput_tok_s": 1392.977675332623,
+        "throughput_tok_s_lower": 658.8784404323306,
+        "throughput_tok_s_upper": 2127.0769102329155,
+        "total_gpu_power_w": 689.7849919306933,
+        "tpot_ms": 21.93394692610868,
+        "tpot_ms_lower": 10.374756896049405,
+        "tpot_ms_upper": 33.49313695616795,
+        "ttft_ms": 2187.249206772628,
+        "ttft_ms_lower": 1034.568874803453,
+        "ttft_ms_upper": 3339.9295387418033
+      },
+      "required_gpus": 1,
+      "target_nodes": 1
+    },
+    {
+      "config": {
+        "chunked_prefill": true,
+        "data_parallel": 1,
+        "engine": "vllm",
+        "kv_cache_dtype": "bfloat16",
+        "max_num_batched_tokens": 8192,
+        "max_num_seqs": 256,
+        "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+        "pipeline_parallel": 1,
+        "power_limit_w": 700.0,
+        "precision": "bfloat16",
+        "prefix_caching": false,
+        "tensor_parallel": 1,
+        "tokenizer_revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+      },
+      "id": "expert-seq256-bt8192-chunk",
+      "prior_metrics": {
+        "avg_power_per_gpu_w": 645.4710756366884,
+        "avg_power_w": 645.4710756366884,
+        "capacity_tok_s": 1769.8446605946729,
+        "duration_s": 18.514619237255467,
+        "energy_j": 11950.65119407501,
+        "energy_j_per_1k_output_tokens": 364.7049314598086,
+        "energy_j_per_1k_output_tokens_lower": 185.27010518158278,
+        "energy_j_per_1k_output_tokens_upper": 544.1397577380344,
+        "energy_j_per_1k_tokens": 364.7049314598086,
+        "energy_j_per_1k_tokens_lower": 185.27010518158278,
+        "energy_j_per_1k_tokens_upper": 544.1397577380344,
+        "energy_j_per_1k_total_tokens": 21.453231262341685,
+        "estimated_memory_gib": 21.893479585647583,
+        "gpu_energy_j": 11950.65119407501,
+        "j_per_output_token": 0.36470493145980865,
+        "j_per_total_token": 0.021453231262341686,
+        "relative_uncertainty": 0.492,
+        "request_throughput_req_s": 13.826911410895882,
+        "throughput_tok_s": 1769.8446605946729,
+        "throughput_tok_s_lower": 899.0810875820938,
+        "throughput_tok_s_upper": 2640.608233607252,
+        "total_gpu_power_w": 645.4710756366884,
+        "tpot_ms": 16.940630681881178,
+        "tpot_ms_lower": 8.605840386395638,
+        "tpot_ms_upper": 25.275420977366718,
+        "ttft_ms": 1343.7275424992033,
+        "ttft_ms_lower": 682.6135915895953,
+        "ttft_ms_upper": 2004.8414934088114
+      },
+      "required_gpus": 1,
+      "target_nodes": 1
+    }
+  ],
+  "hardware": {
+    "driver_version": "580.173.02",
+    "gpu_count": 1,
+    "gpu_name": "NVIDIA H100 80GB HBM3",
+    "gpu_uuid": "GPU-d855366e-f145-3cd6-d96d-508f1476b727",
+    "hostname": "ipp2-0052",
+    "node_count": 1
+  },
+  "intent": "Independently confirm, without refitting or reselection, whether the serving configuration selected by config-search-v1 retains lower GPU energy per 1,000 output tokens and lower TTFT than the locked expert baseline on the same single-H100 target workload.",
+  "level_cost_gpu_hours": {
+    "L0": 0.0,
+    "L1": 0.01,
+    "L4": 0.02
+  },
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "name": "qwen2.5-7b-h100-winner-confirmation-v1",
+  "objectives": {
+    "energy_j_per_1k_output_tokens": "min",
+    "throughput_tok_s": "max"
+  },
+  "schema_version": "1.0",
+  "slo": {
+    "tpot_ms": 20.0,
+    "ttft_ms": 1600.0
+  },
+  "workload": {
+    "concurrency": 32,
+    "input_tokens": 2048,
+    "num_requests": 256,
+    "output_tokens": 128,
+    "request_rate": "inf"
+  }
+}

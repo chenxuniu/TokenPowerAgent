@@ -1,0 +1,357 @@
+{
+  "benchmark_id": "qwen2.5-7b-h100-config-search-budget-sweep-v1",
+  "source_sha256": "2811f77938f349b95ec679804dcb0d262377fd0d7277d3740a73dd1815c8a471",
+  "scenario_sha256": "fbcbd2e395d09af04a77172ad4b89d766d5c6b213fdd3f8cdf1d40d15d67a37b",
+  "protocol_sha256": "7a559d7f3c4b0ac1653a01efb8f04674044aa8e6810e21724f2979e5386e944b",
+  "protocol": {
+    "auc_semantics": "trapezoidal area normalized by the preregistered budget range",
+    "budgets_gpu_hours": [
+      0.04,
+      0.06,
+      0.08,
+      0.1,
+      0.12
+    ],
+    "episode_semantics": "candidate-level empirical bootstrap with common random numbers across policies and matched seed ids across budgets",
+    "episodes_per_policy_per_budget": 500,
+    "frontier_patience": 0,
+    "max_steps": 20,
+    "min_ipig_score": 0.0,
+    "oracle_semantics": "median successful L4 metrics per candidate",
+    "policies": [
+      "ipig",
+      "random",
+      "cost-blind",
+      "cheapest-first"
+    ],
+    "resampling_scheme": "sha256(seed,candidate_id,evidence_level)",
+    "total_episode_count": 10000,
+    "verification_required": true,
+    "verification_reserve_gpu_hours": 0.04
+  },
+  "budget_response": {
+    "cheapest-first": {
+      "first_budget_at_50pct_success_gpu_hours": 0.08,
+      "first_budget_at_maximum_success_gpu_hours": 0.08,
+      "largest_success_rate_drop": 0.124,
+      "maximum_success_rate": 0.76,
+      "normalized_conditional_regret_auc": 0.5484208575161583,
+      "normalized_mean_spent_gpu_hours_auc": 0.04086000882750296,
+      "normalized_precision_auc": 0.42850000000000005,
+      "normalized_recall_auc": 0.42850000000000005,
+      "normalized_success_auc": 0.42850000000000005,
+      "point_count": 5,
+      "success_monotonic_nondecreasing": false,
+      "success_rate_decrease_count": 1
+    },
+    "cost-blind": {
+      "first_budget_at_50pct_success_gpu_hours": 0.08,
+      "first_budget_at_maximum_success_gpu_hours": 0.08,
+      "largest_success_rate_drop": 0.0,
+      "maximum_success_rate": 0.636,
+      "normalized_conditional_regret_auc": 0.4308503913512844,
+      "normalized_mean_spent_gpu_hours_auc": 0.04678206923153339,
+      "normalized_precision_auc": 0.3975,
+      "normalized_recall_auc": 0.3975,
+      "normalized_success_auc": 0.3975,
+      "point_count": 5,
+      "success_monotonic_nondecreasing": true,
+      "success_rate_decrease_count": 0
+    },
+    "ipig": {
+      "first_budget_at_50pct_success_gpu_hours": 0.08,
+      "first_budget_at_maximum_success_gpu_hours": 0.08,
+      "largest_success_rate_drop": 0.0,
+      "maximum_success_rate": 0.636,
+      "normalized_conditional_regret_auc": 0.552578771722996,
+      "normalized_mean_spent_gpu_hours_auc": 0.041801861322361356,
+      "normalized_precision_auc": 0.3975,
+      "normalized_recall_auc": 0.3975,
+      "normalized_success_auc": 0.3975,
+      "point_count": 5,
+      "success_monotonic_nondecreasing": true,
+      "success_rate_decrease_count": 0
+    },
+    "random": {
+      "first_budget_at_50pct_success_gpu_hours": null,
+      "first_budget_at_maximum_success_gpu_hours": 0.12,
+      "largest_success_rate_drop": 0.0,
+      "maximum_success_rate": 0.462,
+      "normalized_conditional_regret_auc": 0.7699805009874768,
+      "normalized_mean_spent_gpu_hours_auc": 0.04323891641232146,
+      "normalized_precision_auc": 0.20425000000000004,
+      "normalized_recall_auc": 0.20425000000000004,
+      "normalized_success_auc": 0.20425000000000004,
+      "point_count": 5,
+      "success_monotonic_nondecreasing": true,
+      "success_rate_decrease_count": 0
+    }
+  },
+  "points": [
+    {
+      "budget_gpu_hours": 0.04,
+      "aggregate": {
+        "cheapest-first": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 1.0516080484518449,
+          "mean_exploration_gpu_hours": 0.0,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.0,
+          "mean_oracle_pareto_recall": 0.0,
+          "mean_spent_gpu_hours": 0.009463578027693164,
+          "mean_unnecessary_l4_verifications": 1.0,
+          "median_first_oracle_hit_gpu_hours": null,
+          "success_rate": 0.0
+        },
+        "cost-blind": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 1.0516080484518449,
+          "mean_exploration_gpu_hours": 0.0,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.0,
+          "mean_oracle_pareto_recall": 0.0,
+          "mean_spent_gpu_hours": 0.009463578027693164,
+          "mean_unnecessary_l4_verifications": 1.0,
+          "median_first_oracle_hit_gpu_hours": null,
+          "success_rate": 0.0
+        },
+        "ipig": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 1.0516080484518449,
+          "mean_exploration_gpu_hours": 0.0,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.0,
+          "mean_oracle_pareto_recall": 0.0,
+          "mean_spent_gpu_hours": 0.009463578027693164,
+          "mean_unnecessary_l4_verifications": 1.0,
+          "median_first_oracle_hit_gpu_hours": null,
+          "success_rate": 0.0
+        },
+        "random": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 1.0516080484518449,
+          "mean_exploration_gpu_hours": 0.0,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.0,
+          "mean_oracle_pareto_recall": 0.0,
+          "mean_spent_gpu_hours": 0.009463578027693164,
+          "mean_unnecessary_l4_verifications": 1.0,
+          "median_first_oracle_hit_gpu_hours": null,
+          "success_rate": 0.0
+        }
+      }
+    },
+    {
+      "budget_gpu_hours": 0.06,
+      "aggregate": {
+        "cheapest-first": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 1.0516080484518449,
+          "mean_exploration_gpu_hours": 0.010447402001111728,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.0,
+          "mean_oracle_pareto_recall": 0.0,
+          "mean_spent_gpu_hours": 0.01991098002880489,
+          "mean_unnecessary_l4_verifications": 1.0,
+          "median_first_oracle_hit_gpu_hours": null,
+          "success_rate": 0.0
+        },
+        "cost-blind": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.5646945269649992,
+          "mean_exploration_gpu_hours": 0.010192101314689547,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.0,
+          "mean_oracle_pareto_recall": 0.0,
+          "mean_spent_gpu_hours": 0.02202283045286211,
+          "mean_unnecessary_l4_verifications": 1.25,
+          "median_first_oracle_hit_gpu_hours": null,
+          "success_rate": 0.0
+        },
+        "ipig": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 1.0516080484518449,
+          "mean_exploration_gpu_hours": 0.010263180003043486,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.0,
+          "mean_oracle_pareto_recall": 0.0,
+          "mean_spent_gpu_hours": 0.01972675803073665,
+          "mean_unnecessary_l4_verifications": 1.0,
+          "median_first_oracle_hit_gpu_hours": null,
+          "success_rate": 0.0
+        },
+        "random": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 1.028093169159345,
+          "mean_exploration_gpu_hours": 0.011144434798399064,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.012,
+          "mean_oracle_pareto_recall": 0.012,
+          "mean_spent_gpu_hours": 0.020854085011472796,
+          "mean_unnecessary_l4_verifications": 1.014,
+          "median_first_oracle_hit_gpu_hours": 0.028984997195695743,
+          "success_rate": 0.012
+        }
+      }
+    },
+    {
+      "budget_gpu_hours": 0.08,
+      "aggregate": {
+        "cheapest-first": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.23652954885833577,
+          "mean_exploration_gpu_hours": 0.03149228638688236,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.76,
+          "mean_oracle_pareto_recall": 0.76,
+          "mean_spent_gpu_hours": 0.04938518524169895,
+          "mean_unnecessary_l4_verifications": 1.13,
+          "median_first_oracle_hit_gpu_hours": 0.050438495507086276,
+          "success_rate": 0.76
+        },
+        "cost-blind": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.2531612056856865,
+          "mean_exploration_gpu_hours": 0.03181354174960224,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.636,
+          "mean_oracle_pareto_recall": 0.636,
+          "mean_spent_gpu_hours": 0.0497189605421702,
+          "mean_unnecessary_l4_verifications": 1.254,
+          "median_first_oracle_hit_gpu_hours": 0.05076675352472699,
+          "success_rate": 0.636
+        },
+        "ipig": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.2531612056856865,
+          "mean_exploration_gpu_hours": 0.03164146640863628,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.636,
+          "mean_oracle_pareto_recall": 0.636,
+          "mean_spent_gpu_hours": 0.049546885201204226,
+          "mean_unnecessary_l4_verifications": 1.254,
+          "median_first_oracle_hit_gpu_hours": 0.05058794042236413,
+          "success_rate": 0.636
+        },
+        "random": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.7727101570856036,
+          "mean_exploration_gpu_hours": 0.03322680473268343,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.182,
+          "mean_oracle_pareto_recall": 0.182,
+          "mean_spent_gpu_hours": 0.045307775607038955,
+          "mean_unnecessary_l4_verifications": 1.094,
+          "median_first_oracle_hit_gpu_hours": 0.05180242453972217,
+          "success_rate": 0.182
+        }
+      }
+    },
+    {
+      "budget_gpu_hours": 0.1,
+      "aggregate": {
+        "cheapest-first": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.2531612056856865,
+          "mean_exploration_gpu_hours": 0.041702635224539646,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.636,
+          "mean_oracle_pareto_recall": 0.636,
+          "mean_spent_gpu_hours": 0.059608054017107594,
+          "mean_unnecessary_l4_verifications": 1.254,
+          "median_first_oracle_hit_gpu_hours": 0.0606518673615311,
+          "success_rate": 0.636
+        },
+        "cost-blind": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.2531612056856865,
+          "mean_exploration_gpu_hours": 0.05044208107497811,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.636,
+          "mean_oracle_pareto_recall": 0.636,
+          "mean_spent_gpu_hours": 0.06834749986754605,
+          "mean_unnecessary_l4_verifications": 1.254,
+          "median_first_oracle_hit_gpu_hours": 0.06939518229249694,
+          "success_rate": 0.636
+        },
+        "ipig": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.2531612056856865,
+          "mean_exploration_gpu_hours": 0.04422925656987069,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.636,
+          "mean_oracle_pareto_recall": 0.636,
+          "mean_spent_gpu_hours": 0.06213467536243864,
+          "mean_unnecessary_l4_verifications": 1.254,
+          "median_first_oracle_hit_gpu_hours": 0.0631841499651374,
+          "success_rate": 0.636
+        },
+        "random": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.5284633649729217,
+          "mean_exploration_gpu_hours": 0.05160646357088272,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.392,
+          "mean_oracle_pareto_recall": 0.392,
+          "mean_spent_gpu_hours": 0.06645650491695994,
+          "mean_unnecessary_l4_verifications": 1.176,
+          "median_first_oracle_hit_gpu_hours": 0.07008439084500424,
+          "success_rate": 0.392
+        }
+      }
+    },
+    {
+      "budget_gpu_hours": 0.12,
+      "aggregate": {
+        "cheapest-first": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.2531612056856865,
+          "mean_exploration_gpu_hours": 0.041702635224539646,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.636,
+          "mean_oracle_pareto_recall": 0.636,
+          "mean_spent_gpu_hours": 0.059608054017107594,
+          "mean_unnecessary_l4_verifications": 1.254,
+          "median_first_oracle_hit_gpu_hours": 0.0606518673615311,
+          "success_rate": 0.636
+        },
+        "cost-blind": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.2531612056856865,
+          "mean_exploration_gpu_hours": 0.06670897530684923,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.636,
+          "mean_oracle_pareto_recall": 0.636,
+          "mean_spent_gpu_hours": 0.08461439409941718,
+          "mean_unnecessary_l4_verifications": 1.254,
+          "median_first_oracle_hit_gpu_hours": 0.08566633952430291,
+          "success_rate": 0.636
+        },
+        "ipig": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.2531612056856865,
+          "mean_exploration_gpu_hours": 0.04422925656987069,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.636,
+          "mean_oracle_pareto_recall": 0.636,
+          "mean_spent_gpu_hours": 0.06213467536243864,
+          "mean_unnecessary_l4_verifications": 1.254,
+          "median_first_oracle_hit_gpu_hours": 0.0631841499651374,
+          "success_rate": 0.636
+        },
+        "random": {
+          "episode_count": 500,
+          "mean_best_primary_regret_pct": 0.44970257701222927,
+          "mean_exploration_gpu_hours": 0.055507639722391186,
+          "mean_failed_action_count": 0.0,
+          "mean_oracle_pareto_precision": 0.462,
+          "mean_oracle_pareto_recall": 0.462,
+          "mean_spent_gpu_hours": 0.07121102219993511,
+          "mean_unnecessary_l4_verifications": 1.196,
+          "median_first_oracle_hit_gpu_hours": 0.07508387749388931,
+          "success_rate": 0.462
+        }
+      }
+    }
+  ]
+}

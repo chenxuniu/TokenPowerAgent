@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "rq1-sandbox-validity-v1",
+  "research_question": "Can calibrated L0/L2 estimates preserve held-out energy-performance and Pareto rankings?",
+  "claim_status": "preregistered-no-results",
+  "controls": {
+    "prefix_caching": false,
+    "power_limit": "platform-default-fixed",
+    "temperature": 0,
+    "ignore_eos": true,
+    "warmup_policy": "two unmeasured requests before every measured block",
+    "measurement_boundary": "client READY to DONE using DCGM total-energy counter",
+    "required_repetitions": 3,
+    "run_order": "cyclically balanced within GPU/model/workload block"
+  },
+  "workload_factors": {
+    "input_tokens": [128, 512, 2048, 8192],
+    "output_tokens": [32, 128, 512],
+    "concurrency": [1, 8, 32, 128]
+  },
+  "configuration_factors": {
+    "tensor_parallel": [1, 2, 4, 8],
+    "pipeline_parallel": [1, 2],
+    "max_num_seqs": [8, 32, 128, 256],
+    "max_num_batched_tokens": [2048, 8192, 32768],
+    "chunked_prefill": [true, false]
+  },
+  "split": {
+    "single_gpu_space_filling_points": 36,
+    "calibration_points": 24,
+    "held_out_single_gpu_points": 12,
+    "held_out_multi_gpu_points": 24,
+    "freeze_before_fit": true
+  },
+  "platforms": [
+    "H100-80GB",
+    "H200-141GB",
+    "B200-RECORD-EXACT-SKU"
+  ],
+  "metrics": [
+    "energy_j_per_1k_tokens",
+    "throughput_tok_s",
+    "p95_ttft_ms",
+    "p95_tpot_ms",
+    "mape",
+    "spearman_rho",
+    "kendall_tau",
+    "top_k_recall",
+    "pareto_precision",
+    "pareto_recall",
+    "hypervolume_error",
+    "interval_coverage"
+  ],
+  "primary_gates": {
+    "energy_spearman_min": 0.8,
+    "throughput_spearman_min": 0.8,
+    "pareto_recall_min": 0.8,
+    "coverage_tolerance_percentage_points": 10
+  },
+  "required_provenance": [
+    "git_commit",
+    "scenario_sha256",
+    "calibration_sha256",
+    "container_digest",
+    "model_revision",
+    "tokenizer_revision",
+    "driver_cuda_nccl_versions",
+    "gpu_uuids",
+    "topology",
+    "power_limit_readback",
+    "telemetry_paths",
+    "exact_commands"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "benchmark_id": "qwen2.5-7b-h100-config-search-budget-sweep-v1",
+  "expected_inputs": {
+    "scenario_sha256": "fbcbd2e395d09af04a77172ad4b89d766d5c6b213fdd3f8cdf1d40d15d67a37b",
+    "corpus_sha256": "2811f77938f349b95ec679804dcb0d262377fd0d7277d3740a73dd1815c8a471"
+  },
+  "budgets_gpu_hours": [0.04, 0.06, 0.08, 0.10, 0.12],
+  "replay": {
+    "policies": ["ipig", "random", "cost-blind", "cheapest-first"],
+    "episodes_per_policy": 500,
+    "max_steps": 20,
+    "min_ipig_score": 0.0,
+    "frontier_patience": 0
+  }
+}

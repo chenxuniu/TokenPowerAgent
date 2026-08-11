@@ -1,0 +1,17 @@
+profile_id,model_id,metric,feature_index,feature,coefficient,development_loo_mape_pct,development_loo_max_ape_pct,feature_scale,ridge_lambda
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,avg_power_w,0,log2_context_ratio,0.10465937180698569,3.95627800064308,7.548099857885848,1.2454813087434475,0.03
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,avg_power_w,1,log2_concurrency_ratio,-0.3893380116893672,3.95627800064308,7.548099857885848,1.7795130420052185,0.03
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,avg_power_w,2,context_concurrency_interaction,-0.02115160862150009,3.95627800064308,7.548099857885848,1.9186540907118759,0.03
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,avg_power_w,3,log2_concurrency_ratio_squared,0.279088915263937,3.95627800064308,7.548099857885848,4.377975178854566,0.03
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,throughput_tok_s,0,log2_context_ratio,-0.018848436645705832,12.825841580649382,24.202487746680923,1.2454813087434475,0.001
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,throughput_tok_s,1,log2_concurrency_ratio,0.3609807504517754,12.825841580649382,24.202487746680923,1.7795130420052185,0.001
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,throughput_tok_s,2,context_concurrency_interaction,-0.17450538813711508,12.825841580649382,24.202487746680923,1.9186540907118759,0.001
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,throughput_tok_s,3,log2_concurrency_ratio_squared,0.22227124876135074,12.825841580649382,24.202487746680923,4.377975178854566,0.001
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,tpot_ms,0,log2_context_ratio,0.011847147152456994,12.505995957904497,23.65427043369508,1.2454813087434475,0.001
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,tpot_ms,1,log2_concurrency_ratio,-0.3751158235862134,12.505995957904497,23.65427043369508,1.7795130420052185,0.001
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,tpot_ms,2,context_concurrency_interaction,0.17916023810538367,12.505995957904497,23.65427043369508,1.9186540907118759,0.001
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,tpot_ms,3,log2_concurrency_ratio_squared,-0.22396147200147873,12.505995957904497,23.65427043369508,4.377975178854566,0.001
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,ttft_ms,0,log2_context_ratio,-0.07154562534581047,14.31411203415103,24.33070318972662,1.2454813087434475,0.3
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,ttft_ms,1,log2_concurrency_ratio,0.34724435743813925,14.31411203415103,24.33070318972662,1.7795130420052185,0.3
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,ttft_ms,2,context_concurrency_interaction,-0.09203812785855307,14.31411203415103,24.33070318972662,1.9186540907118759,0.3
+qwen2.5-7b-h100-workload-v2,qwen2.5-7b-h100-workload-v2-workload-residual,ttft_ms,3,log2_concurrency_ratio_squared,-0.033202482350108815,14.31411203415103,24.33070318972662,4.377975178854566,0.3

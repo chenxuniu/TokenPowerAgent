@@ -1,0 +1,151 @@
+\section{\system{} Design}
+
+\subsection{System Overview}
+
+Figure~\ref{fig:architecture} shows the closed-loop, three-stage Pareto search
+and maps the requirements in Section~2 to concrete mechanisms.  The Scenario
+Compiler enforces scenario conditioning (R1) by combining a typed JSON/YAML
+specification with a natural-language intent and rejecting infeasible
+candidates.  The evidence contracts preserve uncertainty across Sandbox,
+Probe, and Verify (R2).  \ipig{} allocates GPU cost to decision-relevant
+ambiguity (R3), while the state guard and Verifier bound semantic autonomy
+(R4).  A language-model planner observes the intent, compact belief state,
+remaining budget, failures, and provenance, then proposes one structured
+subgoal from \{\textsc{Explore}, \textsc{ResolveSLO},
+\textsc{CalibrateScale}, \textsc{Repair}\}.  A deterministic guard admits or
+replaces the proposal; final \textsc{Verify} is reserved for the controller.
+Within the admitted subgoal, \ipig{} selects the numerical
+configuration--stage action.  The Tool Layer invokes the CPU predictor, pinned
+serving containers, telemetry readers, and replay executor.  Observations
+update the Energy Twin and a versioned Evidence Store; the Verifier reruns final
+Pareto candidates before scripts and recommendations are released.
+
+\input{figures/system-architecture}
+
+\bench{} and \system{} consequently have separate responsibilities.  \bench{}
+defines and executes a measurement; \system{} decides which measurements are
+decision-relevant, what can be inferred between them, and whether the evidence
+supports a recommendation.  This separation also prevents circular claims:
+the same CPU model is never treated as ground truth for its own accuracy.
+
+\subsection{Calibrated Energy Twin}
+
+The implemented Energy Twin starts from a measured serving anchor and an
+interpretable CPU projector.  It rejects memory-infeasible candidates, scales
+prefill and decode work using token geometry and batch occupancy, predicts
+active power between measured idle and active bounds, and preserves the
+physical identity
+\begin{equation}
+\widehat E(W,x)=\widehat P(W,x)\widehat t(W,x).
+\label{eq:energy-identity}
+\end{equation}
+For the present H100 study, one anchor cannot capture utilization transitions
+across context length $\ell$ and concurrency $k$.  Relative to anchor
+$(\ell_0,k_0)$, we therefore define
+\begin{align}
+q&=\log_2\!\frac{\ell_{in}+0.5\ell_{out}}
+                         {\ell_{in,0}+0.5\ell_{out,0}}, &
+r&=\log_2\!\frac{k}{k_0},\\[-3pt]
+\phi&=[q,r,qr,r^2].&&
+\end{align}
+For each directly predicted metric $m$, ridge regression fits
+$\log(y_m/\widehat y_m^{base})=\beta_m^T\phi$.  Its strength is selected by
+leave-one-workload-out error on a development split.  Throughput, power, TTFT,
+and TPOT are corrected; energy is recomputed from corrected power and duration
+rather than independently fitted.  Every calibration point retains repeat
+dispersion and source hashes.
+
+The fitted residual is explicitly scope-gated.  It applies only to the frozen
+model, GPU, runtime configuration, output length, request-rate regime, and
+declared context/concurrency ranges.  An unsupported scenario returns an
+abstention instead of silently extrapolating a single-H100 fit.
+
+\subsection{Three-Stage Evidence Path}
+
+The sandbox is a bounded evidence environment implemented with immutable job
+templates, container/runtime hashes, explicit resource allocations, and fixed
+telemetry settings.  The current system exercises three operational stages:
+
+\begin{itemize}
+    \item \textbf{Sandbox:} retrieve compatible \bench{} records
+    and run the CPU-resident predictor.  This stage consumes no target-GPU time
+    and produces simulated evidence with uncertainty.
+    \item \textbf{Probe:} run a short, controlled workload on the
+    target H100.  The configuration study uses 64 requests and directly measures
+    energy, throughput, TTFT, and TPOT.
+    \item \textbf{Verify:} execute the preregistered 256-request
+    target workload for the top candidates and return only successful,
+    SLO-feasible measured outcomes.
+\end{itemize}
+
+The main text therefore uses the operational names Sandbox, Probe, and Verify.
+A result carries its highest supporting stage: Sandbox output is
+\emph{simulated}, Probe output is \emph{measured}, and only the target run is
+\emph{verified}.  These labels are machine-readable in every table, event, and
+artifact manifest.
+
+\subsection{Hybrid Belief-State Policy and \ipig{}}
+
+The controller observes predictive uncertainty, Pareto ambiguity, distance to
+an SLO boundary, remaining budget, and run failures.  It rejects invalid
+candidates deterministically.  For each $x$, define verified feasibility and
+Pareto membership variables $Q_x=\mathbf 1[q_S(x)=1]$ and
+$P_x=\mathbf 1[x\in\mathcal P_S^*]$.  The intent-specific terminal decision is
+\begin{equation}
+\Omega_S=\{(Q_x,P_x):x\in\mathcal X_S\}.
+\end{equation}
+For an admissible action $a=(x,e)$, the policy interface targets
+\begin{equation}
+\alpha_t(a\mid S)=
+\frac{I(Y_a;\Omega_S\mid\mathcal D_t,S)}
+{(\mathbb E[c(a)\mid\mathcal D_t]+\epsilon)^\gamma}.
+\label{eq:ipig}
+\end{equation}
+The numerator denotes information about the verified SLO-feasible Pareto
+decision, not generic prediction variance.  The current artifact exposes this
+estimator as a typed interface and uses a transparent proxy.  After setting the
+implementation's hardware-scale term to zero for every candidate in this
+single-GPU scenario, its effective score is
+\begin{equation}
+\widetilde I_t(a)=U_t(x)
+\left(.45p_{P}(x)+.35p_{S}(x)\right)g_e,
+\label{eq:ipig-proxy}
+\end{equation}
+where $U_t$ is predictive uncertainty, $p_P$ approximates frontier relevance,
+$p_S$ approximates proximity to an SLO boundary, and $g_e$ is a monotone
+stage-gain factor.  The semantic subgoal increases the corresponding SLO term.
+The score divides Eq.~\ref{eq:ipig-proxy} by declared GPU cost as in
+Eq.~\ref{eq:ipig}; actions that exceed the remaining exploration budget are
+removed first.  This proxy is auditable and sufficient for the Workshop
+agent-loop study.  A posterior Pareto-information estimator remains future
+work.
+
+The semantic subgoal restricts admissible actions before maximizing
+Eq.~\ref{eq:ipig}.  \textsc{ResolveSLO} prioritizes candidates whose intervals
+cross an SLO, and the deterministic \textsc{Verify} state admits only full
+target runs.  Operationally, the controller:
+\begin{itemize}
+    \item uses \textbf{Sandbox} when a CPU estimate can resolve feasibility or
+    dominance without target-GPU time;
+    \item requests a \textbf{Probe} when direct evidence can change ranking or
+    resolve an SLO boundary; and
+    \item enters \textbf{Verify} before any candidate is released.
+\end{itemize}
+Exploratory search terminates when its budget is exhausted or the predicted
+frontier is stable.  A reserved budget then supports full target runs for the
+top-$k$ candidates; no recommendation is released without verified evidence.
+
+\subsection{Bounded Autonomy and Provenance}
+
+The LLM can propose only a typed semantic subgoal; it cannot issue an
+unrestricted shell command, modify model weights, change telemetry intervals,
+or enlarge the measurement budget.  The state guard applies a frozen precedence
+to the same machine state: repair after failure; otherwise establish initial
+evidence; then calibrate a material transfer gap; then resolve an SLO boundary;
+otherwise explore.  A valid JSON proposal that violates this precedence is
+replaced, just as malformed output invokes the rule path.  Each event preserves
+the raw proposal, admitted subgoal, intervention reason, and model rationale.
+Numeric calculations, feasibility, Pareto sorting, candidate selection, budget
+accounting, and final verification remain deterministic.  The Verifier checks
+units, missing samples, clock/power state, completion, and SLO acceptance before
+admitting evidence to the released Pareto set.

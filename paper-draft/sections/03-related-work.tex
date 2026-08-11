@@ -1,100 +1,65 @@
 \section{Related Work}
 
-\subsection{Inference Energy Measurement and Prediction}
+\subsection{Energy Measurement, Serving, and Simulation}
 
-From Words to Watts established energy per token and response as first-class
-metrics across V100/A100 and multi-GPU LLM inference
-\cite{samsi2023words}.  MELODI profiles model, framework, and prompt effects
-\cite{husom2024price}; MLPerf Power contributes measurement discipline across
-system scales \cite{tschand2024mlperf}; and workload studies show that token
-geometry, hardware, software, decoding, and parallelism can change whether an
-optimization saves energy \cite{fernandez2025energy}.  A recent engine study
-isolates setup and generation energy across Transformers, DeepSpeed,
-TensorRT-LLM, and vLLM \cite{niu2025engines}.  \bench\ extends this direction
-with declarative configurations, phase alignment, component telemetry, and
-single- to multi-node experiments \cite{niu2026tokenpowerbench}.
+Inference-energy studies establish joules/token and joules/request as
+first-class metrics and show sensitivity to model, workload, hardware, engine,
+decoding, and parallelism
+\cite{samsi2023words,fernandez2025energy,niu2025engines}.  MLPerf Power,
+ML.ENERGY, and prompt-level datasets add cross-scale measurement or automated
+prediction \cite{tschand2024mlperf,chung2025mlenergy,caravaca2025prompts}.
+\bench{} contributes declarative, phase-aligned GPU, component, and node
+telemetry from single- to multi-node inference \cite{niu2026tokenpowerbench}.
+These systems supply observations; they do not allocate a scenario-specific
+budget for acquiring the next observation.
 
-Recent datasets broaden coverage.  ML.ENERGY measures realistic services and
-supports automated recommendations \cite{chung2025mlenergy}; Watt Counts
-compares heterogeneous GPU architectures \cite{argerich2026wattcounts}; and
-From Prompts to Power learns prompt-level predictors from more than 32,000
-measurements \cite{caravaca2025prompts}.  LLMCO2 uses phase and hardware
-features for carbon prediction \cite{fu2024llmco2}.  These works establish
-valuable ground truth and predictors, but they do not decide which scale of
-new evidence is required for a particular Pareto recommendation.
+Serving systems expose the knob space through memory management, chunked
+prefill, disaggregation, scheduling, and heterogeneous placement
+\cite{kwon2023vllm,agrawal2024sarathi,zhong2024distserve,
+hong2025sola,jiang2025thunderserve}.  Vidur, LLMServingSim, and LLMCompass use
+profiling and simulation for what-if analysis
+\cite{agrawal2024vidur,cho2024llmservingsim,zhang2024llmcompass}; Lumos validates
+distributed trace estimation, Charon combines profiled and analytical operator
+backends, and Meta explores millions of configurations
+\cite{liang2025lumos,yang2026charon,cho2026deployment}.  These works establish
+strong simulator priors.  \system{} instead asks when such a prior is
+sufficient and when scale-specific measurement is worth its cost.
 
-\subsection{Serving Systems and Simulation}
+\subsection{Energy Control and Multi-Fidelity Optimization}
 
-The configuration space is created by serving-system innovations.  vLLM's
-PagedAttention improves KV-cache utilization \cite{kwon2023vllm}; Sarathi-Serve
-uses chunked prefill \cite{agrawal2024sarathi}; DistServe and Splitwise
-separate prefill and decode \cite{zhong2024distserve,patel2023splitwise}; and
-Mooncake treats KV cache as a distributed resource \cite{qin2024mooncake}.
-These systems optimize throughput, goodput, latency, or cost and expose the
-batching, placement, and parallelism knobs that \system\ must reason about.
+DynamoLLM and GreenLLM optimize cluster size, parallelism, or frequency under
+SLOs \cite{stojkovic2024dynamollm,liu2025greenllm}.  BEAM jointly controls GPU
+frequency, prefill chunks, and microbatches using an offline energy--performance
+table \cite{lee2026beam}; BOute applies constrained qNEHVI to deployment Pareto
+search, and OptiKIT uses full H100 trials for SLO-driven serving tuning
+\cite{jiang2026boute,santavas2026optikit}.  They optimize deployment or runtime
+actions under a fixed observation model.  \system{} instead optimizes the
+evidence-acquisition process before a verified recommendation.
 
-Vidur profiles operators and simulates end-to-end serving schedules, enabling
-large configuration searches without exhaustive execution
-\cite{agrawal2024vidur}.  LLM-Pilot profiles hardware to recommend
-cost-effective accelerators, while MaverIQ maps intent to deployment choices
-through fingerprint profiling and analytical extrapolation
-\cite{lazuka2024llmpilot,liakopoulos2025maveriq}.  LLMServingSim and
-LLMCompass support large-scale or hardware-aware what-if analysis with
-real-system validation \cite{cho2024llmservingsim,zhang2024llmcompass};
-Frontier extends simulation toward disaggregated and stateful workloads
-\cite{feng2026frontier}.  Simulation-based energy accounting maps schedules to
-power and carbon models \cite{ozcan2025simulation}.  Neither
-intent-to-configuration nor simulator-guided search is new by itself.  Our
-question is how an agent sequentially co-selects a serving configuration and
-the scale of evidence needed to verify an energy/SLO decision.
+Generic multi-fidelity Pareto optimization is the closest algorithmic
+precedent.  $\epsilon$-PAL classifies Pareto membership, PESMO targets Pareto-set
+information, and qNEHVI is a strong noisy single-fidelity optimizer
+\cite{zuluaga2016epal,hernandezlobato2016pesmo,daulton2021qnehvi}.  MF-OSEMO
+selects candidate--fidelity vectors using highest-fidelity frontier information,
+while MF-JESMOC adds constraints
+\cite{belakaria2020mfosemo,fernandezsanchez2025mfjesmoc}.  We do not claim the
+first information-gain or multi-fidelity optimizer.  \ipig{} conditions the
+terminal variable on intent-specific SLO feasibility and Pareto membership,
+then adds typed evidence levels, guarded execution, and mandatory L4 release.
 
-\subsection{Energy-Aware Control and Multi-Fidelity Autotuning}
+\subsection{Agentic Systems Optimization}
 
-DynamoLLM jointly configures cluster size, model parallelism, and frequency
-under SLOs \cite{stojkovic2024dynamollm}; GreenLLM applies SLO-aware dynamic
-frequency scaling \cite{liu2025greenllm}; DualScale models phase-aware
-placement and DVFS for disaggregated serving \cite{basit2026dualscale}; and
-PALS targets power-aware MoE serving \cite{pals2026}.  The Illusion of Power
-Capping cautions that decode can remain below a cap because it is
-memory-bound \cite{ma2026illusion}.  These controllers demonstrate real
-optimization opportunities but are generally bound to one runtime policy.
-Zeus and ytopt provide the broader precedent for measurement-efficient,
-surrogate-assisted energy tuning \cite{you2022zeus,wu2023ytoptenergy}.
+ReAct and Toolformer separate language reasoning from external actions
+\cite{yao2023react,schick2023toolformer}.  STELLAR tunes parallel file systems,
+LLM-Box uses simulator-guided agents for accelerator mapping, and PROMPTS uses
+profiler feedback for multi-agent configuration recommendation
+\cite{egersdoerfer2025stellar,pandit2025llmbox,ding2026prompts}.  AIOpsLab shows
+that operational agents need controlled workloads, telemetry, fault injection,
+and outcome-based evaluation \cite{chen2025aiopslab}.  We therefore test a
+narrower hypothesis: semantic planning helps intent translation, repair, and
+escalation, while numerical evidence selection remains auditable and is
+compared with an optimizer-only controller.
 
-Multi-fidelity Pareto identification is the closest generic algorithmic
-precedent.  $\epsilon$-PAL classifies a finite candidate pool as Pareto,
-non-Pareto, or uncertain \cite{zuluaga2016epal}; PESMO targets information
-about the Pareto set \cite{hernandezlobato2016pesmo}; and MF-MES normalizes
-single-objective information by fidelity cost \cite{takeno2020mfmes}.
-MF-OSEMO jointly selects candidate--fidelity vectors using information about
-the highest-fidelity Pareto front \cite{belakaria2020mfosemo}, while
-MF-JESMOC extends this setting to constraints and multiple fidelities
-\cite{fernandezsanchez2025mfjesmoc}.  qNEHVI provides a strong noisy
-single-fidelity baseline \cite{daulton2021qnehvi}.  We therefore do not claim
-the first information-gain optimizer.  \ipig\ compresses the decision target
-to intent-specific SLO feasibility and Pareto membership over typed serving
-candidates and operates inside evidence contracts, guarded execution, and
-mandatory L4 verification.
-
-\subsection{Agentic HPC}
-
-Tool-using agents such as ReAct and Toolformer separate language reasoning from
-external actions, while ToolEmu studies LM-emulated sandboxes before real
-execution \cite{yao2023react,schick2023toolformer,ruan2024toolemu}.  In HPC,
-Academy coordinates federated scientific agents and LARA executes
-validation-driven supercomputer workflows
-\cite{kamatar2025academy,dawson2026lara}.  STELLAR tunes parallel file systems,
-PROMPTS applies multi-agent profiling feedback to training and serving, and
-LLM-Box uses simulator-guided agents for accelerator mapping
-\cite{egersdoerfer2025stellar,ding2026prompts,pandit2025llmbox}.  These works
-rule out broad claims of a first agentic optimizer.  Our narrower hypothesis is
-that semantic planning adds value when an agent must allocate a measured
-energy/SLO evidence budget, recover from heterogeneous HPC failures, and leave
-all numeric selection and verification to auditable tools.
-
-Table~\ref{tab:gap} positions the closest categories.  The distinctive
-combination is scenario interpretation, serving simulation, phase- and
-topology-aware energy, active selection of measurement scale, and reproducible
-verification.
-
-\input{tables/related-work-gap}
+Across these areas, the joint gap is configuration--fidelity co-selection under
+real GPU-hour cost followed by target-scale verification.  No individual
+component is claimed as novel in isolation.

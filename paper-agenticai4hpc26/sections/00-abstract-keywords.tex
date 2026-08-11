@@ -1,0 +1,41 @@
+\begin{abstract}
+LLM inference can dominate the operational energy of deployed AI, while energy
+per token changes materially with request shape and serving configuration.
+Choosing a serving profile is therefore important, but exhaustively trying each
+candidate on a capacity-constrained HPC GPU is expensive.  We present
+\system{}, a bounded hybrid agent that decides which configuration to examine,
+at which evidence stage, and when a full target-workload run is worth its
+GPU-hour cost.  A constrained LLM proposes a typed semantic subgoal; a
+deterministic state guard admits or replaces that proposal, and deterministic
+tools select actions, enforce SLO and budget constraints, maintain the Pareto
+state, and release only verified recommendations.  The underlying
+\sandbox{} combines a CPU-resident projector, short target-GPU probes, full
+verification, immutable provenance, and explicit abstention.  On one H100 80GB
+serving Qwen2.5-7B with vLLM, two preregistered workload-transfer holdouts
+totaling \BlindMeasurements{} runs obtain \CalibratedEnergyMAPE{} and
+\ConfirmationEnergyMAPE{} energy MAPE.  A separate
+\ConfigurationCandidates{}-configuration corpus contains
+\ConfigurationMeasuredRuns{} balanced Probe/Verify runs.  The CPU Sandbox
+preserves energy rank (Spearman \LzeroEnergySpearman{}) but reverses TTFT rank
+(\LzeroTTFTSpearman{}) and misses the verified frontier; short probes recover
+that frontier with \LoneParetoRecall{} recall.  Full verification identifies a
+configuration using \ParetoEnergyReduction{} less energy with
+\ParetoTTFTReduction{} lower TTFT than the expert default.  A subsequent
+preregistered \WinnerConfirmationPairs{}-pair follow-up confirms
+\WinnerEnergySaving{} lower energy (95\% CI [\WinnerEnergyCILower{},
+\WinnerEnergyCIUpper{}]) and \WinnerTTFTReduction{} lower TTFT.  Across
+\BudgetTotalEpisodes{} sealed replay episodes, \ipig{} nearly doubles normalized
+success AUC over random, although cheapest-first remains slightly stronger in
+this small search space.  On a disjoint \PlannerCallsPerSet{}-call planner
+holdout, raw subgoal accuracy is \PlannerVtwoRaw{}; the state guard intervenes
+on \PlannerVtwoIntervention{} of calls and admits the expected subgoal on all
+calls at \PlannerVtwoMedianLatency{}/\PlannerVtwoPninetyfiveLatency{}-ms
+median/P95 latency.  Because raw accuracy misses the frozen
+\PlannerRawThreshold{} gate, our claim is guarded, evidence-gated autonomy, not
+unrestricted LLM reasoning.
+\end{abstract}
+
+\begin{IEEEkeywords}
+agentic AI, LLM inference, energy efficiency, multi-fidelity optimization,
+Pareto search, single-GPU HPC nodes
+\end{IEEEkeywords}

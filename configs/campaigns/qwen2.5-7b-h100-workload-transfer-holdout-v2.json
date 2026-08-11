@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0",
+  "campaign_id": "qwen2.5-7b-h100-workload-transfer-holdout-v2",
+  "model": {
+    "id": "Qwen/Qwen2.5-7B-Instruct",
+    "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "tokenizer_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "max_model_len": 4096
+  },
+  "serving_configuration": {
+    "engine": "vllm",
+    "precision": "bfloat16",
+    "kv_cache_dtype": "bfloat16",
+    "tensor_parallel": 1,
+    "pipeline_parallel": 1,
+    "data_parallel": 1,
+    "max_num_seqs": 256,
+    "max_num_batched_tokens": 8192,
+    "chunked_prefill": true,
+    "prefix_caching": false
+  },
+  "measurement": {
+    "power_limit_w": 700,
+    "repeats": 3,
+    "num_warmups": 2,
+    "sample_ms": 100,
+    "schedule": "cyclic-balanced"
+  },
+  "workloads": [
+    {
+      "id": "holdout-c256-o128-k4",
+      "dataset_split": "holdout",
+      "input_tokens": 256,
+      "output_tokens": 128,
+      "concurrency": 4,
+      "num_requests": 32,
+      "request_rate": "inf"
+    },
+    {
+      "id": "holdout-c256-o128-k32",
+      "dataset_split": "holdout",
+      "input_tokens": 256,
+      "output_tokens": 128,
+      "concurrency": 32,
+      "num_requests": 256,
+      "request_rate": "inf"
+    },
+    {
+      "id": "holdout-c512-o128-k1",
+      "dataset_split": "holdout",
+      "input_tokens": 512,
+      "output_tokens": 128,
+      "concurrency": 1,
+      "num_requests": 8,
+      "request_rate": "inf"
+    },
+    {
+      "id": "holdout-c512-o128-k16",
+      "dataset_split": "holdout",
+      "input_tokens": 512,
+      "output_tokens": 128,
+      "concurrency": 16,
+      "num_requests": 128,
+      "request_rate": "inf"
+    },
+    {
+      "id": "holdout-c1024-o128-k8",
+      "dataset_split": "holdout",
+      "input_tokens": 1024,
+      "output_tokens": 128,
+      "concurrency": 8,
+      "num_requests": 64,
+      "request_rate": "inf"
+    },
+    {
+      "id": "holdout-c1024-o128-k32",
+      "dataset_split": "holdout",
+      "input_tokens": 1024,
+      "output_tokens": 128,
+      "concurrency": 32,
+      "num_requests": 256,
+      "request_rate": "inf"
+    },
+    {
+      "id": "holdout-c2048-o128-k1",
+      "dataset_split": "holdout",
+      "input_tokens": 2048,
+      "output_tokens": 128,
+      "concurrency": 1,
+      "num_requests": 8,
+      "request_rate": "inf"
+    },
+    {
+      "id": "holdout-c2048-o128-k16",
+      "dataset_split": "holdout",
+      "input_tokens": 2048,
+      "output_tokens": 128,
+      "concurrency": 16,
+      "num_requests": 128,
+      "request_rate": "inf"
+    }
+  ]
+}

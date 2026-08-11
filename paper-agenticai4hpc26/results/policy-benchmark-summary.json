@@ -1,0 +1,65 @@
+{
+  "artifact": {
+    "corrected_runner_commit": "c41d8a6e18839fc3b3a9b26143563882546bd64a",
+    "corrected_report_sha256": "ba00f00b3710574e61b5f7beaaad9a530ee90637ec5f9b92110ce0fb42edf838",
+    "corpus_sha256": "2811f77938f349b95ec679804dcb0d262377fd0d7277d3740a73dd1815c8a471",
+    "scenario_sha256": "fbcbd2e395d09af04a77172ad4b89d766d5c6b213fdd3f8cdf1d40d15d67a37b",
+    "source_archive_sha256": "280e6fb95f0a159fc184cb5aa6b2350eb0fe250579e74ae0cea4d824b4ab32bc"
+  },
+  "protocol": {
+    "episodes_per_policy": 500,
+    "hardware_repeats_per_candidate_level": 3,
+    "max_steps": 20,
+    "online_budget_gpu_hours": 0.12,
+    "policies": [
+      "ipig",
+      "random",
+      "cost-blind",
+      "cheapest-first"
+    ],
+    "resampling_scheme": "sha256(seed,candidate_id,evidence_level)",
+    "total_bootstrap_episodes": 2000
+  },
+  "aggregate": {
+    "cheapest-first": {
+      "mean_best_primary_regret_pct": 0.2531612056856865,
+      "mean_spent_gpu_hours": 0.059608054017107594,
+      "median_first_oracle_hit_gpu_hours": 0.0606518673615311,
+      "oracle_hit_rate": 0.636
+    },
+    "cost-blind": {
+      "mean_best_primary_regret_pct": 0.2531612056856865,
+      "mean_spent_gpu_hours": 0.08461439409941718,
+      "median_first_oracle_hit_gpu_hours": 0.08566633952430291,
+      "oracle_hit_rate": 0.636
+    },
+    "ipig": {
+      "mean_best_primary_regret_pct": 0.2531612056856865,
+      "mean_spent_gpu_hours": 0.06213467536243864,
+      "median_first_oracle_hit_gpu_hours": 0.0631841499651374,
+      "oracle_hit_rate": 0.636
+    },
+    "random": {
+      "mean_best_primary_regret_pct": 0.44970257701222927,
+      "mean_spent_gpu_hours": 0.07121102219993511,
+      "median_first_oracle_hit_gpu_hours": 0.07508387749388931,
+      "oracle_hit_rate": 0.462
+    }
+  },
+  "paired_ipig_vs_random": {
+    "both_hit": 212,
+    "ipig_only_hit": 106,
+    "neither_hit": 163,
+    "random_only_hit": 19
+  },
+  "derived_comparisons_pct": {
+    "ipig_first_hit_reduction_vs_cost_blind": 26.243901261577175,
+    "ipig_first_hit_reduction_vs_random": 15.848578850659878,
+    "ipig_gpu_reduction_vs_cost_blind": 26.567251324362285,
+    "ipig_gpu_reduction_vs_random": 12.745705028658804,
+    "ipig_oracle_hit_gain_vs_random_percentage_points": 17.4,
+    "ipig_regret_reduction_vs_random": 43.704746508757054,
+    "ipig_total_gpu_overhead_vs_cheapest_first": 4.2387247612644785
+  },
+  "interpretation": "IPIG improves the cost-success tradeoff over random and cost-blind information gain, but it does not outperform the static cheapest-first ladder in this small homogeneous search space. The episodes are empirical bootstrap sensitivity trials over three real repeats per candidate-level key, not independent hardware measurements."
+}

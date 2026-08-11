@@ -1,16 +1,13 @@
 \section{Conclusion}
 
-\system\ advances \bench\ from post-hoc measurement to agentic multi-fidelity
-Pareto search for energy-efficient LLM inference on GPU clusters.  Its central
-premise is deliberately modest and testable: a sandbox cannot replace
-multi-node measurement, but phase-aware priors, sparse topology calibration,
-and uncertainty-guided evidence selection can reduce how many expensive
-measurements are needed.  A communication-aware Energy Twin predicts candidate
-operating points; a language-model planner chooses typed experiment subgoals;
-\ipig\ spends GPU-hours on the configuration--fidelity observations most likely
-to change SLO feasibility or the Pareto frontier; and target-scale \bench\ runs
-verify every released recommendation.  The resulting workflow connects energy
-benchmarking, serving simulation, active autotuning, and bounded agentic HPC
-while preserving provenance and reproducibility.  The evaluation tests
-cross-scale calibration, Pareto recall per GPU-hour, agent reliability, and
-verified energy savings under real latency constraints.
+\system{} treats inference tuning as evidence allocation: jointly choose a
+configuration and the least costly fidelity capable of resolving an SLO/Pareto
+decision.  Its bounded planner, cross-fidelity model, \ipig{} policy, and L0--L4
+contract connect simulation to measured calibration without presenting either
+as cluster truth.  The implemented H100 pilot connects a frozen L0 prediction
+to three blind L1 repeats without holdout leakage, yielding \PilotMeanMAPE{}
+MAPE across energy, throughput, P95 TTFT, and P95 TPOT.  Its
+\PilotEnergyAPE{} energy error shows why one-anchor simulation must request
+more evidence.  The H100/H200/B200 campaign must now establish calibrated
+workload and topology transfer, Pareto information gain per GPU-hour, agent
+value, and independent target-scale verification.

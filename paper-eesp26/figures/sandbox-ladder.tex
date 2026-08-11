@@ -1,0 +1,103 @@
+\begin{figure*}[t]
+\centering
+\resizebox{0.99\textwidth}{!}{%
+\begin{tikzpicture}[
+  x=1cm,y=1cm,
+  every node/.style={font=\sffamily},
+  box/.style={draw=tpGray,rounded corners=1.2pt,minimum height=1.02cm,
+    text width=2.14cm,align=center,inner sep=3pt,font=\scriptsize},
+  compact/.style={draw=tpGray,rounded corners=1.2pt,minimum height=0.78cm,
+    text width=1.82cm,align=center,inner sep=2.5pt,font=\scriptsize},
+  lane/.style={draw=tpGray,dashed,rounded corners=2pt,inner xsep=6pt,
+    inner ysep=5pt},
+  stage/.style={font=\tiny\bfseries,text=tpGray,align=center,
+    fill=tpGrayLight,rounded corners=1pt,inner xsep=4pt,inner ysep=2pt},
+  flow/.style={-{Stealth[length=2.0mm]},line width=0.78pt,draw=tpGray},
+  measure/.style={-{Stealth[length=2.0mm]},line width=0.82pt,draw=tpRoseDark},
+  feedback/.style={-{Stealth[length=2.0mm]},line width=0.82pt,
+    draw=tpTealDark},
+  blocked/.style={draw=tpRoseDark,dashed,line width=0.72pt}
+]
+  % Stage headers.
+  \node[stage] at (1.15,2.28) {1. DEFINE\\THE CONTRACT};
+  \node[stage] at (6.10,2.28) {2. CALIBRATE +\\PROJECT};
+  \node[stage] at (10.45,2.28) {3. FREEZE +\\MEASURE};
+  \node[stage] at (14.55,2.28) {4. VERIFY +\\RELEASE};
+
+  % Immutable experiment contract.
+  \node[box,fill=tpGrayLight,text width=2.25cm] (scenario) at (0,0.72)
+    {\textbf{Scenario $s$}\\model/tokenizer rev.\\tokens, load, SLO, target};
+  \node[box,fill=tpGrayLight,text width=2.25cm] (config) at (0,-0.72)
+    {\textbf{Configuration $x$}\\engine, precision\\batch/cache, TP/PP/DP, cap};
+  \node[compact,fill=white,text width=1.72cm] (identity) at (2.35,0)
+    {\textbf{Immutable Identity}\\$h(s)$, $h(x)$};
+
+  % CPU and measured paths.
+  \node[box,fill=tpTealLight,text width=2.28cm] (project) at (4.72,0.80)
+    {\textbf{L0 CPU Projector}\\compute, memory, power\\+ development residual};
+  \node[box,fill=tpBlueLight,text width=2.28cm] (calibrate) at (4.72,-0.80)
+    {\textbf{L1 Sparse Calibration}\\$3\!\times$ anchor + 6 dev. loads\\H100 + DCGM};
+
+  \node[box,fill=tpTealLight,text width=2.28cm] (prediction) at (7.55,0.80)
+    {\textbf{Predicted Record}\\energy + SLO + $u$\\scope / validation required};
+
+  \node[box,fill=tpGoldLight,text width=2.38cm] (freeze) at (10.45,0.80)
+    {\textbf{Freeze Package}\\predictions + intervals\\hashes, order, repeats};
+  \node[box,fill=tpBlueLight,text width=2.38cm] (holdout) at (10.45,-0.80)
+    {\textbf{L1 Blind Executor}\\digest-pinned vLLM\\READY/GO/DONE + DCGM};
+
+  % Evidence gate and release decisions.
+  \node[box,fill=tpGoldLight,text width=2.34cm,minimum height=1.26cm]
+    (validator) at (13.25,0)
+    {\textbf{Evidence Validator}\\identity + chronology\\scope/split + artifact hashes};
+  \node[compact,fill=tpTealLight,text width=2.02cm] (pass) at (16.0,0.70)
+    {\textbf{PASS}\\publish evidence\\rank only in scope};
+  \node[compact,fill=tpRoseLight,text width=2.02cm] (abstain) at (16.0,-0.70)
+    {\textbf{ABSTAIN}\\mismatch / out of scope\\real GPU required};
+
+  % Resource-path boundaries.
+  \node[lane,fit=(project)(prediction)(freeze)] (cpulane) {};
+  \node[lane,fit=(calibrate)(holdout)] (gpulane) {};
+  \node[font=\tiny\bfseries,text=tpTealDark,fill=white,inner xsep=2pt]
+    at (cpulane.north)
+    {L0 CPU path: no target-GPU allocation};
+  \node[font=\tiny\bfseries,text=tpRoseDark,fill=white,inner xsep=2pt]
+    at (gpulane.south)
+    {L1 measured path: development calibration + blind validation (GPU-h metered)};
+
+  % Contract and evidence flow.
+  \draw[flow] (scenario.east) -- (identity.north west);
+  \draw[flow] (config.east) -- (identity.south west);
+  \draw[flow] (identity.north east) -- (project.west);
+  \draw[measure] (identity.south east) -- (calibrate.west);
+  \draw[feedback] (calibrate.north) --
+    node[midway,right=2pt,fill=white,inner sep=1pt,font=\tiny,
+      text=tpTealDark]{dev-only fit}
+    (project.south);
+  \draw[flow] (project) -- (prediction);
+  \draw[flow] (prediction) -- node[above,font=\tiny]{scope pass} (freeze);
+  \draw[measure] (freeze.south) --
+    node[midway,right=2pt,fill=white,inner sep=1pt,font=\tiny,
+      text=tpRoseDark]{selected trial}
+    (holdout.north);
+  \draw[flow] (freeze.east) -- (validator.north west);
+  \draw[measure] (holdout.east) -- (validator.south west);
+  \draw[feedback] (validator.north east) -- (pass.west);
+  \draw[measure] (validator.south east) -- (abstain.west);
+
+  % A blind holdout is evidence, never training data.
+  \draw[blocked] (calibrate.east) -- (holdout.west)
+    node[midway,fill=white,inner sep=1.2pt,font=\scriptsize\bfseries,
+      text=tpRoseDark] {$\times$}
+    node[midway,below=4pt,font=\tiny\bfseries,text=tpRoseDark]
+      {blind holdout never refits the projector};
+\end{tikzpicture}%
+}
+\caption{End-to-end \system{} evidence flow.  A workload scenario and serving
+configuration receive immutable identities before L0 screening or L1 execution.
+The CPU projector uses only development measurements for residual calibration;
+predictions, intervals, hashes, and run order are then frozen before selected
+blind H100 trials.  The validator releases only identity-, chronology-, and
+scope-consistent evidence and otherwise abstains.}
+\label{fig:sandbox-ladder}
+\end{figure*}

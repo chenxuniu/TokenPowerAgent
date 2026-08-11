@@ -1,0 +1,35 @@
+\section{Artifact and Reproducibility}
+
+\textbf{Executor separation.}  The same candidate schema is consumed by a
+CPU-resident projector and a measured executor.  The former emits deterministic
+simulated or extrapolated JSONL with a decomposition and scope decision, without
+allocating a target GPU.  The latter controls the real server, benchmark client,
+power limit, DCGM sampler, and measurement boundary, then emits L1 evidence.
+Prediction code cannot relabel its own record as measured.  A campaign runner
+expands the frozen workload list,
+applies a cyclically balanced schedule, checkpoints every trial, and resumes
+only exact workload/repeat matches.
+
+\textbf{Implemented workflow.}  Separate CLI commands build an L1 profile,
+fit development-only residuals, freeze predictions, execute measured trials,
+validate campaigns, and apply preregistered release rules.  Fitting accepts
+only a verified validation report; holdout records are rejected as training
+input.  Residual reuse requires exact model, serving configuration, output
+length, offered rate, GPU count, and in-range workload features.  Tests cover
+scope decisions, artifact tampering, evidence labels, and holdout leakage.
+
+\textbf{Isolation and archive.}  The CPU client reaches vLLM only through an
+internal Docker bridge; containers use read-only filesystems, dropped Linux
+capabilities, process limits, and pinned image/model revisions.  GPU power
+control stays on the host.  These restrictions make the reviewed workload
+reproducible; they do not make arbitrary generated code safe.  The two sealed
+archives contain frozen predictions, 51 measurements, DCGM traces,
+stdout/stderr, server metadata, run order, reports, decisions, and SHA-256
+manifests.  Both archives and directly readable reports are published with the
+repository; their digests and measurement/analysis commits are recorded.
+
+CPU projection overhead remains to be reported as time and peak memory, not
+treated as free.  The next stage is configuration ranking under fixed
+workloads, using energy rank, SLO false-safe rate, Pareto recall, and measured
+GPU-hours avoided.  TP/PP and H100/H200/B200 transfer require sparse
+target-topology anchors and independent target reruns.

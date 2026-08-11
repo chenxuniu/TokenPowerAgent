@@ -1,0 +1,24 @@
+\section{Limitations and Threats to Validity}
+
+\textbf{Empirical scope.}  We evaluate one H100, Qwen2.5-7B, vLLM/BF16, fixed
+output length, and a bounded sequence/token/chunking grid.  Claims concern
+evidence allocation on this target, not distributed serving.
+
+\textbf{Fidelity and telemetry.}  DCGM excludes host/facility energy.  Sandbox
+and Probe may miss behavior beyond the frozen scope, and the TTFT inversion
+shows that energy fidelity does not imply latency fidelity.  TP/PP, MoE,
+cross-hardware, and multi-node claims require new calibration.
+
+\textbf{Uncertainty and policy value.}  Intervals are not cross-hardware
+calibrated, and \ipig{} is a proxy rather than exact Pareto information gain.
+Its \PolicyEpisodes{} episodes bootstrap \PolicyHardwareRepeats{} repeats per
+key, measuring sensitivity rather than deployments; it does not beat
+cheapest-first.  Replay also excludes the corpus's
+\ConfigurationTotalGPUHours{}-GPU-h collection cost.  The
+\WinnerConfirmationPairs{}-pair \WinnerEnergySaving{} effect is consistent but
+modest and not evidence of deployment-scale savings.
+
+\textbf{Planner scope.}  One endpoint, prompt, and
+\PlannerCallsPerSet{}-call frozen protocol yield \PlannerVtwoRaw{} raw accuracy;
+the guard, not the LLM, supplies 100\% admitted accuracy.  This supports a
+bounded advisory role, not LLM superiority or transfer.

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 168" width="980" height="672">
+  <rect width="245" height="168" fill="#ffffff"/>
+  <rect x="36" y="31.5" width="198" height="81" rx="0" fill="#f2f1ed" opacity="1" stroke="none" stroke-width="0.5" stroke-dasharray="none"/>
+  <line x1="36" y1="31.5" x2="234" y2="31.5" stroke="#8b8b8b" stroke-width="0.6" stroke-dasharray="2.6 1.6" stroke-linecap="round"/>
+  <line x1="36" y1="112.5" x2="234" y2="112.5" stroke="#8b8b8b" stroke-width="0.6" stroke-dasharray="2.6 1.6" stroke-linecap="round"/>
+  <line x1="36" y1="72" x2="234" y2="72" stroke="#111111" stroke-width="0.6" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="36" y1="126" x2="36" y2="128.2" stroke="#111111" stroke-width="0.5" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="74.60188633496969" y1="126" x2="74.60188633496969" y2="128.2" stroke="#111111" stroke-width="0.5" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="125.63080439681467" y1="126" x2="125.63080439681467" y2="128.2" stroke="#111111" stroke-width="0.5" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="164.23269073178434" y1="126" x2="164.23269073178434" y2="128.2" stroke="#111111" stroke-width="0.5" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="202.83457706675404" y1="126" x2="202.83457706675404" y2="128.2" stroke="#111111" stroke-width="0.5" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="225.4152330298118" y1="126" x2="225.4152330298118" y2="128.2" stroke="#111111" stroke-width="0.5" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="33.8" y1="126" x2="36" y2="126" stroke="#111111" stroke-width="0.5" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="33.8" y1="99" x2="36" y2="99" stroke="#111111" stroke-width="0.5" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="33.8" y1="72" x2="36" y2="72" stroke="#111111" stroke-width="0.5" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="33.8" y1="45" x2="36" y2="45" stroke="#111111" stroke-width="0.5" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="33.8" y1="18" x2="36" y2="18" stroke="#111111" stroke-width="0.5" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="36" y1="18" x2="36" y2="126" stroke="#111111" stroke-width="0.7" stroke-dasharray="none" stroke-linecap="round"/>
+  <line x1="36" y1="126" x2="234" y2="126" stroke="#111111" stroke-width="0.7" stroke-dasharray="none" stroke-linecap="round"/>
+  <polygon points="216.89303136231223,76.955 221.2930313623122,76.955 221.2930313623122,81.355 216.89303136231223,81.355" fill="#ffffff" stroke="#2b5fa8" stroke-width="0.8"/>
+  <polygon points="178.90680434024193,95.126 183.3068043402419,95.126 183.3068043402419,99.52600000000001 178.90680434024193,99.52600000000001" fill="#ffffff" stroke="#2b5fa8" stroke-width="0.8"/>
+  <polygon points="144.63346994496237,99.31099999999999 149.03346994496235,99.31099999999999 149.03346994496235,103.711 144.63346994496237,103.711" fill="#ffffff" stroke="#2b5fa8" stroke-width="0.8"/>
+  <polygon points="217.51156992990792,83.516 221.9115699299079,83.516 221.9115699299079,87.91600000000001 217.51156992990792,87.91600000000001" fill="#ffffff" stroke="#2b5fa8" stroke-width="0.8"/>
+  <polygon points="181.51395239667337,92.56099999999999 185.91395239667335,92.56099999999999 185.91395239667335,96.961 181.51395239667337,96.961" fill="#ffffff" stroke="#2b5fa8" stroke-width="0.8"/>
+  <polygon points="148.36891969935246,84.056 152.76891969935244,84.056 152.76891969935244,88.456 148.36891969935246,88.456" fill="#ffffff" stroke="#2b5fa8" stroke-width="0.8"/>
+  <polygon points="219.3956377496452,95.72 223.79563774964518,95.72 223.79563774964518,100.12 219.3956377496452,100.12" fill="#ffffff" stroke="#2b5fa8" stroke-width="0.8"/>
+  <polygon points="185.6302014692792,95.855 190.03020146927918,95.855 190.03020146927918,100.25500000000001 185.6302014692792,100.25500000000001" fill="#ffffff" stroke="#2b5fa8" stroke-width="0.8"/>
+  <polygon points="155.85482891905363,83.678 160.2548289190536,83.678 160.2548289190536,88.078 155.85482891905363,88.078" fill="#ffffff" stroke="#2b5fa8" stroke-width="0.8"/>
+  <polygon points="129.8,4.8 134.2,4.8 134.2,9.2 129.8,9.2" fill="#ffffff" stroke="#2b5fa8" stroke-width="0.8"/>
+  <circle cx="144.7853177134473" cy="109.34100000000001" r="2" fill="#111111" stroke="none" stroke-width="0.7"/>
+  <circle cx="53.43847221565416" cy="88.74" r="2" fill="#111111" stroke="none" stroke-width="0.7"/>
+  <circle cx="218.51988610203415" cy="77.967" r="2" fill="#111111" stroke="none" stroke-width="0.7"/>
+  <circle cx="87.94798652408603" cy="61.956" r="2" fill="#111111" stroke="none" stroke-width="0.7"/>
+  <circle cx="124.6793210801489" cy="64.467" r="2" fill="#111111" stroke="none" stroke-width="0.7"/>
+  <circle cx="84.22391937098489" cy="55.098" r="2" fill="#111111" stroke="none" stroke-width="0.7"/>
+  <circle cx="223.87430960184992" cy="109.179" r="2" fill="#111111" stroke="none" stroke-width="0.7"/>
+  <circle cx="121.13231111042097" cy="69.219" r="2" fill="#111111" stroke="none" stroke-width="0.7"/>
+  <circle cx="40" cy="7" r="2" fill="#111111" stroke="none" stroke-width="0.7"/>
+  <text x="36" y="135" font-size="7" text-anchor="middle" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 36 135)">100</text>
+  <text x="74.60188633496969" y="135" font-size="7" text-anchor="middle" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 74.60188633496969 135)">200</text>
+  <text x="125.63080439681467" y="135" font-size="7" text-anchor="middle" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 125.63080439681467 135)">500</text>
+  <text x="164.23269073178434" y="135" font-size="7" text-anchor="middle" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 164.23269073178434 135)">1000</text>
+  <text x="202.83457706675404" y="135" font-size="7" text-anchor="middle" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 202.83457706675404 135)">2000</text>
+  <text x="225.4152330298118" y="135" font-size="7" text-anchor="middle" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 225.4152330298118 135)">3000</text>
+  <text x="32" y="128.4" font-size="7" text-anchor="end" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 32 128.4)">-20</text>
+  <text x="32" y="101.4" font-size="7" text-anchor="end" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 32 101.4)">-10</text>
+  <text x="32" y="74.4" font-size="7" text-anchor="end" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 32 74.4)">0</text>
+  <text x="32" y="47.4" font-size="7" text-anchor="end" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 32 47.4)">+10</text>
+  <text x="32" y="20.4" font-size="7" text-anchor="end" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 32 20.4)">+20</text>
+  <text x="135" y="146" font-size="8" text-anchor="middle" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 135 146)">observed median energy  (J per 1k output tokens)</text>
+  <text x="9" y="72" font-size="8" text-anchor="middle" fill="#111111" font-weight="400" font-style="normal" transform="rotate(-90 9 72)">signed prediction error (%)</text>
+  <text x="232" y="28.5" font-size="6.6" text-anchor="end" fill="#8b8b8b" font-weight="400" font-style="normal" transform="rotate(0 232 28.5)">preregistered +15% gate</text>
+  <text x="232" y="119.5" font-size="6.6" text-anchor="end" fill="#8b8b8b" font-weight="400" font-style="normal" transform="rotate(0 232 119.5)">-15% gate</text>
+  <text x="45" y="9.4" font-size="6.8" text-anchor="start" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 45 9.4)">Holdout v2 (MAPE 6.23%)</text>
+  <text x="137" y="9.4" font-size="6.8" text-anchor="start" fill="#111111" font-weight="400" font-style="normal" transform="rotate(0 137 9.4)">Scope v3 (MAPE 7.35%)</text>
+  <text x="149.76557272122332" y="111.74100000000001" font-size="6.5" text-anchor="start" fill="#8b8b8b" font-weight="400" font-style="normal" transform="rotate(0 149.76557272122332 111.74100000000001)">largest error 13.8%</text>
+  <text x="44" y="120" font-size="6.8" text-anchor="start" fill="#111111" font-weight="400" font-style="italic" transform="rotate(0 44 120)">all 17 workloads inside the gate</text>
+</svg>
