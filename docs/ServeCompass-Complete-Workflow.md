@@ -1,10 +1,10 @@
-# TokenPowerAgent 完整运行流程
+# ServeCompass 完整运行流程
 
 ## 1. 核心目标
 
-TokenPowerAgent 的目标不是通过 LLM 直接猜测功耗，也不是使用轻量模拟完全替代真实 GPU 集群，而是：
+ServeCompass 的目标不是通过 LLM 直接猜测功耗，也不是使用轻量模拟完全替代真实 GPU 集群，而是：
 
-> 在有限的真实测量预算下，联合使用历史数据、轻量模拟、小规模校准和目标规模验证，找到满足服务等级目标（SLO）的 energy-efficient LLM inference 配置。
+> 在有限的真实测量预算下，联合使用历史数据、轻量模拟、小规模校准和目标规模验证，恢复满足服务等级目标（SLO）的 energy--latency--throughput frontier，并发布经过验证的 deployment profiles。
 
 对于给定的 inference scenario，系统需要回答三个问题：
 
@@ -65,9 +65,10 @@ Scenario 主要包含：
 
 ### 2.2 最终输出
 
-TokenPowerAgent 输出：
+ServeCompass 输出：
 
-- 经过 L4 验证的 Top-K 配置
+- 经过 L4 验证的 Eco、MaxGoodput、LowLatency 和 Balanced profiles
+- 经过验证的非支配配置集合（Verified Frontier）
 - 每个配置的 energy/token、TTFT、TPOT 和 throughput
 - SLO 是否通过以及置信区间
 - Pareto frontier 和候选 ranking
@@ -582,8 +583,8 @@ return verified_set, provenance, runnable_configs
 
 1. Energy Twin 是否能在不同 workload 和 node count 上保持合理的 prediction interval coverage？
 2. L1/L2/L3 稀疏校准是否能显著降低跨规模预测误差？
-3. 在相同 GPU-hour 预算下，TokenPowerAgent 是否比 random search、Bayesian optimization 和 simulator-only search 找到更好的 Pareto frontier？
-4. TokenPowerAgent 是否可以减少达到固定 Pareto regret 所需的真实测量数量？
+3. 在相同 GPU-hour 预算下，ServeCompass 是否比 random search、Bayesian optimization 和 simulator-only search 找到更好的 Pareto frontier？
+4. ServeCompass 是否可以减少达到固定 Pareto regret 所需的真实测量数量？
 5. L4 验证是否能阻止错误的 simulation/extrapolation recommendation 被发布？
 
 最核心的评价坐标应当是：

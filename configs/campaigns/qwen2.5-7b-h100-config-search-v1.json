@@ -3,7 +3,7 @@
   "campaign_id": "qwen2.5-7b-h100-config-search-v1",
   "intent": "Find a single-H100 vLLM serving configuration that minimizes GPU energy per 1,000 output tokens and maximizes output-token throughput while satisfying P95 TTFT <= 1600 ms and P95 TPOT <= 20 ms within a 0.12 GPU-hour online evidence budget, then verify the top two candidates at full fidelity.",
   "preregistered_analysis": {
-    "primary_question": "Can TokenPowerAgent use CPU-side L0 predictions and short L1 probes to recover the SLO-feasible energy-throughput Pareto frontier with fewer full L4 measurements than exhaustive search?",
+    "primary_question": "Can ServeCompass use CPU-side L0 predictions and short L1 probes to recover the SLO-feasible energy-throughput Pareto frontier with fewer full L4 measurements than exhaustive search?",
     "controlled_factor": "vLLM serving configuration",
     "fixed_factors": [
       "host and H100 GPU",

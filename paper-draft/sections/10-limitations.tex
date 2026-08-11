@@ -1,28 +1,24 @@
 \section{Limitations and Threats to Validity}
 
-\textbf{A sandbox is not a cluster substitute.}  Single-GPU probes cannot
-identify unseen communication, topology, or scheduler effects.  \system\ only
-claims measurement reduction, not elimination; multi-node recommendations
-require L3 calibration and L4 verification.
+\textbf{Current scope.}  The pilot covers one H100, one 7B model, one serving
+configuration, and one calibration/holdout pair.  It cannot support Pareto,
+cross-hardware, agent, or deployment-benefit claims.  Its \PilotCoverage{}
+containment is not calibrated coverage, and \PilotEnergyAPE{} energy error
+shows that one anchor is insufficient.
 
-\textbf{Telemetry scope and fidelity.}  NVML/DCGM sampling can miss transients,
-and summed device power differs from node or facility energy.  Results must
-state the telemetry boundary, sampling rate, idle baseline, and meter
-calibration.  External meters are used on a representative subset where
-available.
+\textbf{Fidelity and telemetry.}  A single GPU cannot reveal communication,
+topology, queueing, or scheduler effects; multi-node recommendations require L3
+calibration and L4 verification.  DCGM/NVML may miss transients and measures
+device rather than node or facility energy, so every claim states its meter
+boundary, sampling rate, baseline, and available external-meter calibration.
 
-\textbf{Generalization.}  New architectures, kernels, engines, fabrics, or MoE
-routing can invalidate learned residuals.  Topology distance and interval
-coverage expose but do not remove this risk; the correct response is new
-calibration, not silent extrapolation.
+\textbf{Generalization.}  New GPUs, kernels, engines, fabrics, MoE routing, or
+request dynamics can invalidate residuals.  Distance and interval checks expose
+but do not remove this risk; unsupported shifts require new evidence.  Any
+precision change also retains a fixed output-quality constraint.
 
-\textbf{Workload representativeness.}  Public datasets and synthetic traces may
-miss production burstiness, prefix sharing, or request cancellation.  Results
-will therefore be stratified by token geometry and include at least one
-trace-like workload rather than reported as a universal ranking.
-
-\textbf{Agent reliability.}  An LLM may misinterpret intent or choose an
-unhelpful tool.  Typed schemas, deterministic validators, budget gates,
-provenance checks, and independent verification bound the consequence.  The
-evaluation separately reports planning failures instead of hiding them inside
-prediction error.
+\textbf{Agent reliability.}  An LLM may misread intent or choose an unhelpful
+subgoal.  Typed schemas, deterministic scores, budget and provenance gates, and
+independent verification bound the consequence.  The agent claim remains
+unsupported unless it improves intent handling, recovery, or escalation over
+the optimizer-only baseline.

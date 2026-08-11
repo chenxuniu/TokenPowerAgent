@@ -1,8 +1,8 @@
-# TokenPowerAgent Agent Experiments
+# ServeCompass Agent Experiments
 
 ## Research Contract
 
-TokenPowerAgent receives a natural-language deployment intent, an SLO, a
+ServeCompass receives a natural-language deployment intent, an SLO, a
 finite GPU-hour budget, and a discrete serving-configuration space. At every
 step it jointly chooses a candidate and an evidence fidelity. It may recommend
 a configuration only after successful L4 verification.
@@ -34,7 +34,7 @@ deterministic release gate and is rejected if returned by the language model.
 ### Single episode
 
 ```bash
-tokenpoweragent replay \
+servecompass replay \
   --scenario configs/scenarios/replay_demo.json \
   --records configs/replay/demo_records.jsonl \
   --policy ipig \
@@ -50,7 +50,7 @@ metrics, and any planner fallback.
 ### Policy benchmark
 
 ```bash
-tokenpoweragent benchmark-replay \
+servecompass benchmark-replay \
   --scenario configs/scenarios/replay_demo.json \
   --records configs/replay/demo_records.jsonl \
   --policies ipig,random,cost-blind,cheapest-first \
@@ -70,7 +70,7 @@ available repeats, not independent hardware runs.
 ### Budget-response benchmark
 
 ```bash
-tokenpoweragent benchmark-budget-sweep \
+servecompass benchmark-budget-sweep \
   --scenario experiments/results/config-search-v1-scenario.json \
   --records experiments/results/config-search-v1-replay-corpus.jsonl \
   --protocol configs/benchmarks/qwen2.5-7b-h100-budget-sweep-v1.json \
@@ -87,7 +87,7 @@ can alter which candidate receives final verification.
 ### Bounded planner conformance and overhead
 
 ```bash
-tokenpoweragent benchmark-planner \
+servecompass benchmark-planner \
   --protocol configs/benchmarks/qwen2.5-7b-planner-conformance-v2-holdout.json \
   --planner-base-url http://127.0.0.1:8000/v1 \
   --output experiments/results/planner-conformance-v2-holdout.json
@@ -107,7 +107,7 @@ an energy benefit caused by the language model.
 ### Routed Sandbox search extension
 
 ```bash
-tokenpoweragent agent-search \
+servecompass agent-search \
   --scenario configs/scenarios/topology_sandbox_demo.json \
   --calibration experiments/results/qwen2.5-7b-h100-workload-v2.json \
   --records experiments/results/qwen2.5-7b-config-search-evidence.jsonl \

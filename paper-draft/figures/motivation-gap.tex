@@ -1,5 +1,6 @@
 \begin{figure*}[t]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   x=1cm,y=1cm,
   every node/.style={font=\sffamily},
@@ -41,9 +42,10 @@
     text width=7.1cm,align=center,font=\scriptsize] at (13.05,-0.96)
     {The agent selects the cheapest evidence level that can resolve Pareto or SLO ambiguity.};
 \end{tikzpicture}
+}
 \caption{Why energy-efficient configuration requires multi-fidelity search.
 The serving design space is combinatorial, while device, intra-node,
 inter-node, and trace-level effects become observable at different scales.
-\system\ allocates a bounded measurement budget across these levels.}
+\system{}\ allocates a bounded measurement budget across these levels.}
 \label{fig:motivation}
 \end{figure*}

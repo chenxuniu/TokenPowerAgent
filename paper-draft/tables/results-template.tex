@@ -1,19 +1,20 @@
 \begin{table}[t]
 \centering
-\caption{Primary result schema.  Neutral placeholders are populated only from
-validated experiment outputs.}
+\caption{Evidence status at the current artifact snapshot.  ``Frozen'' means
+that scenarios and predictions are hashed before measurement, not that a result
+has been obtained.}
 \label{tab:results-template}
 \scriptsize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{p{0.42\columnwidth}p{0.18\columnwidth}p{0.29\columnwidth}}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{p{0.38\columnwidth}p{0.18\columnwidth}p{0.34\columnwidth}}
 \toprule
-Primary metric & Value & Evaluation split \\
+Claim & Status & Current evidence \\
 \midrule
-Energy MAPE / interval coverage & \EnergyMAPE{} / \Coverage & held-out scale \\
-Pareto recall / regret reduction & \ParetoRecall{} / \HypervolumeGain & equal GPU-hours \\
-GPU-hour reduction & \MeasurementReduction & search campaign \\
-Energy saving / SLO pass & \EnergySaving{} / \SLOPassRate & L4 traces \\
-Invalid actions / agent overhead & \InvalidActionRate{} / \AgentOverhead & agent episodes \\
+L0/L1 workload transfer & Complete & \PilotMeanMAPE{} MAPE; \PilotCoverage{} diagnostic PI containment \\
+Six-workload L1 validation & Frozen & 6 points $\times$ 3 repeats pending \\
+L2--L4 scale validity & Planned & Paired topology and target-trace evidence \\
+Pareto search efficiency & Planned & Matched-budget oracle and search baselines \\
+Agent/deployment benefit & Planned & Agent ablations and independent L4 reruns \\
 \bottomrule
 \end{tabular}
 \end{table}

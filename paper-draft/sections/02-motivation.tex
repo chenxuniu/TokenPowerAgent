@@ -1,51 +1,67 @@
-\section{Motivation and Design Challenges}
+\section{Motivation and Design Requirements}
 
-\subsection{From Measurement to Decision}
-
-\bench\ already supplies the most important foundation for \system: controlled
-inference execution and phase-aligned GPU, node, and system telemetry.  Its
-open-source implementation includes single-node engine comparisons and
-Ray-based multi-node execution \cite{niu2026tokenpowerbench}.  \system\ does
-not replace this measurement path.  It changes how the path is used: prior
-runs become calibration data, selected sandbox probes become active evidence,
-and final recommendations return to \bench\ for verification.
-
-Figure~\ref{fig:motivation} illustrates the gap.  Configuration choices couple
-multiplicatively, while the fidelity required to evaluate them grows
-discontinuously when a model crosses GPU, node, or network boundaries.  A
-single surrogate over the entire space either wastes measurements in familiar
-regions or becomes overconfident in unfamiliar ones.
+\bench{} supplies controlled inference execution and phase-aligned GPU, node,
+and system telemetry, including Ray-based multi-node runs
+\cite{niu2026tokenpowerbench}.  \system{} does not replace that measurement
+path.  It changes how the path is used: prior runs become a cheap prior,
+selected probes become active calibration evidence, and final recommendations
+return to \bench{} for independent verification.  Figure~\ref{fig:motivation}
+summarizes the resulting decision problem.
 
 \input{figures/motivation-gap}
 
-\subsection{Challenge 1: Phase and Configuration Coupling}
+\subsection{Observation 1: Configuration Rankings Are Conditional}
 
-Autoregressive inference alternates between parallel prompt processing and
-sequential token generation.  Prefill is commonly compute intensive; decode
-often stresses model-weight and KV-cache bandwidth.  Continuous batching,
-chunked prefill, prefix reuse, disaggregation, quantization, and power policy
-change these phases differently \cite{kwon2023vllm,agrawal2024sarathi,
-zhong2024distserve}.  A useful predictor must therefore preserve workload
-geometry and the realized serving schedule rather than reduce a request to
-model FLOPs or mean GPU utilization.
+Prefill and decode stress different hardware resources, so a serving knob can
+change energy and latency in opposite directions across token geometries.
+Continuous batching, chunked prefill, prefix reuse, quantization,
+disaggregation, and power policy further alter the realized schedule
+\cite{kwon2023vllm,agrawal2024sarathi,zhong2024distserve,lee2026beam}.
+Likewise, a parallelism choice that is efficient within one node may incur
+collective or pipeline overhead across nodes.  Prior energy studies therefore
+find no universally best model--engine--workload configuration
+\cite{niu2025engines,fernandez2025energy}.  A useful search state must preserve
+workload geometry, serving schedule, topology, and SLO, rather than reduce a
+request to model FLOPs or mean GPU utilization.
 
-\subsection{Challenge 2: Cross-Scale Fidelity}
+\textbf{Requirement R1: scenario-conditioned decisions.}  The controller must
+represent the complete deployment scenario and optimize the feasible frontier
+for that intent, not learn one global configuration ranking.
 
-Small probes reveal device-local compute and memory behavior, but not every
-large-scale effect.  Within a node, tensor parallelism introduces collective
-communication over PCIe, NVLink, or NVSwitch.  Across nodes, fabric bandwidth,
-topology, synchronization, pipeline bubbles, and runtime placement become new
-energy terms.  Queueing and scheduler interference appear only under traces.
-Consequently, the multi-fidelity sandbox must be a \emph{calibration ladder},
-not a claim that one GPU can emulate an arbitrary cluster.  Cross-scale
-estimates must widen their uncertainty until sparse observations cover the
-missing topology.
+\subsection{Observation 2: Cheap Evidence Is Useful but Not Authoritative}
 
-\subsection{Challenge 3: Spending Measurements Where They Matter}
+Serving simulators can prune large configuration spaces after small profiling
+campaigns \cite{agrawal2024vidur,yang2026charon}.  A single-GPU probe can also
+measure device-local prefill, decode, and power response directly.  Neither
+source observes every scale-dependent term.  Intra-node tensor parallelism
+introduces PCIe, NVLink, or NVSwitch collectives; multi-node execution adds
+fabric transfer, placement, synchronization, and pipeline gaps; request traces
+add queueing and scheduler interference.  Prediction uncertainty must therefore
+grow when a candidate crosses an unmeasured hardware, topology, or scale
+boundary.
 
-Uniform sweeps ignore the decision being made.  A candidate far behind the
-current Pareto frontier needs no precise estimate, whereas two candidates with
-overlapping energy confidence intervals near an SLO boundary may justify a
-new run.  The controller must jointly consider predictive uncertainty, Pareto
-ambiguity, SLO risk, topology novelty, and measurement cost.  This evidence
-allocation decision is the central agentic component of the Pareto search.
+\textbf{Requirement R2: explicit evidence contracts.}  The sandbox must be a
+calibration ladder, not a claim that one GPU emulates a cluster.  Every outcome
+must retain its fidelity, provenance, and uncertainty, and target-scale
+deployment claims must be supported by target-scale measurements.
+
+\subsection{Observation 3: Measurement Value Is Decision Dependent}
+
+Uniform sweeps give equal priority to unequal decisions.  A candidate that is
+clearly infeasible or dominated does not need a precise target-scale label.
+By contrast, a cheap observation can be valuable when it changes the ordering
+of two candidates near the frontier, resolves whether an SLO is met, or
+calibrates a previously unseen topology.  Generic predictive variance is also
+insufficient: high uncertainty far from the feasible frontier may have no
+effect on the final recommendation.
+
+\textbf{Requirement R3: cost-normalized decision information.}  Acquisition
+must jointly select configuration and fidelity according to expected change in
+the high-fidelity SLO/Pareto decision per real GPU-hour.
+
+\textbf{Requirement R4: bounded semantic autonomy.}  Natural-language intent,
+heterogeneous execution failures, and human escalation benefit from an LLM
+planner, but numerical prediction, feasibility, Pareto sorting, budget
+accounting, and recommendation release must remain deterministic and auditable.
+This separation makes the agent contribution testable against both an
+optimizer-only controller and an LLM-only tool user.

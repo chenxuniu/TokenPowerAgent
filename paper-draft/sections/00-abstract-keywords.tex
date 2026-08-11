@@ -1,31 +1,28 @@
 \begin{abstract}
-Energy-efficient large language model (LLM) inference on GPU clusters is a
-multi-objective decision problem whose observations have unequal cost and
-fidelity.  The best operating point depends jointly on request geometry,
-serving runtime, batching, precision, parallelism, topology, and power policy,
-yet a trustworthy label may require an entire node or a multi-node experiment.
-We present \system, a bounded hybrid agent that plans evidence collection
-rather than estimating joules through free-form language-model reasoning.
-Given an inference intent, service-level objectives (SLOs), a target cluster,
-and a GPU-hour budget, the agent constructs a feasible configuration pool and
-maintains a cross-fidelity belief over energy and performance.  At each step it
-selects both a configuration and an evidence level, from historical replay and
-serving simulation through single-GPU, intra-node, sparse multi-node, and
-target-scale execution.  Our Intent-Conditioned Pareto Information Gain
-(\ipig) criterion values an action by its expected reduction in uncertainty
-about the high-fidelity SLO-feasible Pareto set per GPU-hour.  Typed tools
-perform feasibility checking, simulation, telemetry integration, surrogate
-updating, and Pareto analysis; a verification gate prevents extrapolated
-predictions from becoming deployment recommendations.  We instantiate the
-workflow on \bench\ with interchangeable replay and cluster executors and
-define an evaluation spanning cross-scale calibration, frontier recovery per
-GPU-hour, verified energy savings, and agent reliability.  \system\ thereby
-turns sustainable inference tuning into a reproducible agentic HPC workflow in
-which every released configuration is supported by measured target-scale
-evidence.
+Tuning large language model (LLM) inference for energy efficiency requires
+searching coupled serving, parallelism, and power settings, yet evaluating one
+candidate faithfully may consume an entire multi-GPU node or a multi-node
+allocation.  Existing serving controllers, simulators, and Bayesian optimizers
+primarily optimize \emph{which configuration} to deploy; they do not jointly
+optimize \emph{which fidelity of evidence} to acquire next under a real
+GPU-hour budget.  We present \system{}, a bounded hybrid agent that co-selects a
+configuration and an evidence level, ranging from historical replay and
+simulation to single-GPU probes, sparse scale calibration, and target-cluster
+verification.  Its Intent-Conditioned Pareto Information Gain (\ipig{})
+criterion values each action by the expected reduction in uncertainty about
+the high-fidelity, SLO-feasible energy--performance Pareto set per GPU-hour.
+An LLM planner interprets user intent and handles execution failures through
+typed tools, while deterministic components enforce feasibility, budget,
+Pareto, provenance, and verification constraints.  The current artifact
+implements the L0/L1 path with a pinned vLLM server, an isolated benchmark
+client, phase-aligned DCGM energy measurement, immutable evidence records, and
+a blind-validation gate.  In an initial single-H100 pilot, one three-repeat
+Qwen2.5-7B calibration anchor was used to freeze predictions for a workload
+with twice the context and concurrency before three holdout measurements were
+collected.  Repeat variability was \PilotCVRange{}, point-prediction MAPE over
+energy, throughput, P95 TTFT, and P95 TPOT was \PilotMeanMAPE{}, and all
+\PilotCoverage{} observed medians fell inside the pre-frozen intervals.  These
+results establish end-to-end protocol feasibility, not multi-node fidelity or
+Pareto-search superiority; the target H100/H200/B200 campaign is specified but
+not yet reported.
 \end{abstract}
-
-\begin{IEEEkeywords}
-LLM inference, energy efficiency, agentic AI, multi-fidelity optimization,
-Pareto search, GPU clusters, power measurement
-\end{IEEEkeywords}

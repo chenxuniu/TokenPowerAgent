@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export TokenPowerAgent evidence archives as analysis-ready CSV files."""
+"""Export ServeCompass evidence archives as analysis-ready CSV files."""
 
 from __future__ import annotations
 
@@ -1040,7 +1040,7 @@ def write_readme(
         "  72 L1/L4 measurement records, so candidate-level plots are complete; only its\n"
         "  original DCGM/client time-series files are unavailable here."
     )
-    text = f"""# TokenPowerAgent Plot Data
+    text = f"""# ServeCompass Plot Data
 
 This directory is a self-contained, analysis-ready export of the evidence
 available on the local workstation on 2026-08-05. CSV files distinguish real

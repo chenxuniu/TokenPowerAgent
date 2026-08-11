@@ -5,7 +5,7 @@
 TokenPowerSandbox tests whether a calibrated, uncertainty-aware,
 multi-fidelity model can rank the energy-performance trade-offs of LLM serving
 configurations across context length, batching, TP, PP, and cluster topology,
-so that TokenPowerAgent sends only promising or uncertain candidates to
+so that ServeCompass sends only promising or uncertain candidates to
 expensive multi-GPU validation.
 
 It does **not** claim that one H100 reproduces a multi-node run. A single-GPU
@@ -93,7 +93,7 @@ policy buys it. Compare:
 - Hand-tuned heuristic (largest batch that fits, then largest TP).
 - Single-fidelity Bayesian optimization.
 - Multi-objective qNEHVI.
-- TokenPowerAgent with information-per-GPU-hour selection.
+- ServeCompass with information-per-GPU-hour selection.
 - Ablations without uncertainty, topology terms, L1, L2, and the L4 gate.
 
 Run at least 20 deterministic policy seeds. Plot Pareto recall, hypervolume
@@ -101,7 +101,7 @@ regret, and recommendation regret against cumulative GPU-hours. Calibration
 cost is charged once per episode; sandbox queries cost zero incremental
 GPU-hours.
 
-Primary gate: at 20% of exhaustive-search GPU-hours, TokenPowerAgent should
+Primary gate: at 20% of exhaustive-search GPU-hours, ServeCompass should
 recover at least 80% of the true Pareto set and have no more than 5% median
 energy regret at matched SLO. Report confidence intervals over seeds.
 

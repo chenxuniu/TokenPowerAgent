@@ -1,75 +1,91 @@
 \section{Introduction}
 
-LLM inference has become a persistent workload in cloud and high-performance
-computing (HPC) environments.  Unlike training, inference is paid repeatedly:
-every prompt triggers model execution, KV-cache traffic, communication, and a
-period of node occupancy.  Its energy cost is highly scenario dependent.  A
-long-context scientific assistant emphasizes compute-intensive prefill; a
-coding assistant with long completions emphasizes memory-intensive decode; a
-70B or 405B model introduces tensor or pipeline parallelism; and a multi-node
-deployment adds network transfer, synchronization, and idle gaps.  Even
-configurations with similar throughput can therefore have different joules per
-token and different time-to-first-token (TTFT) or time-per-output-token (TPOT).
+An operator deploying an LLM service must choose more than a GPU.  Batch and
+token limits, chunked prefill, precision, tensor and pipeline parallelism,
+placement, and power policy jointly determine throughput, time to first token
+(TTFT), time per output token (TPOT), and energy.  Their effects also change
+with request geometry: long prompts emphasize prefill compute, long responses
+emphasize memory-intensive decode, and distributed models add collectives,
+pipeline bubbles, and idle synchronization.  Consequently, two configurations
+with similar throughput can differ materially in joules per token or in their
+ability to satisfy a tail-latency service-level objective (SLO).
 
-Recent measurement efforts make this cost observable.  From Words to Watts
-quantified multi-GPU LLM inference energy \cite{samsi2023words}; studies of
-inference engines and workload geometry expose large software- and
-phase-dependent differences \cite{niu2025engines,fernandez2025energy}; and
-\bench\ provides declarative, phase-aligned measurement from a single GPU to
-multi-node models as large as Llama-3.1-405B \cite{niu2026tokenpowerbench}.
-These systems answer an essential question: \emph{what did this inference run
-consume?}
+The measurement path is increasingly mature.  Prior studies quantify LLM
+inference energy across models, engines, and multi-GPU systems
+\cite{samsi2023words,niu2025engines,fernandez2025energy}.  \bench{} further
+provides declarative, phase-aligned GPU, node, and system telemetry from a
+single GPU to multi-node deployments \cite{niu2026tokenpowerbench}.  Such tools
+answer \emph{what did this run consume?}  They do not answer the planning
+question that dominates a new deployment: \emph{given a finite allocation,
+which measurements should be run before selecting a configuration?}
 
-Operators must answer a different question before committing scarce GPU time:
-\emph{which configurations are worth running?}  The cross product of prompt
-and output lengths, batch limits, engines, precisions, tensor and pipeline
-parallelism, placement, and power settings easily creates thousands of
-candidates.  Exhaustive measurement is particularly costly for large models,
-where one candidate may already require an entire node or several nodes.
-Conversely, a simulator calibrated on one GPU cannot faithfully invent
-NVLink/NVSwitch collectives, inter-node fabric behavior, pipeline bubbles, or
-scheduler contention.  The challenge is therefore \textbf{not only better
-energy prediction, but better evidence allocation}: deciding when historical
-data are sufficient, when a small sandbox probe can remove uncertainty, and
-when a full-scale run is unavoidable.
+That question is expensive because the search space and the cost of observing
+it grow together.  A single-GPU probe may reveal prefill, decode, and power-cap
+behavior, but it cannot expose unseen NVLink/NVSwitch contention, inter-node
+fabric behavior, placement, or queueing.  Conversely, measuring every
+configuration at target scale spends the most expensive evidence on candidates
+that a cheap replay or probe could have eliminated.  The useful object is
+therefore neither a universal simulator nor a dense benchmark sweep.  It is a
+policy for deciding \emph{which configuration--fidelity pair to evaluate next}
+and when the remaining uncertainty warrants a target-scale run.
 
-We propose \system, an agentic multi-fidelity Pareto search framework for
-energy-efficient LLM inference on GPU clusters, built on top of \bench.  A user
-supplies a model, workload trace or token distribution, target hardware,
-serving-engine choices, SLOs, and a measurement budget.  A constrained
-language-model planner converts that intent into a typed search task and
-chooses an experiment subgoal; a probabilistic policy then selects an action
-$a=(x,\ell)$ comprising a serving configuration and evidence fidelity.  The
-agent may cheaply simulate an in-domain candidate, calibrate phase behavior on
-one GPU, characterize collectives within a node, sample a multi-node scaling
-point, or verify a top-ranked configuration at target scale.  Predictions
-carry uncertainty and provenance; only accepted telemetry is labeled measured.
+Recent MLSys systems make this distinction important.  BEAM jointly controls
+batching and GPU frequency under SLOs, but assumes an offline energy--performance
+table \cite{lee2026beam}.  BOute applies multi-objective Bayesian optimization
+to routing and deployment choices, while OptiKIT uses full hardware trials to
+tune serving configurations \cite{jiang2026boute,santavas2026optikit}.  Charon
+and a large Meta deployment study make broad configuration search practical
+through calibrated simulation and profiling \cite{yang2026charon,cho2026deployment}.
+PROMPTS adds agent reasoning to distributed configuration recommendation
+\cite{ding2026prompts}.  These systems optimize a configuration, a runtime
+control action, or an agent proposal.  None treats the scale and cost of the
+next measurement as a joint decision variable while requiring measured
+target-scale evidence for every released energy--SLO recommendation.
 
-The design makes the agent operational rather than decorative.  The LLM does
-not estimate joules by free-form reasoning.  Deterministic tools perform
-feasibility checks, simulation, regression, telemetry integration, and Pareto
-analysis.  The agent interprets the scenario, selects tools and calibration
-levels, handles failures, and explains why additional evidence is or is not
-worth its GPU-hour cost.  This tool-grounded, validation-driven structure is
-well aligned with agentic HPC systems, where autonomous decisions must remain
-bounded, inspectable, and reproducible.
+We present \system{}, an agentic multi-fidelity Pareto search framework built on
+\bench{}.  A scenario specifies a model, workload, target cluster, serving
+runtime, SLOs, and a real-measurement budget in GPU-hours.  \system{} compiles a
+typed feasible configuration pool and maintains a cross-fidelity belief over
+energy, TTFT, TPOT, and throughput.  At each step it selects an action
+$a=(x,\ell)$: a serving configuration $x$ and an evidence level $\ell$ ranging
+from historical replay and simulation to single-GPU, intra-node, sparse
+multi-node, and target-scale execution.  Its acquisition criterion, \emph{Intent-
+Conditioned Pareto Information Gain} (\ipig{}), prioritizes the expected reduction
+in uncertainty about the high-fidelity SLO-feasible Pareto set per GPU-hour.
+
+The LLM component is deliberately bounded.  It maps natural-language intent to
+a typed objective, selects an experiment subgoal, interprets failures, and
+produces an evidence-grounded explanation.  Deterministic tools compile
+feasible configurations, calculate acquisition scores, account for cost,
+ingest telemetry, and compute Pareto sets.  Predictions retain fidelity and
+provenance labels, and an independent gate rejects any deployment
+recommendation lacking target-scale measurement.  Thus, the agent reasons
+about \emph{how to acquire evidence}; it never estimates joules through
+free-form language generation.
+
+The current prototype exercises this contract end to end on one H100: it builds
+an L0 profile from repeated L1 measurements, hashes a workload-transfer
+prediction before holdout execution, and validates identity, ordering, error,
+and interval containment.  This first experiment tests the evidence path, not
+the quality of multi-fidelity Pareto search.
 
 This paper makes four contributions:
 \begin{itemize}
-    \item We formulate \emph{agentic multi-fidelity Pareto search for
-    energy-efficient LLM inference}: finding SLO-feasible nondominated
-    configurations while minimizing the real GPU-hours required to identify
-    and verify them.
-    \item We design a phase- and communication-aware \emph{Energy Twin} that
-    separates idle, prefill, decode, intra-node communication, inter-node
-    communication, and serving overhead, with uncertainty attached to every
-    estimate.
-    \item We introduce \emph{Intent-Conditioned Pareto Information Gain}, a
-    decision-directed acquisition criterion that jointly selects configuration
-    and fidelity according to expected information about the SLO-feasible
-    high-fidelity Pareto set per GPU-hour.
-    \item We realize the method as a bounded hybrid agent with typed subgoals,
-    interchangeable replay and cluster executors, failure recovery, provenance,
-    and mandatory target-scale verification, and define an evaluation that
-    separates model, policy, and agent contributions.
+    \item We formulate energy-aware LLM inference tuning as \emph{budgeted
+    configuration--fidelity co-selection}: recover an SLO-feasible
+    energy--performance Pareto set while minimizing the real GPU-hours spent
+    acquiring and verifying evidence.
+    \item We design a cross-fidelity evidence model that separates phase-local
+    compute from intra- and inter-node effects, preserves uncertainty under
+    hardware and scale shifts, and exposes an explicit L0--L4 evidence
+    contract rather than presenting simulation as cluster truth.
+    \item We introduce \ipig{}, an intent-conditioned acquisition policy, and
+    integrate it with a bounded LLM planner, typed executors, failure handling,
+    provenance, and mandatory target-scale verification.
+    \item We implement a provenance-preserving L0/L1 serving path and report a
+    protocol-frozen blind H100 pilot with \PilotMeanMAPE{} four-metric MAPE and
+    \PilotCoverage{} diagnostic interval containment.  We further define the
+    H100/H200/B200 evaluation needed to test Pareto quality per GPU-hour,
+    transfer, target-scale benefit, and the independent value of semantic
+    planning.
 \end{itemize}

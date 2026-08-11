@@ -26,7 +26,7 @@ embedded decision rule is part of the campaign hash and must not be edited
 after predictions are frozen.
 
 `qwen2.5-7b-h100-config-search-v1.json` is the first controlled
-serving-configuration corpus for TokenPowerAgent. It fixes one H100, one
+serving-configuration corpus for ServeCompass. It fixes one H100, one
 Qwen2.5-7B revision, one 2048/128-token workload at concurrency 32, BF16,
 TP=PP=DP=1, prefix caching off, and a 700 W limit. Twelve candidates vary
 `max_num_seqs`, `max_num_batched_tokens`, and chunked prefill; the current
@@ -60,7 +60,7 @@ every repeat, and require `--resume` to continue a partial campaign.
 Freeze the configuration campaign before changing or restarting the server:
 
 ```bash
-tokenpoweragent freeze-config-campaign \
+servecompass freeze-config-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-config-search-v1.json \
   --calibration experiments/results/qwen2.5-7b-h100-workload-v2.json \
   --scenario experiments/results/config-search-v1-scenario.json \
@@ -75,7 +75,7 @@ foreground launch check. `--max-actions` partitions the immutable schedule; it
 does not regenerate or reorder it:
 
 ```bash
-tokenpoweragent run-config-campaign \
+servecompass run-config-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-config-search-v1.json \
   --predictions experiments/results/config-search-v1-l0-predictions.jsonl \
   --schedule experiments/results/config-search-v1-schedule.json \
@@ -95,7 +95,7 @@ After all 72 actions complete, validate the schedule, chronology, evidence
 labels, serving contract, repeats, and raw artifacts before policy replay:
 
 ```bash
-tokenpoweragent validate-config-campaign \
+servecompass validate-config-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-config-search-v1.json \
   --predictions experiments/results/config-search-v1-l0-predictions.jsonl \
   --schedule experiments/results/config-search-v1-schedule.json \
@@ -120,7 +120,7 @@ client outputs, server logs, run log, and environment snapshot.
 Freeze the winner confirmation before starting any new measurement:
 
 ```bash
-tokenpoweragent freeze-config-campaign \
+servecompass freeze-config-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-winner-confirmation-v1.json \
   --calibration experiments/results/qwen2.5-7b-h100-workload-v2.json \
   --scenario experiments/results/winner-confirmation-v1-scenario.json \
@@ -134,7 +134,7 @@ After checking and archiving the freeze, run all 10 L4 actions. The same command
 with `--resume` safely continues after an SSH interruption:
 
 ```bash
-tokenpoweragent run-config-campaign \
+servecompass run-config-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-winner-confirmation-v1.json \
   --predictions experiments/results/winner-confirmation-v1-l0-predictions.jsonl \
   --schedule experiments/results/winner-confirmation-v1-schedule.json \
@@ -149,7 +149,7 @@ Validate the paired result and hash every raw artifact without changing the
 locked selection:
 
 ```bash
-tokenpoweragent validate-config-confirmation \
+servecompass validate-config-confirmation \
   --campaign configs/campaigns/qwen2.5-7b-h100-winner-confirmation-v1.json \
   --predictions experiments/results/winner-confirmation-v1-l0-predictions.jsonl \
   --schedule experiments/results/winner-confirmation-v1-schedule.json \

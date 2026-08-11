@@ -1,22 +1,23 @@
 \begin{table*}[t]
 \centering
-\caption{Minimum evaluation campaign.  Dense sampling is restricted to cheap
-levels; multi-node measurements are selected sparsely and verified at L4.}
+\caption{Planned full evaluation campaign.  The completed pilot is a single
+H100/Qwen2.5-7B L0--L1 workload-transfer test; the remaining rows specify the
+evidence required for the target claims.}
 \label{tab:evaluation-matrix}
 \scriptsize
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{3.5pt}
 \renewcommand{\arraystretch}{1.1}
-\begin{tabular}{p{0.12\textwidth}p{0.33\textwidth}p{0.26\textwidth}p{0.20\textwidth}}
+\begin{tabular}{p{0.12\textwidth}p{0.30\textwidth}p{0.27\textwidth}p{0.20\textwidth}}
 \toprule
-Dimension & Core campaign & Cross-scale / stress slice & Purpose \\
+Dimension & Core campaign & Transfer / stress slice & Claim tested \\
 \midrule
-Models & Llama-3.1-8B and 70B & Optional Qwen2.5-32B transfer slice & Device- and node-scale behavior \\
-Scale & 1 GPU and 2/4/8 GPUs on one node & Two nodes and target arrival trace & L1--L4 fidelity \\
-Hardware & One primary NVIDIA H100/H200-class cluster & Second GPU/interconnect regime if available & Topology transfer \\
-Engines & vLLM primary & One TensorRT-LLM or precision slice & Runtime sensitivity \\
-Workloads & Prefill-heavy and decode-heavy token buckets & Poisson/bursty traces and long context & Phase and queue stress \\
-Knobs & batch/token limits, chunked prefill, TP, power cap & placement, node count, BF16/FP8 where stable & Energy/SLO Pareto space \\
-Held out & random configurations and one token/batch region & one GPU/node count and time-split trace & Interpolation and extrapolation \\
+Hardware & H100, H200, and B200 & Multi-GPU and two-node allocations where available & Hardware and topology transfer \\
+Models & Qwen2.5-7B and Llama-3.1-8B & Qwen2.5-32B or Llama-3.1-70B stress slice & Device, node, and model scale \\
+Scale & 1 GPU for dense coverage & 2, 4, 8, and selected 16-GPU runs & L1--L4 evidence ladder \\
+Runtime & vLLM, BF16 primary & FP8 or one TensorRT-LLM slice & Runtime/precision shift \\
+Workload & short chat, prefill-heavy, decode-heavy, long context & Mixed ShareGPT-derived Poisson and bursty traces & Phase and queueing shift \\
+Knobs & sequence/token limits, chunked prefill, TP/PP, power cap & placement, node count, precision & Coupled energy--SLO space \\
+Holdout & random points and one token/batch region & hardware, scale, and later trace window & Interpolation vs. extrapolation \\
 \bottomrule
 \end{tabular}
 \end{table*}

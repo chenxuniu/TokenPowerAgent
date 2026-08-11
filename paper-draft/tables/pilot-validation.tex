@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering
+\caption{Protocol-frozen blind workload-transfer pilot on one H100.  The L0
+prediction was produced before measurement; the measured column is the median
+$\pm$ MAD over three L1 repeats.  PI indicates whether the pre-frozen prediction
+interval contains the observed median.}
+\label{tab:pilot-validation}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Metric & L0 pred. & L1 measured & APE & PI \\
+\midrule
+Energy (J/1k out.) & \PilotPredEnergy & $\PilotObsEnergy\!\pm\!\PilotMADEnergy$ & \PilotEnergyAPE & \cmark \\
+Throughput (tok/s) & \PilotPredThroughput & $\PilotObsThroughput\!\pm\!\PilotMADThroughput$ & \PilotThroughputAPE & \cmark \\
+P95 TTFT (ms) & \PilotPredTTFT & $\PilotObsTTFT\!\pm\!\PilotMADTTFT$ & \PilotTTFTAPE & \cmark \\
+P95 TPOT (ms) & \PilotPredTPOT & $\PilotObsTPOT\!\pm\!\PilotMADTPOT$ & \PilotTPOTAPE & \cmark \\
+\midrule
+Four-metric summary & -- & -- & \PilotMeanMAPE & \PilotCoverage \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -251,12 +251,19 @@ def _run_agent(
     )
 
 
+def _program_name() -> str:
+    invoked = Path(sys.argv[0]).name
+    if invoked in {"servecompass", "tokenpoweragent"}:
+        return invoked
+    return "servecompass"
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="tokenpoweragent")
+    parser = argparse.ArgumentParser(prog=_program_name())
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     replay = subparsers.add_parser(
-        "replay", help="run one bounded TokenPowerAgent replay episode"
+        "replay", help="run one bounded ServeCompass replay episode"
     )
     replay.add_argument("--scenario", type=Path, required=True)
     replay.add_argument("--records", type=Path, required=True)

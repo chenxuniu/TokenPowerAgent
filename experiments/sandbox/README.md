@@ -1,6 +1,6 @@
 # TokenPowerSandbox L1 Smoke Experiment
 
-This experiment validates the smallest real-hardware TokenPowerAgent loop:
+This experiment validates the smallest real-hardware ServeCompass loop:
 
 ```text
 typed candidate -> restricted Docker container -> CUDA GEMM
@@ -40,7 +40,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[dev]'
 
-tokenpoweragent sandbox-smoke \
+servecompass sandbox-smoke \
   --power-limits 350,500,700 \
   --repeats 3 \
   --matrix-size 16384 \
@@ -137,7 +137,7 @@ sudo docker network connect tpa-serving-bench tpa-vllm-qwen7b
 Run a long-enough 700 W pilot after the server health check passes:
 
 ```bash
-tokenpoweragent serving-smoke \
+servecompass serving-smoke \
   --power-limits 700 \
   --repeats 1 \
   --input-len 512 \
@@ -174,7 +174,7 @@ Declare `--dataset-split calibration` for fitting points and
 construction rejects records not explicitly assigned to the calibration split.
 
 ```bash
-tokenpoweragent build-calibration \
+servecompass build-calibration \
   --records experiments/results/qwen7b-serving-pl700.jsonl \
   --template configs/calibration/qwen2.5-7b-h100-profile-template.json \
   --profile-id qwen2.5-7b-h100-l1-v1 \
@@ -191,7 +191,7 @@ Compile the core TP/PP/batching grid and remove geometry/memory-infeasible
 candidates:
 
 ```bash
-tokenpoweragent expand-space \
+servecompass expand-space \
   --space configs/search_spaces/qwen2.5-7b-core-grid.json \
   --scenario configs/scenarios/topology_sandbox_demo.json \
   --calibration experiments/results/qwen2.5-7b-h100-l1-v1.json \
@@ -202,7 +202,7 @@ Then obtain an analytical `L0-A` or topology-aware `L0-T` prediction. Both
 backends run on CPU and emit evidence with `level=L0`:
 
 ```bash
-tokenpoweragent sandbox-predict \
+servecompass sandbox-predict \
   --scenario configs/scenarios/topology_sandbox_demo.json \
   --calibration experiments/results/qwen2.5-7b-h100-l1-v1.json \
   --backend l0-t \
@@ -222,7 +222,7 @@ Hash the prediction before collecting measurements, label every blind run with
 `--dataset-split holdout`, and then generate a machine-checkable comparison:
 
 ```bash
-tokenpoweragent validate-holdout \
+servecompass validate-holdout \
   --predictions experiments/results/holdout-c1024-o128-c16-l0.jsonl \
   --measurements experiments/results/qwen7b-holdout-c1024-o128-c16.jsonl \
   --freeze-manifest experiments/results/holdout-c1024-o128-c16-freeze.sha256 \
@@ -245,7 +245,7 @@ fixed while varying context length and concurrency over six pre-registered
 validation points. Freeze all predictions before running any of them:
 
 ```bash
-tokenpoweragent freeze-workload-campaign \
+servecompass freeze-workload-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-validation-v1.json \
   --calibration experiments/results/qwen2.5-7b-h100-l1-v1.json \
   --backend l0-a \
@@ -259,7 +259,7 @@ manifest and live server contract, uses a cyclically balanced order, and
 checkpoints after every measurement:
 
 ```bash
-tokenpoweragent run-serving-campaign \
+servecompass run-serving-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-validation-v1.json \
   --predictions experiments/results/workload-transfer-validation-v1-predictions.jsonl \
   --freeze-manifest experiments/results/workload-transfer-validation-v1-freeze.sha256 \
@@ -275,7 +275,7 @@ After the raw measurement JSONL and its referenced client/DCGM files have been
 sealed in a SHA-256 manifest, generate the validation report:
 
 ```bash
-tokenpoweragent validate-workload-campaign \
+servecompass validate-workload-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-validation-v1.json \
   --predictions experiments/results/workload-transfer-validation-v1-predictions.jsonl \
   --measurements experiments/results/workload-transfer-validation-v1-measurements.jsonl \
@@ -303,7 +303,7 @@ does not fit energy independently. The resulting profile remains explicitly
 development-only until a disjoint final holdout has been completed:
 
 ```bash
-tokenpoweragent fit-workload-residuals \
+servecompass fit-workload-residuals \
   --profile experiments/results/qwen2.5-7b-h100-l1-v1.json \
   --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-validation-v1.json \
   --report experiments/results/workload-transfer-validation-v1-report.json \
@@ -322,7 +322,7 @@ Freeze all eight unseen context-by-concurrency combinations before measuring
 any of them:
 
 ```bash
-tokenpoweragent freeze-workload-campaign \
+servecompass freeze-workload-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-holdout-v2.json \
   --calibration experiments/results/qwen2.5-7b-h100-workload-v2.json \
   --backend l0-a \
@@ -335,7 +335,7 @@ Archive and inspect the profile, fit diagnostics, predictions, summary, and
 freeze manifest. Only then run the 24 measurements:
 
 ```bash
-tokenpoweragent run-serving-campaign \
+servecompass run-serving-campaign \
   --campaign configs/campaigns/qwen2.5-7b-h100-workload-transfer-holdout-v2.json \
   --predictions experiments/results/workload-transfer-holdout-v2-predictions.jsonl \
   --freeze-manifest experiments/results/workload-transfer-holdout-v2-freeze.sha256 \

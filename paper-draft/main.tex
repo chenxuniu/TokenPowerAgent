@@ -1,32 +1,30 @@
-\documentclass[conference]{IEEEtran}
+\documentclass{article}
 
-\IEEEoverridecommandlockouts
-
-\usepackage{cite}
-\usepackage{amsmath,amssymb}
+% Provisional submission format: MLSys 2027 has not released its style as of
+% July 2026, so this draft uses the official MLSys 2026 review template.
+\usepackage{microtype}
+\usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{multirow}
-\usepackage{url}
+\usepackage{xurl}
 \usepackage[table]{xcolor}
-\usepackage{graphicx}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,backgrounds,calc,fit,positioning,shapes.geometric}
 \usepackage{pifont}
-\usepackage{algorithm}
-\usepackage[noend]{algpseudocode}
-\usepackage{listings}
-\usepackage{microtype}
-\usepackage{balance}
-\usepackage[hidelinks]{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage[hidelinks,hypertexnames=false]{hyperref}
 
-\newcommand{\system}{TokenPowerAgent}
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\usepackage{mlsys2026}
+
+\newcommand{\system}{ServeCompass}
 \newcommand{\bench}{TokenPowerBench}
 \newcommand{\ipig}{IPIG}
 \newcommand{\cmark}{\textcolor{tpTealDark}{\ding{51}}}
 \newcommand{\pmark}{\textcolor{tpGoldDark}{\raisebox{0.1ex}{\scriptsize$\triangle$}}}
 \newcommand{\xmark}{\textcolor{tpGray}{\ding{55}}}
-\newcommand{\draftvalue}[1]{\textcolor{tpDraft}{\textbf{#1}}}
+\newcommand{\draftvalue}[1]{\textcolor{tpDraft}{\textbf{[#1]}}}
 
 \definecolor{tpTeal}{HTML}{4EA995}
 \definecolor{tpTealDark}{HTML}{256F63}
@@ -44,50 +42,43 @@
 \definecolor{tpGrayLight}{HTML}{EDF0F1}
 \definecolor{tpDraft}{HTML}{7B6B52}
 
-\lstdefinestyle{scenario}{
-  basicstyle=\ttfamily\scriptsize,
-  frame=single,
-  rulecolor=\color{tpGray},
-  backgroundcolor=\color{tpGrayLight},
-  breaklines=true,
-  columns=fullflexible,
-  xleftmargin=0.2em,
-  xrightmargin=0.2em
-}
-
 \input{results/metrics}
+
+\mlsystitlerunning{ServeCompass: Verified Multi-Fidelity Search}
 
 \begin{document}
 
-\bstctlcite{IEEEexample:BSTcontrol}
+\twocolumn[
+\mlsystitle{ServeCompass: Agentic Multi-Fidelity Discovery of Verified
+LLM Deployment Profiles}
 
-\title{\system: Agentic Multi-Fidelity Pareto Search for\\
-Energy-Efficient LLM Inference on GPU Clusters}
+% The review style suppresses this block. Replace it only for camera-ready.
+\begin{mlsysauthorlist}
+\mlsysauthor{Anonymous Author(s)}{anon}
+\end{mlsysauthorlist}
+\mlsysaffiliation{anon}{Anonymous Institution}
+\mlsyscorrespondingauthor{Anonymous Author}{anonymous@example.com}
+\mlsyskeywords{LLM inference, deployment profiles, multi-fidelity optimization,
+Pareto search, AI agents, GPU clusters}
 
-\author{%
-\IEEEauthorblockN{Chenxu Niu, Batuhan Sencer, Jie Li, and Yong Chen}
-\IEEEauthorblockA{Department of Computer Science, Texas Tech University\\
-Lubbock, Texas, USA\\
-\{chenxu.niu, batuhan.sencer, jie.li, yong.chen\}@ttu.edu}}
-
-\maketitle
-
+\vskip 0.3in
 \input{sections/00-abstract-keywords}
+]
+
+\printAffiliationsAndNotice{}
+
 \input{sections/01-introduction}
 \input{sections/02-motivation}
-\input{sections/03-related-work}
 \input{sections/04-problem-formulation}
 \input{sections/05-design}
 \input{sections/06-implementation}
 \input{sections/07-evaluation}
 \input{sections/08-results}
-\input{sections/09-artifact}
+\input{sections/03-related-work}
 \input{sections/10-limitations}
 \input{sections/11-conclusion}
-\input{sections/99-acknowledgment}
 
-\balance
-\bibliographystyle{IEEEtran}
 \bibliography{references}
+\bibliographystyle{mlsys2026}
 
 \end{document}

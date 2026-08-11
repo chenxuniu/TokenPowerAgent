@@ -1,13 +1,47 @@
-% Centralized result macros. Replace values here after running experiments.
-% The manuscript intentionally uses visible neutral placeholders and never
-% presents simulated or invented values as measurements.
-\newcommand{\EnergyMAPE}{\draftvalue{TBD}}
-\newcommand{\TPOTMAPE}{\draftvalue{TBD}}
-\newcommand{\Coverage}{\draftvalue{TBD}}
-\newcommand{\ParetoRecall}{\draftvalue{TBD}}
-\newcommand{\HypervolumeGain}{\draftvalue{TBD}}
-\newcommand{\MeasurementReduction}{\draftvalue{TBD}}
-\newcommand{\EnergySaving}{\draftvalue{TBD}}
-\newcommand{\SLOPassRate}{\draftvalue{TBD}}
-\newcommand{\InvalidActionRate}{\draftvalue{TBD}}
-\newcommand{\AgentOverhead}{\draftvalue{TBD}}
+% Centralized result macros. Pilot values below come from the frozen
+% H100/Qwen2.5-7B blind workload-transfer report generated on 2026-08-03.
+% The remaining labels must be replaced only by validated pipeline output.
+\newcommand{\PilotCalibrationRepeats}{3}
+\newcommand{\PilotHoldoutRepeats}{3}
+\newcommand{\PilotMeanMAPE}{25.0\%}
+\newcommand{\PilotMaxAPE}{38.4\%}
+\newcommand{\PilotEnergyAPE}{38.4\%}
+\newcommand{\PilotThroughputAPE}{19.6\%}
+\newcommand{\PilotTTFTAPE}{16.6\%}
+\newcommand{\PilotTPOTAPE}{25.4\%}
+\newcommand{\PilotCoverage}{4/4}
+\newcommand{\PilotCVRange}{0.34--3.80\%}
+\newcommand{\PilotRelativeUncertainty}{43.6\%}
+
+\newcommand{\PilotPredEnergy}{444.80}
+\newcommand{\PilotObsEnergy}{321.38}
+\newcommand{\PilotMADEnergy}{2.53}
+\newcommand{\PilotPredThroughput}{1382.52}
+\newcommand{\PilotObsThroughput}{1719.00}
+\newcommand{\PilotMADThroughput}{9.45}
+\newcommand{\PilotPredTTFT}{308.92}
+\newcommand{\PilotObsTTFT}{370.49}
+\newcommand{\PilotMADTTFT}{10.99}
+\newcommand{\PilotPredTPOT}{11.05}
+\newcommand{\PilotObsTPOT}{8.81}
+\newcommand{\PilotMADTPOT}{0.03}
+
+\newcommand{\PilotCalibrationEnergy}{417.89}
+\newcommand{\PilotCalibrationThroughput}{1133.29}
+\newcommand{\PilotCalibrationTTFT}{108.87}
+\newcommand{\PilotCalibrationTPOT}{6.74}
+
+% Full-campaign headline values remain intentionally unresolved.
+\newcommand{\EnergyMAPE}{\draftvalue{energy MAPE}}
+\newcommand{\TPOTMAPE}{\draftvalue{TPOT MAPE}}
+\newcommand{\Coverage}{\draftvalue{interval coverage}}
+\newcommand{\SparseProbeGain}{\draftvalue{sparse-probe error reduction}}
+\newcommand{\ParetoRecall}{\draftvalue{Pareto recall}}
+\newcommand{\HypervolumeGain}{\draftvalue{hypervolume-regret reduction}}
+\newcommand{\MeasurementReduction}{\draftvalue{GPU-hour reduction}}
+\newcommand{\TransferReduction}{\draftvalue{transfer GPU-hour reduction}}
+\newcommand{\EnergySaving}{\draftvalue{verified energy saving}}
+\newcommand{\SLOPassRate}{\draftvalue{SLO pass rate}}
+\newcommand{\AgentSuccessDelta}{\draftvalue{planner success delta}}
+\newcommand{\InvalidActionRate}{\draftvalue{invalid-action rate}}
+\newcommand{\AgentOverhead}{\draftvalue{agent overhead}}

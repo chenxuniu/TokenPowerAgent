@@ -1,17 +1,26 @@
 \section{Artifact and Reproducibility}
 
-The companion \system\ artifact contains scenario schemas, replay and cluster
-executors, job templates, simulator adapters, Energy Twin interfaces, and the
-multi-fidelity agent controller, while importing measurements through the
-existing \bench\ schema.  Each paper figure and table is regenerated from
-immutable raw records through a checked-in script.  A small artifact path
-reproduces an L0 replay episode without GPUs; the full path reproduces L1--L4
-jobs on an HPC allocation.
+The current \system{} artifact contains typed evidence schemas, replay and
+single-GPU serving executors, a topology sandbox, calibration and campaign
+builders, freeze manifests, blind-holdout validation, immutable job templates,
+and tests for the relevant contracts.  The L2--L4 live scheduler path and final
+agent policy remain under development as stated in Section~6.  A lightweight
+path reproduces L0 prediction without GPUs; the measured path runs the pinned
+vLLM client/server workflow on one GPU.
 
-For every result, the artifact records evidence level, telemetry scope
-(GPU/component/node/facility), hardware topology, driver/CUDA/runtime versions,
-model revision, container digest, random seed, sampling interval, clock and
-power state, scheduler job ID, and raw-data checksum.  Simulated,
-interpolated, extrapolated, and measured values remain machine-readable labels.
-The released package will include an Artifact Description and Artifact
-Evaluation appendix following the SC26 reproducibility initiative.
+For every measured record, the artifact stores evidence level and split,
+hardware, driver/CUDA/runtime versions, model and tokenizer revisions,
+container IDs, serving command and parsed knobs, random seed, sampling
+interval, power state, measurement boundary, telemetry paths, and raw-data
+checksums.  Simulated, interpolated, extrapolated, measured, and verified values
+remain distinct machine-readable labels.  The pilot's calibration source,
+frozen prediction, freeze manifest, and holdout measurements are independently
+hashed; the validator records both temporal ordering and comparability checks
+in its output report.
+
+The anonymous review artifact will include the full digests and exact commands,
+plus a claim manifest mapping Table~\ref{tab:pilot-validation} to the source
+JSONL and generated validation JSON.  It will also include the frozen six-point
+validation campaign so that unmeasured protocol decisions cannot be changed in
+response to their eventual outcomes.  Identifying URLs and acknowledgments are
+added only after review.

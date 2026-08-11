@@ -1,14 +1,20 @@
-# TokenPowerAgent
+# ServeCompass
 
-TokenPowerAgent is a research framework for **agentic multi-fidelity Pareto
-search for energy-efficient LLM inference on GPU clusters**. It treats tuning
-as an evidence-allocation problem: which serving configuration should be
-examined next, at what fidelity, and when is target-scale verification worth
-its GPU-hour cost?
+ServeCompass is a research framework for **sandbox-guided, agentic
+multi-fidelity discovery of verified LLM deployment profiles**. Given a model,
+workload, target cluster, SLOs, and a real-measurement budget, it explores
+serving, batching, parallelism, placement, and power settings to recover the
+energy--latency--throughput frontier. It treats tuning as an evidence-allocation
+problem: which configuration should be examined next, at what fidelity, and
+when is target-scale verification worth its GPU-hour cost?
 
 The current code is an executable research scaffold. Simulated and
 extrapolated records are labeled as such and are never treated as completed
 paper experiments.
+
+`servecompass` is the preferred command. The existing `tokenpoweragent` Python
+package, command, environment variables, and provenance identifiers remain
+available for backward compatibility with frozen experiments.
 
 ## MLSys 2027 Target
 
@@ -73,14 +79,14 @@ TokenPowerBench adapter are explicit next implementation milestones.
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e .
-tokenpoweragent replay \
+servecompass replay \
   --scenario configs/scenarios/replay_demo.json \
   --records configs/replay/demo_records.jsonl \
   --policy ipig \
   --max-steps 5 \
   --output experiments/results/replay-agent-run.json
 
-tokenpoweragent benchmark-replay \
+servecompass benchmark-replay \
   --scenario configs/scenarios/replay_demo.json \
   --records configs/replay/demo_records.jsonl \
   --policies ipig,random,cost-blind,cheapest-first \
@@ -99,7 +105,7 @@ Run the same bounded planner against an OpenAI-compatible endpoint:
 export TOKENPOWERAGENT_LLM_BASE_URL=http://127.0.0.1:8001/v1
 export TOKENPOWERAGENT_LLM_MODEL=qwen2.5-7b-agent
 
-tokenpoweragent replay \
+servecompass replay \
   --scenario configs/scenarios/replay_demo.json \
   --records configs/replay/demo_records.jsonl \
   --planner llm \
@@ -114,7 +120,7 @@ Pareto computation, and L4-only final recommendations remain deterministic.
 Render a target-scale Slurm job without submitting it:
 
 ```bash
-tokenpoweragent render-slurm \
+servecompass render-slurm \
   --scenario configs/scenarios/replay_demo.json \
   --candidate cfg-efficient \
   --level L4
@@ -128,7 +134,7 @@ sudo docker build --pull \
   -t tokenpower-sandbox:cuda12.8 \
   experiments/sandbox/cuda-gemm
 
-tokenpoweragent sandbox-smoke \
+servecompass sandbox-smoke \
   --power-limits 350,500,700 \
   --repeats 3 \
   --output experiments/results/h100-gemm-smoke.jsonl
@@ -141,7 +147,7 @@ Build a non-publication calibration profile from repeated 700 W L1 serving
 records, then run the topology sandbox:
 
 ```bash
-tokenpoweragent build-calibration \
+servecompass build-calibration \
   --records experiments/results/qwen7b-serving-pl700.jsonl \
   --template configs/calibration/qwen2.5-7b-h100-profile-template.json \
   --profile-id qwen2.5-7b-h100-l1-v1 \
@@ -149,7 +155,7 @@ tokenpoweragent build-calibration \
   --min-repeats 3 \
   --output experiments/results/qwen2.5-7b-h100-l1-v1.json
 
-tokenpoweragent sandbox-predict \
+servecompass sandbox-predict \
   --scenario configs/scenarios/topology_sandbox_demo.json \
   --calibration experiments/results/qwen2.5-7b-h100-l1-v1.json \
   --backend l0-t \
@@ -216,8 +222,8 @@ they are replaced by measured data.
    with sealed final holdouts (51 blind measurements in total).
 7. H100/H200/B200 multi-GPU and multi-node validation: pending measured experiments.
 
-See [`docs/TokenPowerAgent-Complete-Workflow.md`](docs/TokenPowerAgent-Complete-Workflow.md)
+See [`docs/ServeCompass-Complete-Workflow.md`](docs/ServeCompass-Complete-Workflow.md)
 for the full method,
-[`docs/TokenPowerAgent-Agent-Experiments.md`](docs/TokenPowerAgent-Agent-Experiments.md)
+[`docs/ServeCompass-Agent-Experiments.md`](docs/ServeCompass-Agent-Experiments.md)
 for the runnable agent evaluation, and
 [`experiments/README.md`](experiments/README.md) for the measurement protocol.

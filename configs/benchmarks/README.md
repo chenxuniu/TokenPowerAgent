@@ -31,12 +31,12 @@ sensitivity analyses over three measured repeats, not additional GPU runs.
 Run both experiments from the repository root:
 
 ```bash
-tokenpoweragent benchmark-planner \
+servecompass benchmark-planner \
   --protocol configs/benchmarks/qwen2.5-7b-planner-conformance-v2-holdout.json \
   --planner-base-url http://127.0.0.1:8000/v1 \
   --output experiments/results/planner-conformance-v2-holdout.json
 
-tokenpoweragent benchmark-budget-sweep \
+servecompass benchmark-budget-sweep \
   --scenario experiments/results/config-search-v1-scenario.json \
   --records experiments/results/config-search-v1-replay-corpus.jsonl \
   --protocol configs/benchmarks/qwen2.5-7b-h100-budget-sweep-v1.json \
